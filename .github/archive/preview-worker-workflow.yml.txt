@@ -1,0 +1,39 @@
+name: Preview
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch or commit to test on the separate demo-only preview Worker'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: preview
+  cancel-in-progress: false
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: preview
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CF_PREVIEW_D1_ID: ${{ vars.CF_PREVIEW_D1_ID }}
+      CF_PRODUCTION_D1_ID: ${{ vars.CF_PRODUCTION_D1_ID }}
+      CLOUDFLARE_ENV: preview
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ inputs.ref }}'}
+      - uses: pnpm/action-setup@v4
+        with: {version: 10.31.0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22.22.0', cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: node scripts/configure-cloudflare.mjs preview
+      - run: pnpm build
+      - run: node scripts/local-qa.mjs
+      - run: pnpm run deploy:preview
+      # Only a maintainer runs this against trusted code. Use an independently
+      # provisioned preview account/token and demo database; never production secrets.

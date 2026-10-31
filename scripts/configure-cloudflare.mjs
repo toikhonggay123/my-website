@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+const target=process.argv[2]||'production';
+if(!['production','preview'].includes(target))throw Error('Use production or preview');
+const config=JSON.parse(fs.readFileSync('wrangler.jsonc','utf8'));
+const prefix=target==='production'?'CF_PRODUCTION':'CF_PREVIEW';
+const id=process.env[prefix+'_D1_ID'];
+if(!/^[a-f0-9]{8}-[a-f0-9-]{27}$/i.test(id||'')||id.startsWith('00000000-'))throw Error('Set '+prefix+'_D1_ID to a real D1 database ID');
+const other=process.env[target==='production'?'CF_PREVIEW_D1_ID':'CF_PRODUCTION_D1_ID'];
+if(id===other)throw Error('Preview and production must use different D1 databases');
+const section=target==='production'?config:config.env.preview;
+section.d1_databases[0].database_id=id;
+fs.writeFileSync('wrangler.jsonc',JSON.stringify(config,null,2)+'\n');
+console.log('Configured '+target+' D1 binding (no credentials written).');

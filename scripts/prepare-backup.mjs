@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {restoreBackup} from './backup-format.mjs';
+const input=process.argv[2],output=process.argv[3];
+if(!input||!output||!path.resolve(output).split(path.sep).some(p=>p==='.migration-private'))throw Error('Usage: node scripts/prepare-backup.mjs BACKUP.json PATH/.migration-private/name-restore.sql');
+const raw=fs.readFileSync(input),backup=JSON.parse(raw),result=restoreBackup(backup);
+fs.mkdirSync(path.dirname(output),{recursive:true});
+fs.writeFileSync(output,result.sql,{flag:'wx'});
+const report={backupSha256:createHash('sha256').update(raw).digest('hex'),startedAt:backup.startedAt,finishedAt:backup.finishedAt,consistentSnapshot:false,counts:result.counts,tableHashes:result.hashes,migrations:result.migrations};
+fs.writeFileSync(output+'.manifest.json',JSON.stringify(report,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({validated:true,counts:result.counts,backupSha256:report.backupSha256,consistentSnapshot:false}));

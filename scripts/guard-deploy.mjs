@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const config=JSON.parse(fs.readFileSync('wrangler.jsonc','utf8'));
+const target=process.argv[2]||'production';
+if(!['production','preview'].includes(target))throw Error('Invalid deployment target');
+const section=target==='production'?config:config.env.preview;
+const id=section.d1_databases[0].database_id;
+if(!id||id.startsWith('00000000-'))throw Error('Deployment blocked: configure a real '+target+' D1 binding first.');
+if(config.d1_databases[0].database_id===config.env.preview.d1_databases[0].database_id)throw Error('Deployment blocked: databases must be isolated.');
+const built=JSON.parse(fs.readFileSync('dist/server/wrangler.json','utf8'));
+if(built.d1_databases?.find(d=>d.binding==='DB')?.database_id!==id||built.name!==section.name)throw Error('Deployment blocked: rebuild for the configured target; build output does not match.');
+console.log('Deployment configuration checked: '+target);

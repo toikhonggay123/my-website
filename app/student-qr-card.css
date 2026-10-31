@@ -1,0 +1,36 @@
+/* The card stays horizontal at every viewport. Print uses physical ID-card dimensions. */
+.student-id-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:28px 24px;align-items:start;padding:28px;border:1px solid #e0e8ef;border-radius:20px;background:radial-gradient(ellipse at 4% 8%,#d1f2edb3,transparent 45%),radial-gradient(ellipse at 95% 70%,#e6e0f9ba,transparent 48%),#eef3f8}
+.qr-card-item{min-width:0;width:100%;max-width:480px;justify-self:center;container-type:inline-size}
+.student-id-card{position:relative;isolation:isolate;display:grid;grid-template-columns:54% minmax(0,1fr);align-items:center;gap:4%;width:100%;aspect-ratio:85.6/54;padding:3.5%;border:1px solid #ffffffed;border-radius:3.7cqw;overflow:hidden;text-align:left;background:radial-gradient(ellipse at 0% 5%,#a8e8e453,transparent 70%),radial-gradient(ellipse at 100% 100%,#c3b4f273,transparent 65%),linear-gradient(133deg,#ffffffea,#f7fbfc9c 52%,#eff6fbbf);box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 #ffffffab,0 12px 30px -15px #43647b60,0 1px 3px #405c7a12;backdrop-filter:blur(18px) saturate(145%);-webkit-backdrop-filter:blur(18px) saturate(145%)}
+.student-id-card::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(128deg,#ffffffa6,transparent 38%,#ffffff38 52%,transparent 65%);box-shadow:inset 0 0 0 1px #ffffff8c;border-radius:inherit}
+.qr-card-code-area{min-width:0;display:flex;flex-direction:column;align-items:center;gap:1.8cqw}
+.qr-card-qr{width:100%;aspect-ratio:1;background:#fff;line-height:0;overflow:hidden}
+.qr-card-qr>img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+.qr-card-code-area>span{color:#456875;font-size:1.9cqw;font-weight:650;letter-spacing:.15cqw;white-space:nowrap}
+.qr-card-info{align-self:stretch;min-width:0;display:flex;flex-direction:column;align-items:flex-start;padding:1cqw 0 .5cqw;gap:1.55cqw;color:#183b54}
+.qr-card-brand{display:flex;align-items:center;gap:1.3cqw;white-space:nowrap;font-size:3.15cqw;font-weight:750;line-height:1.1;letter-spacing:-.08cqw}
+.qr-card-brand>svg{width:3.6cqw;height:3.6cqw;flex-shrink:0;stroke-width:2;color:#276677}
+.qr-card-brand em{font-weight:450;font-size:2.8cqw;color:#31576e}
+.qr-card-school{margin:0;font-size:2.2cqw;line-height:1.4;color:#4c6676}
+.qr-card-type{font-size:2cqw;font-weight:700;letter-spacing:.18cqw;color:#38667b;margin-top:.5cqw}
+.qr-card-info>h2{margin:0;font-size:3.8cqw;font-weight:750;line-height:1.18;letter-spacing:-.07cqw;color:#17364f;overflow-wrap:anywhere}
+.qr-card-info>h2.long-name{font-size:3.25cqw}
+.qr-card-class{display:flex;flex-wrap:wrap;gap:1.4cqw;line-height:1.2;margin-top:.4cqw}
+.qr-card-class>span{display:flex;align-items:baseline;gap:1cqw;border:1px solid #ffffffb3;border-radius:1.3cqw;padding:1cqw 1.4cqw;background:#ffffff70;font-size:1.9cqw;font-weight:550;color:#405d72;white-space:nowrap}
+.qr-card-class b{font-size:2.8cqw;font-weight:750;color:#20465f}
+.qr-card-student-code{display:flex;flex-direction:column;gap:.7cqw;margin-top:.3cqw;max-width:100%}
+.qr-card-student-code>span{font-size:1.8cqw;letter-spacing:.12cqw;font-weight:600;color:#466277}
+.qr-card-student-code>b{font:700 2.9cqw/1.15 Consolas,'Courier New',monospace;color:#193d58;overflow-wrap:anywhere;max-width:100%}
+.qr-card-footer{margin-top:auto;padding-top:1cqw;color:#4d687b;font-size:1.65cqw;font-weight:600;letter-spacing:.14cqw}
+.qr-card-item .qr-card-actions{margin-top:15px;gap:12px}
+.qr-card-item .qr-card-actions .secondary{font-size:11px;min-height:36px}
+.qr-card-download-error{font-size:12px;color:#ae3434;margin:10px 0 0}
+@media(max-width:600px){.student-id-grid{padding:14px;gap:24px;border-radius:15px}.qr-card-item .qr-card-actions{justify-content:flex-start;gap:9px}.qr-card-item .qr-card-actions .secondary{font-size:11px;padding:9px 12px}}
+@media print{
+ @page{size:A4 portrait;margin:8mm}
+ .student-id-grid{display:grid!important;grid-template-columns:repeat(2,85.6mm)!important;gap:2mm 6mm!important;justify-content:center;padding:0!important;margin:0!important;background:none!important;border:0!important;border-radius:0!important}
+ .qr-card-item{width:85.6mm!important;max-width:85.6mm!important;height:54mm!important;margin:0!important;break-inside:avoid;page-break-inside:avoid}
+ .student-id-card{box-sizing:border-box;width:85.6mm!important;height:54mm!important;min-height:54mm!important;aspect-ratio:auto;box-shadow:inset 0 0 0 .15mm #cbdce5;backdrop-filter:none;-webkit-backdrop-filter:none;border:.15mm solid #cbdce5;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ .qr-card-actions,.qr-card-download-error{display:none!important}
+ .qr-cards-page{margin:0!important;padding:0!important}
+}
