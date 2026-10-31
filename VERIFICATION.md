@@ -1,5 +1,12 @@
 # Xác minh và bàn giao source — 31/10/2026
 
+## Màn quét theo ảnh tham chiếu — 31/10/2026
+
+- Mobile dùng camera toàn trang, khung vuông bo góc, AFYLLX MealCheck, thanh kính chọn bữa/đổi camera/lịch sử và ba tác vụ ảnh/camera/thẻ học sinh. Desktop giữ sidebar quản trị. Camera và fullscreen nằm trong tùy chọn góc trên; flash chỉ bật khi track hỗ trợ.
+- Giữ popup tick xanh animation + họ tên/lớp/mã, 3 giây ngay giữa khung; ghi nhận ngay, không khóa quét tiếp. Không đổi luồng xác thực QR, offline pending, chống trùng hay cơ sở dữ liệu.
+- `pnpm check` (58 tests, lint/TypeScript), local/cloud builds và QA HTTP riêng: PASS. Hash 34 học sinh/34 QR local giữ nguyên.
+- Visual/interaction QA vẫn BLOCKED: Browser use báo disabled kể cả sau khi người dùng gắn @Browser; không có screenshot của bản mới. Xem design-qa.md. Chủ dự án sau đó chỉ định tiếp tục GitHub và link Cloudflare hiện tại; kết quả build/deploy không được gọi là visual pass. Chưa thử camera/flash/rung/wake lock trên điện thoại thật.
+
 ## Hướng dẫn, Excel và popup trong camera — 31/10/2026
 
 - Thêm menu Hướng dẫn sử dụng và đường dẫn `/quan-tri?tab=guide`; nội dung cho giáo viên gồm cài PWA, quét, chờ offline, lịch sử/báo cáo, in/cấp lại thẻ, quản lý danh sách/thiết bị và reset/khôi phục.

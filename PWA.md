@@ -33,3 +33,7 @@ Nguồn kỹ thuật: [MDN PWA installation](https://developer.mozilla.org/en-US
 ## Máy quét tự bật tiện ích
 
 Âm báo, rung khi xác nhận, nhớ bữa trong ngày trên thiết bị và giữ màn hình sáng lúc camera chạy luôn được bật; không còn nút/công tắc cho bốn mục này. Các thiết lập tắt cũ không được sử dụng. Âm báo cần thao tác mở camera/chọn ảnh; rung và giữ sáng phụ thuộc hỗ trợ của thiết bị. Popup kính mờ xuất hiện ngay trong vùng camera sau xác nhận máy chủ, tự ẩn sau 3 giây và không chặn quét tiếp. Quét trùng dùng thông báo màu vàng, không tính thêm suất; mất mạng chỉ báo chờ đồng bộ.
+
+## Giao diện quét tập trung
+
+Màn quét trên điện thoại phủ toàn trang, camera làm nền, khung vuông bo góc và đường quét chuyển động (tắt chuyển động khi người dùng bật reduced motion). Thanh dưới chọn bữa, đổi camera và mở lịch sử; ba nút Chọn ảnh QR, Mở/Tắt camera và Thẻ học sinh. Tùy chọn camera và toàn màn hình nằm ở góc trên; đèn flash chỉ hoạt động khi track hỗ trợ. Camera không tự xin quyền khi mở trang, giáo viên chủ động bấm Mở camera. Desktop giữ sidebar và khung quét lớn. Popup 3 giây nằm chính giữa khung, không khóa quét tiếp hoặc trì hoãn lưu; offline tiếp tục chờ xác nhận như trước.
