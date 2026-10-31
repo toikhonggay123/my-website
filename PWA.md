@@ -6,7 +6,7 @@ Android: mở bằng Chrome, bấm Cài ứng dụng; nếu trình duyệt chưa
 
 ## Lưu trên từng thiết bị
 
-- Công tắc âm báo, rung, nhớ bữa và giữ màn hình sáng lưu ở localStorage; mặc định tắt. Nhớ bữa chỉ áp dụng trong cùng ngày Việt Nam. Rung và giữ màn hình sáng phụ thuộc hỗ trợ trình duyệt. Âm thanh cần tương tác người dùng để bật; iOS có thể không hỗ trợ rung web.
+- Âm báo, rung, nhớ bữa và giữ màn hình sáng tự bật, không có công tắc. Chỉ bữa đã chọn trong cùng ngày Việt Nam được lưu trên máy; các cờ tắt trước đây không còn được dùng. Rung và giữ sáng phụ thuộc hỗ trợ trình duyệt. Mở camera/chọn ảnh sẽ chuẩn bị âm thanh; iOS có thể không hỗ trợ rung web.
 - Camera/giải mã ảnh QR chạy trên thiết bị. Tab ẩn sẽ dừng camera. Wake lock được nhả khi dừng quét và thử xin lại khi quay về nếu camera còn chạy.
 - Lượt quét chờ nằm trong IndexedDB, chỉ có ciphertext QR, mã yêu cầu, môi trường, phiên ăn, thời điểm và trạng thái. Không lưu họ tên, danh sách học sinh hoặc khóa giải mã trong hàng đợi.
 - Phải mở máy quét một lần khi có mạng trên chính app/thiết bị để đăng ký máy quét. iOS có thể tách dữ liệu Safari và app Màn hình chính; hãy mở app đã cài khi có mạng lần đầu.
@@ -29,3 +29,7 @@ Unit tests kiểm tra chờ offline, trùng bữa, mất phản hồi sau ghi, g
 Đã thử trên trình duyệt với QA riêng: quét ảnh online; tắt máy chủ rồi quét ảnh khác bữa tạo đúng một pending không hiện thành công; nối lại máy chủ làm số lượt tăng 4 lên 5 và hàng đợi hết; cập nhật service worker qua nút trong app; tải lại từ shell khi máy chủ tắt; giao diện 390px/412px và hướng dẫn iOS/Android không tràn. Chưa cài thử trên điện thoại Android/iPhone thật hoặc thử camera, rung và wake lock bằng phần cứng thật.
 
 Nguồn kỹ thuật: [MDN PWA installation](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable), [WebKit Home Screen web apps](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/), [MDN Screen Wake Lock](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API).
+
+## Máy quét tự bật tiện ích
+
+Âm báo, rung khi xác nhận, nhớ bữa trong ngày trên thiết bị và giữ màn hình sáng lúc camera chạy luôn được bật; không còn nút/công tắc cho bốn mục này. Các thiết lập tắt cũ không được sử dụng. Âm báo cần thao tác mở camera/chọn ảnh; rung và giữ sáng phụ thuộc hỗ trợ của thiết bị. Popup kính mờ xuất hiện ngay trong vùng camera sau xác nhận máy chủ, tự ẩn sau 3 giây và không chặn quét tiếp. Quét trùng dùng thông báo màu vàng, không tính thêm suất; mất mạng chỉ báo chờ đồng bộ.

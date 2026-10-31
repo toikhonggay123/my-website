@@ -12,9 +12,9 @@ Database thật ở `.wrangler/local-state`. Không nhập đè/khởi tạo l�
 
 ## Chức năng hiện tại
 
-- PWA cho Android/iPhone, QR/link cài ngay đầu dashboard và trang `/cai-dat`. Tùy chọn âm/rung/nhớ bữa/giữ sáng lưu trên từng máy. Mất mạng lưu QR mã hóa vào hàng đợi trên máy, chỉ báo thành công sau khi máy chủ xác nhận. Xem [PWA.md](PWA.md) cho cách cài, đồng bộ và giới hạn.
+- PWA cho Android/iPhone, QR/link cài ngay đầu dashboard và trang `/cai-dat`. Âm báo, rung, nhớ bữa hôm nay và giữ sáng khi quét tự bật; không cần công tắc. Mất mạng lưu QR mã hóa vào hàng đợi trên máy, chỉ báo thành công sau khi máy chủ xác nhận. Xem [PWA.md](PWA.md) cho cách cài, đồng bộ và giới hạn.
 
-- Giáo viên chọn bữa và quét QR; tự ghi nhận, chống trùng ngày/bữa, thông báo thành công không chặn quét tiếp; âm báo tùy chọn, toàn màn hình nếu trình duyệt hỗ trợ.
+- Giáo viên chọn bữa và quét QR; tự ghi nhận, chống trùng ngày/bữa, thông báo thành công không chặn quét tiếp; âm báo tự bật, toàn màn hình nếu trình duyệt hỗ trợ.
 - Thẻ học sinh liquid glass ngang 85,6 × 54 mm: QR lớn bên trái, thông tin bên phải; PNG cả thẻ 300 dpi và in theo khổ thẻ. Tải lại thẻ đã cấp không cần khóa, không sinh/cấp lại token; quét vẫn cần khóa gốc.
 - Báo cáo, lịch sử và danh sách chưa điểm danh theo ngày/bữa/lớp.
 - **Xuất danh sách Excel ngày hôm nay** tạo `.xls` BIFF8 thật, chia trang tổng hợp, ba bữa, từng lớp và chưa điểm danh. Ngày do server tính theo giờ Việt Nam; bỏ qua bộ lọc lịch sử.
@@ -38,3 +38,9 @@ node scripts/local-qa.mjs
 ```
 
 QA tự tạo database và khóa QR thử riêng, không đụng dữ liệu thật hoặc `.dev.vars`. Không chạy `initialize-local.mjs` hoặc migration lên database thật. DEPLOYMENT/CONTRIBUTING, CLOUDFLARE_DEMO và ví dụ workflow trong .github/archive là tài liệu lịch sử. CI kiểm tra source, local build, QA và cloud-live build; Workers Builds triển khai bản chính thức theo wrangler.cloud.jsonc. Đây là Workers, không phải Pages. Roster/token được nhập riêng sau xác nhận của chủ dự án; không có trong source/CI. Khóa cloud mới được lưu trong runtime secret; khóa gốc cũ không khôi phục được.
+
+## Hướng dẫn giáo viên và báo cáo ngày
+
+Menu **Hướng dẫn sử dụng** cung cấp quy trình quét QR, cài Android/iOS, xử lý lượt chờ khi mất mạng, tra cứu, xuất Excel, in/cấp lại thẻ và đặt lại/khôi phục điểm danh. Có thể mở trực tiếp `/quan-tri?tab=guide`.
+
+File báo cáo ngày `.xls` có các trang **Tổng hợp**, **Bữa sáng**, **Bữa trưa**, **Bữa tối**, **Lớp ...** và **Chưa đủ ba bữa**. Bảng có nhóm tiêu đề, ngày dd/mm/yyyy, nhãn đầy đủ, viền/màu, dòng tổng và cố định 7 dòng đầu. Đây là BIFF8 thật; vẫn giữ mã có số 0 đầu, tiếng Việt và chống thực thi công thức từ nội dung học sinh.

@@ -43,7 +43,7 @@ const csv=await fetch(base+'/api/export?space=demo');assert.equal(csv.status,200
 const xlsx=await fetch(base+'/api/export?space=demo&format=xlsx');assert.equal(xlsx.status,200);assert.match(xlsx.headers.get('content-type'),/spreadsheetml/);
 const xls=await fetch(base+'/api/export/today?space=demo&from=2000-01-01&to=2000-01-01&class=wrong&date=2000-01-01');assert.equal(xls.status,200);assert.match(xls.headers.get('content-type'),/application\/vnd.ms-excel/);assert.match(xls.headers.get('content-disposition'),new RegExp(board.date+'\\.xls'));
 const bytes=new Uint8Array(await xls.arrayBuffer());assert.equal(Buffer.from(bytes.slice(0,8)).toString('hex'),'d0cf11e0a1b11ae1');
-const workbook=read(bytes,{type:'array'});assert.ok(workbook.SheetNames.includes('LOP_6A1'));assert.equal(utils.sheet_to_json(workbook.Sheets.BUA_SANG,{header:1}).length,1005);
+const workbook=read(bytes,{type:'array'});assert.ok(workbook.SheetNames.includes('Lớp 6A1'));assert.equal(utils.sheet_to_json(workbook.Sheets['Bữa sáng'],{header:1}).length,1007);
 await call('daily?space=demo',undefined,pupil.cookie);assert.equal((await call('daily?space=demo')).data.students.length,1000);
 await call('events?space=demo',undefined,'',404);
 await call('approval?space=demo',{required:true},'',403,{Origin:'https://wrong.example.test'});

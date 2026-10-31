@@ -1,5 +1,14 @@
 # Xác minh và bàn giao source — 31/10/2026
 
+## Hướng dẫn, Excel và popup trong camera — 31/10/2026
+
+- Thêm menu Hướng dẫn sử dụng và đường dẫn `/quan-tri?tab=guide`; nội dung cho giáo viên gồm cài PWA, quét, chờ offline, lịch sử/báo cáo, in/cấp lại thẻ, quản lý danh sách/thiết bị và reset/khôi phục.
+- Báo cáo ngày BIFF8 `.xls` đổi tên các trang sang tiếng Việt, nhóm cột theo bữa, tiêu đề/ngày dd/mm/yyyy, màu/viền, dòng tổng, chiều cao dòng và cố định 7 dòng đầu. Kiểm thử đọc lại chữ Việt, mã số 0 đầu, chống công thức, tổng số học sinh đang theo dõi và lượt của học sinh đã ngừng theo dõi. API QA xuất đủ 1.000 học sinh giả lập.
+- Popup xác nhận chuyển vào chính vùng camera: tick xanh có animation, kính mờ, họ tên/lớp/mã, tự ẩn 3 giây; không trì hoãn ghi nhận hay khóa camera. Trùng có màu vàng và không thêm suất; offline vẫn chỉ pending cho tới server ack.
+- Bỏ bốn công tắc âm/rung/nhớ bữa/giữ sáng. Tự bật tiện ích, bỏ qua các cờ tắt cũ; chỉ khôi phục bữa đã lưu đúng ngày. Rung/giữ sáng/âm thanh phụ thuộc nền tảng; chuẩn bị âm thanh khi người dùng mở camera/chọn ảnh.
+- `pnpm check`: lint, TypeScript và 58 tests PASS. Build local và QA HTTP riêng PASS. Không ghi thử lên database thật; hash 34 học sinh và 34 QR local không đổi.
+- Đã mở mẫu Excel có dữ liệu giả trong Microsoft Excel để xem tiêu đề/nhóm cột/màu; lần cuối sửa thêm chiều cao dòng và bỏ chọn nhiều sheet được kiểm tra bằng đọc BIFF8. Điều khiển UI sau đó bị dừng bằng Escape, nên chưa kiểm tra trực quan trang hướng dẫn/popup cuối hoặc quét camera điện thoại thật. Không suy ra kiểm thử thiết bị thật từ build/unit/API tests.
+
 ## PWA Android/iOS — 31/10/2026
 
 - 56 tests, lint, TypeScript, build local/cloud và QA HTTP riêng: PASS. Manifest/icon/Apple metadata, safe-area và QR cài app được thêm; app không đổi database/khóa/QR hiện tại.

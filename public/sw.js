@@ -1,4 +1,4 @@
-const CACHE='mealcheck-pwa-v4';
+const CACHE='mealcheck-pwa-v5';
 const PUBLIC=['/offline.html','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/icons/icon-maskable-512.png','/icons/apple-touch-icon.png','/install-qr.svg'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const response=await fetch('/precache.json',{cache:'no-store'});if(!response.ok)throw Error('PWA asset list unavailable');
