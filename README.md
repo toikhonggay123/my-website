@@ -1,6 +1,6 @@
-# AFYLLX MealCheck — localhost
+# AFYLLX MealCheck — localhost và bản demo Cloudflare
 
-Ứng dụng chạy trên máy tại http://localhost:3000/quan-tri. Chủ dự án đã cho phép bàn giao source qua nhánh main của toikhonggay123/my-website. Database thật và khóa vẫn chỉ lưu trên máy. Source cục bộ là thư mục này dù tên lịch sử là `mealcheck-cloud`.
+Ứng dụng thật chạy trên máy tại http://localhost:3000/quan-tri. Chủ dự án đã cho phép bàn giao source qua nhánh main của toikhonggay123/my-website và triển khai Cloudflare chỉ với dữ liệu giả lập. Database thật và khóa vẫn chỉ lưu trên máy. Xem [CLOUDFLARE_DEMO.md](CLOUDFLARE_DEMO.md) cho bản demo, build và cộng tác GitHub. Source cục bộ là thư mục này dù tên lịch sử là `mealcheck-cloud`.
 
 Bấm `MO_MEALCHECK.cmd` ở thư mục cha để bật; `DUNG_MEALCHECK.cmd` để tắt. Server chỉ lắng nghe `127.0.0.1`. Đã bỏ hẳn đăng nhập, tài khoản giáo viên và API cấp quyền; mở ứng dụng là vào quản trị. Không dùng danh tính từ header của khách.
 
@@ -35,4 +35,4 @@ node scripts/local-qa.mjs
 .\Start-Local.ps1
 ```
 
-QA tự tạo database và khóa QR thử riêng, không đụng dữ liệu thật hoặc `.dev.vars`. Không chạy `initialize-local.mjs` hoặc migration lên database thật. Các tệp DEPLOYMENT/CONTRIBUTING và ví dụ workflow trong .github/archive là tài liệu lịch sử. Chỉ CI kiểm tra source/build/QA được bật trên main. Runtime hiện là local/Workers; chưa có adapter Cloudflare Pages, binding D1 trên cloud hoặc khóa QR gốc trên cloud. Push GitHub không xác nhận một bản triển khai Pages đã hoạt động.
+QA tự tạo database và khóa QR thử riêng, không đụng dữ liệu thật hoặc `.dev.vars`. Không chạy `initialize-local.mjs` hoặc migration lên database thật. Các tệp DEPLOYMENT/CONTRIBUTING và ví dụ workflow trong .github/archive là tài liệu lịch sử. CI kiểm tra source, local build, QA và demo build; Cloudflare Workers Builds triển khai bản demo theo cấu hình riêng. Đây là Workers, không phải Pages; dữ liệu thật và khóa QR gốc không có trên cloud.

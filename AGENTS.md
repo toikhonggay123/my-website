@@ -1,6 +1,6 @@
 # AFYLLX MealCheck
 
-- Latest owner instruction authorizes reviewing, committing and pushing this source to main of toikhonggay123/my-website without force push. Do not create another repository or modify the old hosted Site. Keep real data local; do not provision or migrate Cloudflare data without a separate instruction.
+- Latest owner instruction authorizes reviewing, committing and pushing to main of toikhonggay123/my-website without force push, plus public Cloudflare hosting with synthetic demo data only. A new isolated demo D1 and demo-only QR key are authorized. SucVatHoaThan's Write invitation was confirmed and accepted; GitHub verifies Write access. Do not create another repository or modify the old hosted Site. Never upload real data, cards or the original QR key.
 - Active local URL is http://localhost:3000/quan-tri. Use Start-Local.ps1 / Stop-Local.ps1; keep real data in .wrangler/local-state.
 - The real database was imported and verified. Never reinitialize or overwrite it. The original QR secret is unavailable; do not replace it without explicit approval for a card-reissue plan.
 

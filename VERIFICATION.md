@@ -39,6 +39,17 @@ Các workflow Worker production/preview cũ được giữ tại `.github/archiv
 
 ## Rà soát trước commit
 
+### Bổ sung bản demo Cloudflare — 31/10/2026
+
+- Chủ dự án đã xác nhận bật Cloudflare chỉ với dữ liệu demo, tạo D1 mới và QR key riêng cho demo; giữ toàn bộ dữ liệu thật/khóa gốc trên máy. Hạn chế local-only trước đó được giữ cho dữ liệu thật.
+- Worker `my-website` tại https://my-website.fyllxestonia.workers.dev/quan-tri đã triển khai qua cấu hình demo riêng. Lỗi cũ do Cloudflare bỏ bước build và chạy raw Wrangler trên virtual entry của Vinext. Đã lưu build command `pnpm check && pnpm build:demo`, deploy command `pnpm deploy:demo`.
+- Source check, lint, TypeScript, 50 unit tests, local build, HTTP QA riêng và demo build: PASS.
+- HTTP trên cloud demo: PASS — xác minh demoOnly trước mọi ghi; 1.000 mã TEST giả lập; QR/key demo; hai lượt liên tiếp và chống trùng; reset/restore; từ chối live và nhập/sửa roster; CSRF; ngày hôm nay do server tính; workbook `.xls` BIFF8 đầy đủ các trang.
+- Phát hiện Cloudflare 1102 khi server tạo workbook 1.000 học sinh. Bản cloud chuyển sang trang `/xuat-excel`, tải JSON hôm nay rồi tạo cùng file BIFF8 trong trình duyệt. Endpoint `.xls` local giữ nguyên. Test xác minh chuyển hướng cloud, JSON ngày server và workbook generator; chưa bấm tải bản sửa cuối trên trình duyệt vì người dùng đã tắt Local browser use. Không khẳng định đã kiểm thử thao tác tải file cuối trên UI.
+- Trước bản sửa Excel cuối, đã kiểm tra dashboard cloud hiển thị demo/1.000 học sinh; không có môi trường chính thức hoặc nút nhập/sửa danh sách. Camera vật lý, Android và máy in vẫn chưa kiểm thử.
+- GitHub API đã xác minh `SucVatHoaThan` có quyền Write sau lời mời được chủ dự án xác nhận.
+- Các mục Git/Cloudflare ở trên mô tả lần bàn giao local đầu tiên; tài liệu triển khai hiện hành là `CLOUDFLARE_DEMO.md`.
+
 - Gitleaks 8.30.1 từ bản phát hành chính thức, đối chiếu SHA256 trước khi chạy.
 - Scan staged snapshot: 152 tệp source, khoảng 610 KB; không phát hiện bí mật.
 - Gate tên tệp: không có `.dev.vars`, database, `.wrangler`, backup, `.local-server`, `.tool-state`, APK hoặc khóa ký trong index.

@@ -6,4 +6,4 @@ declare namespace Cloudflare {
 }
 
 
-declare namespace Cloudflare {interface Env {MEALCHECK_QR_KEY?:string; MEALCHECK_QA_MODE?:string;}}
+declare namespace Cloudflare {interface Env {MEALCHECK_QR_KEY?:string; MEALCHECK_QA_MODE?:string; MEALCHECK_DEPLOYMENT?:string; MEALCHECK_PUBLIC_HOST?:string;}}
