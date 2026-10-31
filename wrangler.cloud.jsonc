@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-website",
+  "account_id": "dbe7e43add9b24b62bed8c25d05b419e",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": {"enabled": false},
+  "vars": {
+    "MEALCHECK_DEPLOYMENT": "cloud-live",
+    "MEALCHECK_PUBLIC_HOST": "my-website.fyllxestonia.workers.dev"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "afyllx-mealcheck-live-20261031",
+    "database_id": "34ef2bb4-c150-4464-b532-0ceae01cc5f7",
+    "migrations_dir": "drizzle"
+  }]
+}

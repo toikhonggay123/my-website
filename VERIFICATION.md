@@ -1,5 +1,15 @@
 # Xác minh và bàn giao source — 31/10/2026
 
+## Chuyển Cloudflare sang dữ liệu thật — 31/10/2026
+
+- Chủ dự án xác nhận nhập file danh sách thật lên Cloudflare, chấp nhận quản trị công khai không đăng nhập và cho phép QR mới dùng ngay. Khóa gốc cũ không có bản sao; khóa demo được thay bằng khóa live mới, không ghi ra file hoặc Git.
+- Đã kiểm tra 34 dòng, không trùng mã, khớp 34 học sinh local. Chỉ nhập mã, họ tên, khối và lớp; không nhập các cột thông tin riêng khác. Không có giá trị roster trong commit.
+- Tạo D1 live tách riêng; áp schema đã rà soát; nhập roster và 34 QR mã hóa đã kiểm tra giải mã trước khi lưu. Đối chiếu toàn bộ giá trị nhập/QR trên D1 khớp bản chuẩn bị. Không tạo điểm danh thử cho học sinh thật.
+- Sau khi chuyển Worker sang cloud-live: xác minh qua API 34 học sinh, 34 QR ổn định không thiếu/trùng, 0 điểm danh test; từ chối demo/seed/QA endpoint; xuất hôm nay lấy dữ liệu live. Database demo cũ đã xóa.
+- 52 tests, lint, TypeScript và source checks PASS; local/cloud build và QA riêng được kiểm tra trước bàn giao. Cookie live tách khỏi cookie demo cũ; không thay đổi kiểm tra thu hồi.
+- Localhost và 34 QR cũ được giữ, không nhập đè database local. Mẫu thẻ ngang/PNG/in hiện có được giữ nguyên. Camera vật lý chưa thử; thao tác tải Excel trên trình duyệt bản cuối chưa thử vì điều khiển trình duyệt đang tắt.
+- Cấu hình hiện hành: CLOUDFLARE_LIVE.md. Các đoạn bên dưới lưu kết quả các lần bàn giao trước.
+
 Repository đích được chủ dự án xác nhận: https://github.com/toikhonggay123/my-website, nhánh `main`. Đây là lần bàn giao source đầu tiên; trước đó local chưa có commit hoặc remote.
 
 ## Kiểm tra ứng dụng

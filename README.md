@@ -1,6 +1,6 @@
-# AFYLLX MealCheck — localhost và bản demo Cloudflare
+# AFYLLX MealCheck — localhost và Cloudflare
 
-Ứng dụng thật chạy trên máy tại http://localhost:3000/quan-tri. Chủ dự án đã cho phép bàn giao source qua nhánh main của toikhonggay123/my-website và triển khai Cloudflare chỉ với dữ liệu giả lập. Database thật và khóa vẫn chỉ lưu trên máy. Xem [CLOUDFLARE_DEMO.md](CLOUDFLARE_DEMO.md) cho bản demo, build và cộng tác GitHub. Source cục bộ là thư mục này dù tên lịch sử là `mealcheck-cloud`.
+Ứng dụng chạy trên máy tại http://localhost:3000/quan-tri và trên Cloudflare. Chủ dự án đã xác nhận thay dữ liệu demo trên cloud bằng danh sách thật, chấp nhận quản trị công khai không đăng nhập và cấp QR mới riêng cho cloud. Xem [CLOUDFLARE_LIVE.md](CLOUDFLARE_LIVE.md) cho cấu hình hiện hành; CLOUDFLARE_DEMO.md chỉ là lịch sử. Source được đồng bộ qua main của toikhonggay123/my-website; dữ liệu, token và khóa không có trong Git. Database local cùng thẻ cũ vẫn giữ nguyên.
 
 Bấm `MO_MEALCHECK.cmd` ở thư mục cha để bật; `DUNG_MEALCHECK.cmd` để tắt. Server chỉ lắng nghe `127.0.0.1`. Đã bỏ hẳn đăng nhập, tài khoản giáo viên và API cấp quyền; mở ứng dụng là vào quản trị. Không dùng danh tính từ header của khách.
 
@@ -35,4 +35,4 @@ node scripts/local-qa.mjs
 .\Start-Local.ps1
 ```
 
-QA tự tạo database và khóa QR thử riêng, không đụng dữ liệu thật hoặc `.dev.vars`. Không chạy `initialize-local.mjs` hoặc migration lên database thật. Các tệp DEPLOYMENT/CONTRIBUTING và ví dụ workflow trong .github/archive là tài liệu lịch sử. CI kiểm tra source, local build, QA và demo build; Cloudflare Workers Builds triển khai bản demo theo cấu hình riêng. Đây là Workers, không phải Pages; dữ liệu thật và khóa QR gốc không có trên cloud.
+QA tự tạo database và khóa QR thử riêng, không đụng dữ liệu thật hoặc `.dev.vars`. Không chạy `initialize-local.mjs` hoặc migration lên database thật. DEPLOYMENT/CONTRIBUTING, CLOUDFLARE_DEMO và ví dụ workflow trong .github/archive là tài liệu lịch sử. CI kiểm tra source, local build, QA và cloud-live build; Workers Builds triển khai bản chính thức theo wrangler.cloud.jsonc. Đây là Workers, không phải Pages. Roster/token được nhập riêng sau xác nhận của chủ dự án; không có trong source/CI. Khóa cloud mới được lưu trong runtime secret; khóa gốc cũ không khôi phục được.

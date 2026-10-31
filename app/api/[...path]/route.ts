@@ -4,7 +4,7 @@ import { makeXlsx } from '@/lib/files.mjs';
 import { makeDailyXls } from '@/lib/daily-report.mjs';
 import {resetPreview,resetBackups,restoreReset} from '@/lib/reset-backup.mjs';
 import {localAdminUser} from '@/lib/access.mjs';
-import {deploymentPolicy,deploymentSpace,allowDemoOperation} from '@/lib/deployment.mjs';
+import {deploymentPolicy,deploymentSpace,allowDemoOperation,deploymentCookies} from '@/lib/deployment.mjs';
 import { studentCards, issuedStudentCards, reissueStudentCard, scanStudentCard } from '@/lib/qr.mjs';
 import { discardRequestBody } from '@/lib/http-body.mjs';
 export const dynamic='force-dynamic';
@@ -18,24 +18,25 @@ async function handle(req:Request,{params}:any){
   const contentLength=Number(req.headers.get('content-length')||0);if(contentLength>2_000_000)throw new AppError('Tệp quá lớn.',413);
   const policy=deploymentPolicy(url,env),space=deploymentSpace(url,policy);
   allowDemoOperation(policy,route,req.method);
-  if(route==='health'&&req.method==='GET')return json({app:'AFYLLX MealCheck',deployment:policy.mode,demoOnly:policy.demoOnly,database:true,disposableTestDatabase:!policy.demoOnly&&env.MEALCHECK_QA_MODE==='true'});
+  if(route==='health'&&req.method==='GET')return json({app:'AFYLLX MealCheck',deployment:policy.mode,demoOnly:policy.demoOnly,database:true,disposableTestDatabase:!policy.publicCloud&&env.MEALCHECK_QA_MODE==='true'});
   // A new disposable QA database cannot recognize cookies from a previous QA run.
   // This helper never exists on the real local application and does not bypass revocation there.
   if(route==='qa/browser-reset'&&req.method==='GET'){
-    if(policy.demoOnly||env.MEALCHECK_QA_MODE!=='true')throw new AppError('Không tìm thấy chức năng.',404);
+    if(policy.publicCloud||env.MEALCHECK_QA_MODE!=='true')throw new AppError('Không tìm thấy chức năng.',404);
     return json({qaBrowserReset:true},200,{'Set-Cookie':'mc_scanner=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0'});
   }
-  const token=cookie(req),device=await app.device(token),user=policy.demoOnly?{...localAdminUser(),id:'demo-admin',name:'Quản trị bản demo',email:'Quản trị bản demo'}:localAdminUser();
-  if(route==='identity'&&req.method==='GET')return json({localAdmin:!policy.demoOnly,publicDemo:policy.demoOnly,defaultSpace:policy.defaultSpace,deployment:policy.mode,user});
+  const cookies=deploymentCookies(policy),token=cookie(req,cookies.device),device=await app.device(token),user=policy.publicCloud?{...localAdminUser(),id:policy.demoOnly?'demo-admin':'cloud-admin',name:policy.demoOnly?'Quản trị bản demo':'Quản trị nhà trường',email:policy.demoOnly?'Quản trị bản demo':'Quản trị nhà trường'}:localAdminUser();
+  if(route==='identity'&&req.method==='GET')return json({localAdmin:!policy.publicCloud,publicCloud:policy.publicCloud,publicDemo:policy.demoOnly,defaultSpace:policy.defaultSpace,deployment:policy.mode,user});
   const text=req.method==='POST'?await req.text():'';if(text.length>2_000_000)throw new AppError('Dữ liệu quá lớn.',413);let body:any={};if(text){try{body=JSON.parse(text);}catch{throw new AppError('Dữ liệu JSON không hợp lệ.');}}
   if(route==='device/start'&&req.method==='POST'){
     // Browser identity is issued by the server; pupils never enter a device code.
     if(device)return json({device});
     if(token)throw new AppError('Thiết bị này đã bị tạm dừng. Vui lòng báo giáo viên.',403);
     if(policy.demoOnly&&body.space==='live')throw new AppError('Bản công khai chỉ sử dụng dữ liệu giả lập.',403);
+    if(policy.liveOnly&&body.space==='demo')throw new AppError('Môi trường thử nghiệm đã được tắt.',403);
     const requestedSpace=policy.demoOnly||body.space==='demo'?'demo':'live';
     const d=await app.enrollDevice(requestedSpace,'Nhà ăn · '+crypto.randomUUID().slice(0,6),'student-device');
-    return json({device:await app.device(d.token)},200,{'Set-Cookie':`mc_device=${d.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${url.protocol==='https:'?'; Secure':''}`});
+    return json({device:await app.device(d.token)},200,{'Set-Cookie':`${cookies.device}=${d.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${url.protocol==='https:'?'; Secure':''}`});
   }
   if(route.startsWith('kiosk/')){
     if(!device)throw new AppError('Thiết bị chưa được đăng ký hoặc đã bị thu hồi.',403);
@@ -51,14 +52,14 @@ async function handle(req:Request,{params}:any){
   const actor=user.email;
   if(route==='qr/config'&&req.method==='GET')return json({configured:/^[A-Za-z0-9_-]{43}$/.test(env.MEALCHECK_QR_KEY||'')});
   if(route==='qr/scanner/start'&&req.method==='POST'){
-    const raw=cookie(req,'mc_scanner'),scanner=await app.device(raw);
+    const raw=cookie(req,cookies.scanner),scanner=await app.device(raw);
     if(raw&&!scanner)throw new AppError('Thiết bị quét đã bị thu hồi. Vui lòng liên hệ quản trị.',403);
     if(scanner?.space===space)return json({scanner,date:localClock().date});
     const enrolled=await app.enrollDevice(space,'Máy quét QR · '+crypto.randomUUID().slice(0,6),actor);
-    return json({scanner:await app.device(enrolled.token),date:localClock().date},200,{'Set-Cookie':`mc_scanner=${enrolled.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${url.protocol==='https:'?'; Secure':''}`});
+    return json({scanner:await app.device(enrolled.token),date:localClock().date},200,{'Set-Cookie':`${cookies.scanner}=${enrolled.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${url.protocol==='https:'?'; Secure':''}`});
   }
   if(route==='qr/scan'&&req.method==='POST'){
-    const scanner=await app.device(cookie(req,'mc_scanner'));
+    const scanner=await app.device(cookie(req,cookies.scanner));
     if(!scanner||scanner.space!==space)throw new AppError('Mở máy quét của môi trường hiện tại trước khi quét.',403);
     const result=await scanStudentCard(app,env,scanner,body.token,body.id,body.sessionId,actor);
     return json(result);
@@ -68,7 +69,7 @@ async function handle(req:Request,{params}:any){
   if(route==='decide'&&req.method==='POST'){if(typeof body.approve!=='boolean')throw new AppError('Quyết định không hợp lệ.');const r=await app.decide(space,body.id,body.approve,actor);return json(r);}
   if(route==='records'&&req.method==='GET')return json(await app.records(space,from,to,url.searchParams.get('meal')||'',url.searchParams.get('grade')||'',url.searchParams.get('class')||''));
   if(route==='students'&&req.method==='GET')return json(await app.roster(space,{includeInactive:true}));
-  if(route==='export/today'&&policy.demoOnly&&req.method==='GET')return new Response(null,{status:303,headers:{Location:'/xuat-excel','Cache-Control':'no-store'}});
+  if(route==='export/today'&&policy.publicCloud&&req.method==='GET')return new Response(null,{status:303,headers:{Location:'/xuat-excel','Cache-Control':'no-store'}});
   if(['daily','daily/today','export/today'].includes(route)&&req.method==='GET'){
     const reportDate=route==='daily'?date:localClock().date;
     const data={date:reportDate,space,students:await app.roster(space,{includeInactive:true}),records:await app.records(space,reportDate,reportDate)};

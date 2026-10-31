@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import {spawnSync} from 'node:child_process';
 const action=process.argv[2];
 if(!['build','deploy'].includes(action))throw Error('Use build or deploy');
+if(action==='deploy')throw Error('Demo hosting has been retired. Use pnpm deploy:cloud for the authorized live deployment.');
 const config=JSON.parse(fs.readFileSync('wrangler.demo.jsonc','utf8'));
 if(config.name!=='my-website'||config.vars?.MEALCHECK_DEPLOYMENT!=='cloud-demo'||!config.vars?.MEALCHECK_PUBLIC_HOST)throw Error('Invalid demo deployment configuration');
 const binding=config.d1_databases?.find(d=>d.binding==='DB');
