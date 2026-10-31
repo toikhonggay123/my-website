@@ -1,5 +1,13 @@
 # Xác minh và bàn giao source — 31/10/2026
 
+## PWA Android/iOS — 31/10/2026
+
+- 56 tests, lint, TypeScript, build local/cloud và QA HTTP riêng: PASS. Manifest/icon/Apple metadata, safe-area và QR cài app được thêm; app không đổi database/khóa/QR hiện tại.
+- UI QA dùng 1.000 học sinh giả: đã kiểm tra pending IndexedDB khi tắt máy chủ, không có tick thành công; khôi phục kết nối làm đúng một lượt tăng (4 → 5), pending được xóa. Tải lại shell khi máy chủ tắt và cập nhật service worker qua nút trong app: PASS.
+- Kiểm tra viewport 390×844 và 412×915, trang cài Android/iPhone không tràn ngang; icon/manifest/viewport metadata đúng. QR/link cài ở trên nội dung dashboard.
+- API và POST không đi vào Cache API; precache chỉ gồm shell HTML không có roster và asset công khai có hash. Hàng đợi không lưu tên hoặc khóa, chỉ ciphertext và metadata yêu cầu; ack chỉ sau server xác thực. Giữ nguyên ID khi gửi lại, 4xx giữ lỗi để kiểm tra.
+- Chưa cài PWA, thử camera/rung/wake lock trên điện thoại Android/iPhone thật. Không gọi đó là kiểm thử thiết bị thật. Chi tiết vận hành trong PWA.md.
+
 ## Chuyển Cloudflare sang dữ liệu thật — 31/10/2026
 
 - Chủ dự án xác nhận nhập file danh sách thật lên Cloudflare, chấp nhận quản trị công khai không đăng nhập và cho phép QR mới dùng ngay. Khóa gốc cũ không có bản sao; khóa demo được thay bằng khóa live mới, không ghi ra file hoặc Git.

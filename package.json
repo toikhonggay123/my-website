@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "node scripts/cli.mjs vinext dev --port 5173 --hostname 127.0.0.1",
-    "build": "node scripts/cli.mjs vinext build",
+    "build": "node scripts/cli.mjs vinext build && node scripts/build-pwa-precache.mjs",
     "build:cloud": "node scripts/cloud-release.mjs build",
     "deploy:cloud": "node scripts/cloud-release.mjs deploy",
     "build:demo": "node scripts/cloud-release.mjs build",

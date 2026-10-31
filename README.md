@@ -12,6 +12,8 @@ Database thật ở `.wrangler/local-state`. Không nhập đè/khởi tạo l�
 
 ## Chức năng hiện tại
 
+- PWA cho Android/iPhone, QR/link cài ngay đầu dashboard và trang `/cai-dat`. Tùy chọn âm/rung/nhớ bữa/giữ sáng lưu trên từng máy. Mất mạng lưu QR mã hóa vào hàng đợi trên máy, chỉ báo thành công sau khi máy chủ xác nhận. Xem [PWA.md](PWA.md) cho cách cài, đồng bộ và giới hạn.
+
 - Giáo viên chọn bữa và quét QR; tự ghi nhận, chống trùng ngày/bữa, thông báo thành công không chặn quét tiếp; âm báo tùy chọn, toàn màn hình nếu trình duyệt hỗ trợ.
 - Thẻ học sinh liquid glass ngang 85,6 × 54 mm: QR lớn bên trái, thông tin bên phải; PNG cả thẻ 300 dpi và in theo khổ thẻ. Tải lại thẻ đã cấp không cần khóa, không sinh/cấp lại token; quét vẫn cần khóa gốc.
 - Báo cáo, lịch sử và danh sách chưa điểm danh theo ngày/bữa/lớp.

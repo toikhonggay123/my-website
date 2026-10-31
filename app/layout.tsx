@@ -1,15 +1,21 @@
-import type { Metadata } from "next";
+import type { Metadata,Viewport } from "next";
+import {PwaRuntime} from './pwa';
+import './pwa.css';
 import "./globals.css";
 import "./student-qr-card.css";
 
 export const metadata: Metadata = {
   title: "AFYLLX MealCheck · Na Rì",
-  description: "Quản lý điểm danh suất ăn nội trú với giáo viên xác nhận.",
+  description: "Quét QR và điểm danh suất ăn nội trú.",
+  manifest:'/manifest.webmanifest',
+  appleWebApp:{capable:true,title:'MealCheck',statusBarStyle:'default'},
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
+    apple:'/icons/apple-touch-icon.png',
   },
 };
+export const viewport:Viewport={width:'device-width',initialScale:1,viewportFit:'cover',themeColor:'#3264e6'};
 
 export default function RootLayout({
   children,
@@ -18,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased"><PwaRuntime/>{children}</body>
     </html>
   );
 }

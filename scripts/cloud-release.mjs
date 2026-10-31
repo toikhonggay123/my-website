@@ -15,4 +15,5 @@ if(action==='deploy'){
 }
 const result=spawnSync(process.execPath,['scripts/cli.mjs',...(action==='build'?['vinext','build']:['wrangler','deploy','--config','dist/server/wrangler.json','--env',''])],{stdio:'inherit',env:{...process.env,MEALCHECK_BUILD_TARGET:'cloud-live'}});
 if(result.error)throw result.error;
+if(action==='build'&&result.status===0)await import('./build-pwa-precache.mjs');
 process.exit(result.status??1);
