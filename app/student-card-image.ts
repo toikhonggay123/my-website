@@ -26,10 +26,10 @@ export async function downloadStudentCard(card:StudentCard,demo=false){
  ctx.fillStyle='#3e6470';ctx.font='600 17px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';ctx.fillText('QUÉT MÃ ĐỂ ĐIỂM DANH',252.5,513);ctx.textAlign='left';
  const x=510,w=315;
  ctx.fillStyle='#4d697a';ctx.font='400 20px "Segoe UI",Arial,sans-serif';let y=50;for(const line of lines(ctx,SCHOOL,w)){ctx.fillText(line,x,y);y+=25;}
- y+=20;ctx.fillStyle='#376880';ctx.font='600 18px "Segoe UI",Arial,sans-serif';ctx.fillText('THẺ NHÀ ĂN',x,y);
+ y+=20;ctx.fillStyle='#17364f';ctx.font='900 24px "Segoe UI",Arial,sans-serif';ctx.fillText('THẺ NHÀ ĂN',x,y);
  let size=card.name.length>30?31:35;let nameLines:string[]=[];for(;size>=20;size--){ctx.font=`700 ${size}px "Segoe UI",Arial,sans-serif`;nameLines=lines(ctx,card.name,w);if(nameLines.length<=3)break;}
- ctx.fillStyle='#15364e';y+=42;for(const line of nameLines){ctx.fillText(line,x,y);y+=size*1.15;}
- y+=21;ctx.font='600 24px "Segoe UI",Arial,sans-serif';ctx.fillText(`LỚP ${card.class}   ·   KHỐI ${card.grade}`,x,y,w);
+ ctx.fillStyle='#15364e';y+=44;for(const line of nameLines){ctx.fillText(line,x,y);y+=size*1.15;}
+ y+=17;ctx.font='600 24px "Segoe UI",Arial,sans-serif';ctx.fillText(`LỚP ${card.class}   ·   KHỐI ${card.grade}`,x,y,w);
  y+=41;ctx.font='500 16px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#45647a';ctx.fillText('MÃ HỌC SINH',x,y);y+=31;ctx.font='700 25px Consolas,monospace';ctx.fillStyle='#163e58';ctx.fillText(card.code,x,y,w);
  if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',x,y+27);}
  // Right-aligned signature shares one baseline, below the student information.
