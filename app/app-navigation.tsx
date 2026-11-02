@@ -14,7 +14,6 @@ import {
   Settings,
   ShieldCheck,
   Users,
-  Utensils,
   X,
 } from "lucide-react";
 import { SCHOOL } from "@/lib/mealcheck.mjs";
@@ -40,9 +39,7 @@ export function navigationItems(admin: boolean) {
 export function Brand() {
   return (
     <div className="brand">
-      <span className="brandmark">
-        <Utensils size={22} />
-      </span>
+      <img className="brandmark" src="/brand/afyllx-logo.png" width="42" height="42" alt="Logo AFYLLX" />
       <b>
         AFYLLX <em>MealCheck</em>
       </b>

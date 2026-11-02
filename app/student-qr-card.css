@@ -9,7 +9,7 @@
 .qr-card-code-area>span{color:#456875;font-size:1.9cqw;font-weight:650;letter-spacing:.15cqw;white-space:nowrap}
 .qr-card-info{align-self:stretch;min-width:0;display:flex;flex-direction:column;align-items:flex-start;padding:1cqw 0 .5cqw;gap:1.55cqw;color:#183b54}
 .qr-card-brand{display:flex;align-items:center;gap:1.3cqw;white-space:nowrap;font-size:3.15cqw;font-weight:750;line-height:1.1;letter-spacing:-.08cqw}
-.qr-card-brand>svg{width:3.6cqw;height:3.6cqw;flex-shrink:0;stroke-width:2;color:#276677}
+.qr-card-brand>img{width:4.3cqw;height:4.3cqw;flex-shrink:0;object-fit:contain}
 .qr-card-brand em{font-weight:450;font-size:2.8cqw;color:#31576e}
 .qr-card-school{margin:0;font-size:2.2cqw;line-height:1.4;color:#4c6676}
 .qr-card-type{font-size:2cqw;font-weight:700;letter-spacing:.18cqw;color:#38667b;margin-top:.5cqw}

@@ -13,7 +13,7 @@ function withPrintResolution(buffer:ArrayBuffer){
 function lines(ctx:CanvasRenderingContext2D,text:string,width:number){const rows:string[]=[];for(const word of text.split(/\s+/)){const last=rows.at(-1);if(!last||ctx.measureText(last+' '+word).width>width)rows.push(word);else rows[rows.length-1]+=' '+word;}return rows;}
 export async function downloadStudentCard(card:StudentCard,demo=false){
  await document.fonts.ready;
- const image=new Image();image.src=card.image;await image.decode();
+ const image=new Image();image.src=card.image;const logo=new Image();logo.src="/brand/afyllx-logo.png";await Promise.all([image.decode(),logo.decode()]);
  const canvas=document.createElement('canvas');canvas.width=WIDTH;canvas.height=HEIGHT;const ctx=canvas.getContext('2d')!;
  const scale=WIDTH/856;ctx.scale(scale,scale);const h=HEIGHT/scale;
  ctx.beginPath();ctx.roundRect(0,0,856,h,31.8);ctx.clip();
@@ -24,7 +24,7 @@ export async function downloadStudentCard(card:StudentCard,demo=false){
  // Keep the QR and its built-in four-module quiet zone fully opaque and unstyled.
  ctx.fillStyle='#ffffff';ctx.fillRect(30,38,445,445);ctx.imageSmoothingEnabled=false;ctx.drawImage(image,30,38,445,445);ctx.imageSmoothingEnabled=true;
  ctx.fillStyle='#3e6470';ctx.font='600 17px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';ctx.fillText('QUÉT MÃ ĐỂ ĐIỂM DANH',252.5,513);ctx.textAlign='left';
- const x=510,w=315;ctx.fillStyle='#173d59';ctx.font='700 27px "Segoe UI",Arial,sans-serif';ctx.fillText('AFYLLX',x,56);ctx.font='400 23px "Segoe UI",Arial,sans-serif';ctx.fillText('MealCheck',x+113,56);
+ const x=510,w=315;ctx.drawImage(logo,x,27,33,33);ctx.fillStyle='#173d59';ctx.font='700 27px "Segoe UI",Arial,sans-serif';ctx.fillText('AFYLLX',x+40,56);ctx.font='400 23px "Segoe UI",Arial,sans-serif';ctx.fillText('MealCheck',x+153,56);
  ctx.fillStyle='#4d697a';ctx.font='400 20px "Segoe UI",Arial,sans-serif';let y=88;for(const line of lines(ctx,SCHOOL,w)){ctx.fillText(line,x,y);y+=25;}
  y+=23;ctx.fillStyle='#376880';ctx.font='600 18px "Segoe UI",Arial,sans-serif';ctx.fillText('THẺ HỌC SINH',x,y);
  let size=card.name.length>30?31:35;let nameLines:string[]=[];for(;size>=20;size--){ctx.font=`700 ${size}px "Segoe UI",Arial,sans-serif`;nameLines=lines(ctx,card.name,w);if(nameLines.length<=3)break;}

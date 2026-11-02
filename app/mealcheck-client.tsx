@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import {
   ScanLine,
-  Utensils,
   Sun,
   Sunset,
   Moon,
@@ -508,7 +507,7 @@ export default function App() {
                   <div className="overview-banner">
                     <div className="session-heading">
                       <span className="session-icon">
-                        <Utensils size={24} />
+                        <img className="overview-brandmark" src="/brand/afyllx-logo.png" width="32" height="32" alt="" />
                       </span>
                       <h2>Bữa ăn hôm nay</h2>
                       <span className="status-pill">

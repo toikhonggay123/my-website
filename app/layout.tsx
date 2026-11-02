@@ -4,6 +4,7 @@ import './pwa.css';
 import "./globals.css";
 import "./student-qr-card.css";
 import "./dashboard-layout.css";
+import "./brand.css";
 
 export const metadata: Metadata = {
   title: "AFYLLX MealCheck · Na Rì",
@@ -11,8 +12,8 @@ export const metadata: Metadata = {
   manifest:'/manifest.webmanifest',
   appleWebApp:{capable:true,title:'MealCheck',statusBarStyle:'default'},
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/icons/favicon-32.png",
+    shortcut: "/icons/favicon-32.png",
     apple:'/icons/apple-touch-icon.png',
   },
 };

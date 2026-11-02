@@ -1,0 +1,4 @@
+.brand .brandmark{display:block;flex-shrink:0;width:42px;height:42px;object-fit:contain;background:transparent;border-radius:0;padding:0}
+.overview-brandmark,.section-brandmark{display:block;object-fit:contain;flex-shrink:0}
+.overview-banner .session-icon{background:#fffffff2;border-color:#fff}
+@media(max-width:1200px){.brand .brandmark{width:38px;height:38px}}
