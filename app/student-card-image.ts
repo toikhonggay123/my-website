@@ -11,6 +11,11 @@ function withPrintResolution(buffer:ArrayBuffer){
  return new Blob(chunks as BlobPart[],{type:'image/png'});
 }
 function lines(ctx:CanvasRenderingContext2D,text:string,width:number){const rows:string[]=[];for(const word of text.split(/\s+/)){const last=rows.at(-1);if(!last||ctx.measureText(last+' '+word).width>width)rows.push(word);else rows[rows.length-1]+=' '+word;}return rows;}
+// Match the SVG header: both complete lines share the same left and right edges.
+function fittedLine(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,width:number){
+ const natural=ctx.measureText(text).width;
+ ctx.save();ctx.translate(x,y);ctx.scale(width/natural,1);ctx.fillText(text,0,0);ctx.restore();
+}
 export async function downloadStudentCard(card:StudentCard,demo=false){
  await document.fonts.ready;
  const image=new Image();image.src=card.image;const logo=new Image();logo.src="/brand/afyllx-logo.png";await Promise.all([image.decode(),logo.decode()]);
@@ -25,10 +30,10 @@ export async function downloadStudentCard(card:StudentCard,demo=false){
  ctx.fillStyle='#ffffff';ctx.fillRect(30,38,445,445);ctx.imageSmoothingEnabled=false;ctx.drawImage(image,30,38,445,445);ctx.imageSmoothingEnabled=true;
  ctx.fillStyle='#3e6470';ctx.font='600 17px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';ctx.fillText('QUÉT MÃ ĐỂ ĐIỂM DANH',252.5,513);ctx.textAlign='left';
  const x=510,w=315;
- ctx.fillStyle='#4d697a';ctx.font='400 20px "Segoe UI",Arial,sans-serif';let y=50;for(const line of lines(ctx,SCHOOL,w)){ctx.fillText(line,x,y);y+=25;}
- y+=20;ctx.fillStyle='#17364f';ctx.font='900 24px "Segoe UI",Arial,sans-serif';ctx.fillText('THẺ NHÀ ĂN',x,y);
+ ctx.fillStyle='#4d697a';ctx.font='400 14.5px "Segoe UI",Arial,sans-serif';fittedLine(ctx,SCHOOL,x,50,w);
+ let y=112;ctx.fillStyle='#17364f';ctx.font='900 48px "Segoe UI",Arial,sans-serif';fittedLine(ctx,'THẺ NHÀ ĂN',x,y,w);
  let size=card.name.length>30?31:35;let nameLines:string[]=[];for(;size>=20;size--){ctx.font=`700 ${size}px "Segoe UI",Arial,sans-serif`;nameLines=lines(ctx,card.name,w);if(nameLines.length<=3)break;}
- ctx.fillStyle='#15364e';y+=44;for(const line of nameLines){ctx.fillText(line,x,y);y+=size*1.15;}
+ ctx.fillStyle='#15364e';y+=56;for(const line of nameLines){ctx.fillText(line,x,y);y+=size*1.15;}
  y+=17;ctx.font='600 24px "Segoe UI",Arial,sans-serif';ctx.fillText(`LỚP ${card.class}   ·   KHỐI ${card.grade}`,x,y,w);
  y+=41;ctx.font='500 16px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#45647a';ctx.fillText('MÃ HỌC SINH',x,y);y+=31;ctx.font='700 25px Consolas,monospace';ctx.fillStyle='#163e58';ctx.fillText(card.code,x,y,w);
  if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',x,y+27);}
