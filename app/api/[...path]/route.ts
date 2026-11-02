@@ -26,7 +26,7 @@ async function handle(req:Request,{params}:any){
     return json({qaBrowserReset:true},200,{'Set-Cookie':'mc_scanner=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0'});
   }
   const cookies=deploymentCookies(policy),token=cookie(req,cookies.device),device=await app.device(token),user=policy.publicCloud?{...localAdminUser(),id:policy.demoOnly?'demo-admin':'cloud-admin',name:policy.demoOnly?'Quản trị bản demo':'Quản trị nhà trường',email:policy.demoOnly?'Quản trị bản demo':'Quản trị nhà trường'}:localAdminUser();
-  if(route==='identity'&&req.method==='GET')return json({localAdmin:!policy.publicCloud,publicCloud:policy.publicCloud,publicDemo:policy.demoOnly,defaultSpace:policy.defaultSpace,deployment:policy.mode,user});
+  if(route==='identity'&&req.method==='GET')return json({localAdmin:!policy.publicCloud,publicCloud:policy.publicCloud,publicDemo:policy.demoOnly,defaultSpace:policy.defaultSpace,deployment:policy.mode,sampleRoster:(await app.one('SELECT value FROM settings WHERE key=?',policy.defaultSpace+':roster_kind'))?.value==='synthetic',user});
   const body:any=req.method==='POST'?await readJsonBody(req):{};
   if(route==='device/start'&&req.method==='POST'){
     // Browser identity is issued by the server; pupils never enter a device code.

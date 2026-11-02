@@ -26,6 +26,7 @@ import {
 } from "@/lib/mealcheck.mjs";
 import { parseCsv, readXlsx } from "@/lib/files.mjs";
 import { QRScanner, QRStudentCards } from "./qr-panel";
+import { StudentDirectory } from "./student-directory";
 import { ResetAttendance } from "./reset-attendance";
 import { LocalSettings } from "./local-settings";
 import { TeacherGuide } from "./teacher-guide";
@@ -88,6 +89,7 @@ export default function App() {
     [error, SE] = useState(""),
     [note, SN] = useState(""),
     [busy, SBu] = useState(false);
+  const [cardStart,setCardStart]=useState<{grade:string;class:string}|null>(null);
   const [missingStart, setMissingStart] = useState<{meal:string;date:string}|null>(null);
   const pageSurface = useRef<HTMLDivElement>(null);
   const scannerLaunch = useRef(false);
@@ -369,6 +371,7 @@ export default function App() {
     if (id !== tab) preparePageMotion();
     scannerLaunch.current = tab === "overview" && id === "scanner";
     ST(id);
+    if(id!=="qrcards")setCardStart(null);
     if (id !== "missing") setMissingStart(null);
     const search = searchForView(id, location.search);
     if (search !== location.search) window.history.pushState(null, "", location.pathname + search);
@@ -488,13 +491,12 @@ export default function App() {
                 />
               )}
               {tab === "qrcards" && admin && (
-                <QRStudentCards key={space} space={space} students={students} />
+                <QRStudentCards key={space} space={space} students={students} initialFilter={cardStart} sample={!!who.sampleRoster||space==='demo'} />
               )}
               {tab === "overview" && board && <HomeOverview board={board} space={space} onScan={()=>navigate("scanner")} onMissing={(meal,date)=>{setMissingStart({meal,date});navigate("missing");}}/>}
               {tab === "students" && (
                 <>
                   <div className="toolbar">
-                    {filters}
                     {canEditRoster && (
                       <>
                         <button
@@ -560,85 +562,7 @@ export default function App() {
                       </>
                     )}
                   </div>
-                  <section className="panel">
-                    <div className="panel-heading">
-                      <h2>{nf.format(filtered.length)} học sinh</h2>
-                      {space === "demo" && (
-                        <span className="badge">Dữ liệu giả lập</span>
-                      )}
-                    </div>
-                    {filtered.length ? (
-                      <div className="table-scroll">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>Mã học sinh</th>
-                              <th>Họ và tên</th>
-                              <th>Khối</th>
-                              <th>Lớp</th>
-                              <th>Trạng thái</th>
-                              {canEditRoster && <th>Thao tác</th>}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filtered.map((s) => (
-                              <tr key={s.id}>
-                                <td className="mono">{s.code}</td>
-                                <td>
-                                  <b>{s.name}</b>
-                                </td>
-                                <td>{s.grade}</td>
-                                <td>{s.class}</td>
-                                <td>
-                                  <span
-                                    className={
-                                      "status " + (s.active ? "" : "inactive")
-                                    }
-                                  >
-                                    {s.active
-                                      ? "Đang hoạt động"
-                                      : "Vô hiệu hóa"}
-                                  </span>
-                                </td>
-                                {canEditRoster && (
-                                  <td>
-                                    <button
-                                      className="text-button"
-                                      onClick={() => SEdit({ ...s })}
-                                    >
-                                      Chỉnh sửa
-                                    </button>
-                                    <button
-                                      className="text-button"
-                                      disabled={busy}
-                                      onClick={() =>
-                                        void act(async () => {
-                                          await api("students" + suffix, {
-                                            rows: [
-                                              {
-                                                ...s,
-                                                active: s.active ? 0 : 1,
-                                              },
-                                            ],
-                                          });
-                                          await rosterLoad();
-                                          await boardLoad();
-                                        })
-                                      }
-                                    >
-                                      {s.active ? "Vô hiệu hóa" : "Kích hoạt"}
-                                    </button>
-                                  </td>
-                                )}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <Empty Icon={Users} title="Chưa có học sinh phù hợp" />
-                    )}
-                  </section>
+                  <StudentDirectory students={students} grade={grade} cl={cl} query={query} onQuery={SQ} onGrade={g=>{SG(g);SC("");}} onClass={SC} onCards={(g,c)=>{setCardStart({grade:g,class:c});navigate("qrcards");}} onEdit={SEdit} onToggle={s=>void act(async()=>{await api("students"+suffix,{rows:[{...s,active:s.active?0:1}]});await rosterLoad();await boardLoad();})} busy={busy} editable={canEditRoster} sample={!!who.sampleRoster||space==='demo'}/>
                 </>
               )}
               {["attendance", "reports"].includes(tab) && (

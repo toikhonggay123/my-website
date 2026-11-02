@@ -1,5 +1,7 @@
 # AFYLLX MealCheck
 
+- Owner update 03/11/2026: Cloudflare now uses 275 synthetic students across 6A/6B–9A/9B, with globally unique normalized names/codes and all QR issued. The real cloud roster (34 students/34 QR plus history) was exported and restore-verified before replacement at `.migration-private/checkpoints/20261103-real-before-eight-classes/`. Do not restore it without an owner request. Keep the Worker QR key unchanged so checkpoint cards remain recoverable. Preserve the local real roster/cards. Never commit private checkpoints, generated rosters or QR tokens.
+
 - Latest owner instruction authorizes public Cloudflare live hosting of the supplied real roster without login; the owner explicitly accepted public access. Replace cloud test data, create a separate live D1 and issue new live QR cards with a new runtime secret, retaining old cards locally. The original key was never exported; do not keep a copy of the replaced demo key. Non-force source pushes to main of toikhonggay123/my-website remain authorized; never commit roster/tokens/keys/import SQL. SucVatHoaThan has Write. Do not create another repository or modify the old hosted Site.
 - Active local URL is http://localhost:3000/quan-tri. Use Start-Local.ps1 / Stop-Local.ps1; keep real data in .wrangler/local-state.
 - The real database was imported and verified. Never reinitialize or overwrite it. The original QR secret is unavailable; do not replace it without explicit approval for a card-reissue plan.
