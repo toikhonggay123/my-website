@@ -26,3 +26,10 @@ Mục tiêu tối ưu là 144 Hz (khoảng 6,94 ms mỗi khung); không có API 
 ## Checkpoint
 
 Checkpoint trước hiệu ứng đầu tiên: `bf1ec6ec821d0b7cf0fc4a976908f856538377df`, nhánh `codex/checkpoint-before-scanner-popup-20261102` trên GitHub. ZIP cùng mốc nằm trong `.tool-state/checkpoints/MealCheck-before-scanner-popup-20261102.zip` trên máy chủ dự án. Dùng commit revert theo thứ tự mới nhất trước; dừng nếu có xung đột. Không reset/force push main, không ghi đè database hoặc QR.
+
+
+## Trang chủ gọn trên điện thoại
+
+Header Hôm nay/ngày và tổng học sinh/lớp, một nút Quét QR nổi bật, ba ô bữa trên cùng một hàng. Chạm bữa để xem số chưa điểm danh; Xem danh sách mở đúng bữa và ngày đang hiển thị. Bữa chọn được ghi vào tùy chọn ngày hiện tại của thiết bị, dùng lại khi vào máy quét; không tự chọn theo giờ. Theo lớp mặc định thu gọn, mở ra danh sách dọc, không dùng bảng kéo ngang. Xuất Excel hôm nay nằm trong menu phụ của header và dùng đường xuất cũ.
+
+Liên kết cài app ở gần đầu trang mở QR/hướng dẫn khi cần; ẩn trong PWA standalone hoặc sau sự kiện appinstalled. Trang /cai-dat vẫn có hướng dẫn đầy đủ. Trình duyệt thường không luôn biết app đã cài ở một ngữ cảnh khác. Không thay schema, danh sách, khóa hoặc QR.

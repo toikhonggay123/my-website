@@ -4,8 +4,8 @@ import {Download} from 'lucide-react';
 import {MEALS,LABELS,localClock,normalize} from '@/lib/mealcheck.mjs';
 type Row=Record<string,any>;
 export function TodayExport({space}:{space:string}){return <a className="primary today-export" href={'/api/export/today?space='+space}><Download size={17}/>Excel hôm nay <span>.xls</span></a>;}
-export function MissingAttendance({space,revision}:{space:string;revision:number}){
- const [date,setDate]=useState(localClock().date),[meal,setMeal]=useState('sang'),[cl,setClass]=useState(''),[query,setQuery]=useState(''),[data,setData]=useState<Row|null>(null),[error,setError]=useState('');
+export function MissingAttendance({space,revision,initialMeal,initialDate}:{space:string;revision:number;initialMeal?:string;initialDate?:string}){
+ const [date,setDate]=useState(initialDate||localClock().date),[meal,setMeal]=useState(initialMeal&&MEALS.includes(initialMeal)?initialMeal:'sang'),[cl,setClass]=useState(''),[query,setQuery]=useState(''),[data,setData]=useState<Row|null>(null),[error,setError]=useState('');
  useEffect(()=>{if(!date)return;const controller=new AbortController();setError('');void fetch(`/api/daily?space=${space}&date=${date}`,{cache:'no-store',signal:controller.signal}).then(async r=>{const d:any=await r.json();if(!r.ok)throw Error(d.error);setData(d);}).catch(e=>{if(e.name!=='AbortError')setError(e.message);});return()=>controller.abort();},[space,date,revision]);
  const classes=Array.from(new Set<string>((data?.students||[]).filter((s:Row)=>s.active).map((s:Row)=>s.class))).sort((a,b)=>a.localeCompare(b,'vi',{numeric:true}));
  const done=new Set((data?.records||[]).filter((r:Row)=>r.meal===meal).map((r:Row)=>r.student_id));

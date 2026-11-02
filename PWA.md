@@ -50,3 +50,6 @@ Màn quét trên điện thoại phủ toàn trang, camera làm nền, khung vu�
 Icon Android 192/512 px, maskable 512 px, Apple touch icon 180 px và favicon đều dùng logo AFYLLX đã duyệt, nền trắng. Đường dẫn `afyllx-*` tách khỏi đường dẫn cũ để tránh giữ icon cũ trong cache; service worker dùng phiên bản cache v9. Giữ nguyên manifest id, start_url và dữ liệu ứng dụng.
 
 Khi cài mới, Android và iPhone lấy bộ icon này. Với app đã cài, hệ điều hành/trình duyệt quyết định thời điểm đổi icon; cập nhật nội dung app không bảo đảm đổi ngay biểu tượng màn hình chính. Không xóa dữ liệu/gỡ app khi còn lượt quét chờ đồng bộ. Tham khảo [Chrome về cập nhật web app](https://developer.chrome.com/blog/improvements-to-web-app-updates) và [Apple về apple-touch-icon](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html).
+
+
+Trang Tổng quan dùng liên kết Cài ứng dụng thu gọn ở gần đầu trang; mở để xem QR/hướng dẫn. Trong app standalone hoặc sau khi trình duyệt báo appinstalled, liên kết này được ẩn. Trang cài đặt /cai-dat vẫn cung cấp hướng dẫn và link chia sẻ.

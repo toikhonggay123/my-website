@@ -6,6 +6,7 @@ import "./student-qr-card.css";
 import "./dashboard-layout.css";
 import "./brand.css";
 import "./liquid-motion.css";
+import "./home-overview.css";
 
 export const metadata: Metadata = {
   title: "AFYLLX MealCheck · Na Rì",

@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import {
-  ScanLine,
   Sun,
   Sunset,
   Moon,
@@ -9,7 +8,6 @@ import {
   ClipboardCheck,
   Clock3,
   ShieldCheck,
-  ArrowRight,
   X,
   ChevronRight,
   Search,
@@ -32,7 +30,7 @@ import { ResetAttendance } from "./reset-attendance";
 import { LocalSettings } from "./local-settings";
 import { TeacherGuide } from "./teacher-guide";
 import { TodayExport, MissingAttendance } from "./daily-attendance";
-import { InstallApp } from "./pwa";
+import { HomeOverview, type HomeBoard } from "./home-overview";
 import { readDevicePref, saveDevicePref } from "./offline-store";
 import { AppNavigation, Brand, navigationItems } from "./app-navigation";
 import { SectionTabs } from "./section-tabs";
@@ -80,7 +78,7 @@ function Empty({ title, Icon = ClipboardCheck }: any) {
 }
 export default function App() {
   const [who, SWho] = useState<R | null>(null),
-    [board, SB] = useState<R | null>(null),
+    [board, SB] = useState<(HomeBoard & R) | null>(null),
     [students, SS] = useState<R[]>([]),
     [records, SR] = useState<R[]>([]),
     [devices, SD] = useState<R[]>([]),
@@ -90,6 +88,7 @@ export default function App() {
     [error, SE] = useState(""),
     [note, SN] = useState(""),
     [busy, SBu] = useState(false);
+  const [missingStart, setMissingStart] = useState<{meal:string;date:string}|null>(null);
   const pageSurface = useRef<HTMLDivElement>(null);
   const scannerLaunch = useRef(false);
   const preparePageMotion = usePageMotion(pageSurface, tab, scannerLaunch);
@@ -370,6 +369,7 @@ export default function App() {
     if (id !== tab) preparePageMotion();
     scannerLaunch.current = tab === "overview" && id === "scanner";
     ST(id);
+    if (id !== "missing") setMissingStart(null);
     const search = searchForView(id, location.search);
     if (search !== location.search) window.history.pushState(null, "", location.pathname + search);
     SQ("");
@@ -383,7 +383,7 @@ export default function App() {
   const exportUrl = (format: string) =>
     `/api/export${suffix}&from=${from}&to=${to}&meal=${meal}&grade=${encodeURIComponent(grade)}&class=${encodeURIComponent(cl)}&q=${encodeURIComponent(query)}&format=${format}`;
   return (
-    <div className={"app-shell " + (tab === "scanner" ? "scanner-page" : "")}>
+    <div className={"app-shell " + (tab === "scanner" ? "scanner-page" : tab === "overview" ? "home-page" : "")}>
       <a className="skip-link" href="#main-content">
         Đến nội dung chính
       </a>
@@ -425,7 +425,7 @@ export default function App() {
               )}
             </div>
           )}
-          <div className="page-heading">
+          {tab !== "overview" && (<div className="page-heading">
             <div>
               <h1>
                 {
@@ -448,9 +448,9 @@ export default function App() {
                 <Clock3 size={17} />
                 {day(date)}
               </span>
-              {tab === "overview" && <TodayExport space={space} />}
+
             </div>
-          </div>
+          </div>)}
           <SectionTabs current={tab} admin={admin} onNavigate={navigate} />
           <div
             ref={pageSurface}
@@ -470,6 +470,8 @@ export default function App() {
                   key={space}
                   space={space}
                   revision={revision}
+                  initialMeal={missingStart?.meal}
+                  initialDate={missingStart?.date}
                 />
               )}
               {tab === "guide" && (
@@ -488,123 +490,7 @@ export default function App() {
               {tab === "qrcards" && admin && (
                 <QRStudentCards key={space} space={space} students={students} />
               )}
-              {tab === "overview" && board && (
-                <>
-                  <div className="overview-banner">
-                    <div className="session-heading">
-                      <span className="session-icon">
-                        <img className="overview-brandmark" src="/brand/afyllx-logo.png" width="32" height="32" alt="" />
-                      </span>
-                      <h2>Bữa ăn hôm nay</h2>
-                      <span className="status-pill">
-                        <i />
-                        {board.alwaysOpen || board.active
-                          ? "Đang mở"
-                          : "Đang đóng"}
-                      </span>
-                    </div>
-                    <button onClick={() => navigate("scanner")}>
-                      <ScanLine size={18} />
-                      Quét QR điểm danh
-                      <ArrowRight size={17} />
-                    </button>
-                  </div>
-                  <div className="stat-grid">
-                    <article className="stat-card">
-                      <div>
-                        Tổng số học sinh
-                        <span className="stat-icon blue">
-                          <Users size={20} />
-                        </span>
-                      </div>
-                      <strong>{nf.format(board.total)}</strong>
-                      <p>{board.byClass.length} lớp đang hoạt động</p>
-                    </article>
-                    {MEALS.map((m) => {
-                      const Icon = mealIcons[m],
-                        s = board.meals[m];
-                      return (
-                        <article className="stat-card" key={m}>
-                          <div>
-                            {LABELS[m]}
-                            <span className={"stat-icon " + m}>
-                              <Icon size={20} />
-                            </span>
-                          </div>
-                          <strong>
-                            {nf.format(s.count)}
-                            <small> / {nf.format(board.total)}</small>
-                          </strong>
-                          <div className={"progress " + m}>
-                            <i style={{ width: `${s.rate * 100}%` }} />
-                          </div>
-                          <p className="stat-split">
-                            <span>
-                              {Math.round(s.rate * 100)}% đã điểm danh
-                            </span>
-                            <span>{nf.format(s.missing)} chưa điểm danh</span>
-                          </p>
-                        </article>
-                      );
-                    })}
-                  </div>
-                  <section className="panel">
-                    <div className="panel-heading">
-                      <div>
-                        <h2>Điểm danh theo lớp</h2>
-                      </div>
-                      <small>{board.byClass.length} lớp</small>
-                    </div>
-                    {board.byClass.length ? (
-                      <div className="table-scroll">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>Khối / Lớp</th>
-                              <th>Học sinh</th>
-                              {MEALS.map((m) => {
-                                const Icon = mealIcons[m];
-                                return (
-                                  <th key={m}>
-                                    <Icon size={14} />
-                                    {LABELS[m]}
-                                  </th>
-                                );
-                              })}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {board.byClass.map((c: R) => (
-                              <tr key={c.grade + ":" + c.class}>
-                                <td>
-                                  <b>{c.class}</b>
-                                  <small>Khối {c.grade}</small>
-                                </td>
-                                <td>{c.total}</td>
-                                {MEALS.map((m) => (
-                                  <td key={m}>
-                                    <span className="mini-bar">
-                                      <i
-                                        style={{
-                                          width: `${c.total ? (c[m] / c.total) * 100 : 0}%`,
-                                        }}
-                                      />
-                                    </span>
-                                    <b>{c[m]}</b>
-                                    <span className="subtle"> / {c.total}</span>
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <Empty Icon={Users} title="Chưa có danh sách học sinh" />
-                    )}
-                  </section>
-                </>
-              )}
+              {tab === "overview" && board && <HomeOverview board={board} space={space} onScan={()=>navigate("scanner")} onMissing={(meal,date)=>{setMissingStart({meal,date});navigate("missing");}}/>}
               {tab === "students" && (
                 <>
                   <div className="toolbar">
@@ -978,7 +864,6 @@ export default function App() {
             </>
           )}
           </div>
-          {tab === "overview" && <InstallApp />}
         </main>
       </div>
       <MotionPresence open={!!edit} onDismiss={busy ? undefined : () => SEdit(null)}>
