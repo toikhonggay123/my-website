@@ -13,9 +13,9 @@ export const metadata: Metadata = {
   manifest:'/manifest.webmanifest',
   appleWebApp:{capable:true,title:'MealCheck',statusBarStyle:'default'},
   icons: {
-    icon: "/icons/favicon-32.png",
-    shortcut: "/icons/favicon-32.png",
-    apple:'/icons/apple-touch-icon.png',
+    icon: "/icons/afyllx-favicon-32.png",
+    shortcut: "/icons/afyllx-favicon-32.png",
+    apple:'/icons/afyllx-apple-touch-icon.png',
   },
 };
 export const viewport:Viewport={width:'device-width',initialScale:1,viewportFit:'cover',themeColor:'#3264e6'};

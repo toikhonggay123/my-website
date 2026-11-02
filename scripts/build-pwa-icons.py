@@ -4,7 +4,8 @@ out=Path(__file__).resolve().parents[1]/'public'/'icons'
 out.mkdir(parents=True,exist_ok=True)
 logo=Image.open(out.parent/'brand'/'afyllx-logo.png').convert('RGBA')
 logo=logo.crop(logo.getchannel('A').getbbox())
-for name,size in [('icon-192.png',192),('icon-512.png',512),('icon-maskable-512.png',512),('apple-touch-icon.png',180),('favicon-32.png',32)]:
+# Branded URLs bypass old launcher/browser icon caches. Keep legacy files for old installs.
+for name,size in [('afyllx-icon-192.png',192),('afyllx-icon-512.png',512),('afyllx-icon-maskable-512.png',512),('afyllx-apple-touch-icon.png',180),('afyllx-favicon-32.png',32)]:
     # Keep the full mark within the maskable icon's central safe circle.
     mark=logo.copy()
     mark.thumbnail((round(size*.68),round(size*.68)),Image.Resampling.LANCZOS)

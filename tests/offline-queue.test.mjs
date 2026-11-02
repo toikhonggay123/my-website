@@ -27,7 +27,12 @@ test('PWA cache explicitly excludes APIs and mutations, manifest has Android/iOS
  const sw=fs.readFileSync('public/sw.js','utf8');assert.match(sw,/req.method!=='GET'/);assert.match(sw,/url.pathname.startsWith\('\/api\/'\)/);
  const manifest=JSON.parse(fs.readFileSync('public/manifest.webmanifest','utf8'));assert.equal(manifest.display,'standalone');assert.equal(manifest.scope,'/');assert.ok(manifest.start_url.startsWith('/quan-tri'));
  for(const size of ['192x192','512x512'])assert.ok(manifest.icons.some(icon=>icon.sizes===size&&fs.existsSync('public'+icon.src)));
- assert.ok(fs.existsSync('public/icons/apple-touch-icon.png'));
+ const layout=fs.readFileSync('app/layout.tsx','utf8'),apple=layout.match(/apple:'([^']+)'/)[1];
+ assert.ok(fs.existsSync('public'+apple));assert.ok(sw.includes(apple));
+ for(const icon of manifest.icons){
+  const png=fs.readFileSync('public'+icon.src),[width,height]=icon.sizes.split('x').map(Number);
+  assert.equal(png.toString('hex',0,8),'89504e470d0a1a0a');assert.equal(png.readUInt32BE(16),width);assert.equal(png.readUInt32BE(20),height);assert.ok(sw.includes(icon.src));
+ }
 });
 test('temporary HTTP failures remain pending and retry with the original id',async()=>{
  for(const status of [408,425,429]){

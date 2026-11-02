@@ -10,9 +10,9 @@
  "background_color":"#f6f8fc",
  "theme_color":"#3264e6",
  "icons":[
-  {"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
-  {"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
-  {"src":"/icons/icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  {"src":"/icons/afyllx-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+  {"src":"/icons/afyllx-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+  {"src":"/icons/afyllx-icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
  ],
- "shortcuts":[{"name":"Mở máy quét QR","url":"/quan-tri?tab=scanner","icons":[{"src":"/icons/icon-192.png","sizes":"192x192"}]}]
+ "shortcuts":[{"name":"Mở máy quét QR","url":"/quan-tri?tab=scanner","icons":[{"src":"/icons/afyllx-icon-192.png","sizes":"192x192"}]}]
 }

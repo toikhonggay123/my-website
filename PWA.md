@@ -45,3 +45,8 @@ Màn quét trên điện thoại phủ toàn trang, camera làm nền, khung vu�
 - Gửi hàng đợi dùng AbortController và bộ hẹn giờ, không bắt buộc Safari phải có AbortSignal.timeout. Đọc ảnh QR có phương án dùng phần tử ảnh nếu ImageBitmap thiếu hoặc không đọc được định dạng.
 - Khi app quay lại màn hình hoặc có mạng, kiểm tra cập nhật service worker. Theo dõi cả worker đang cài từ trước, không chỉ sự kiện updatefound mới.
 - Đã kiểm tra bằng Chromium với profile iPhone SE/iPhone 13/iPad, mô phỏng các API Safari thiếu và chạy service worker thật trên HTTP cục bộ: mở offline, giữ request ID qua cập nhật, gửi lại sau khi có mạng. Đây không phải bằng chứng đã thử Safari/WebKit hoặc cài lên iPhone thật. WebKit hiện chưa tải được vì chính sách mạng; cần kiểm tra tiếp camera, cài từ màn hình chính và hệ điều hành tạm dừng app trên thiết bị iOS thật.
+
+## Biểu tượng ứng dụng AFYLLX
+Icon Android 192/512 px, maskable 512 px, Apple touch icon 180 px và favicon đều dùng logo AFYLLX đã duyệt, nền trắng. Đường dẫn `afyllx-*` tách khỏi đường dẫn cũ để tránh giữ icon cũ trong cache; service worker dùng phiên bản cache v9. Giữ nguyên manifest id, start_url và dữ liệu ứng dụng.
+
+Khi cài mới, Android và iPhone lấy bộ icon này. Với app đã cài, hệ điều hành/trình duyệt quyết định thời điểm đổi icon; cập nhật nội dung app không bảo đảm đổi ngay biểu tượng màn hình chính. Không xóa dữ liệu/gỡ app khi còn lượt quét chờ đồng bộ. Tham khảo [Chrome về cập nhật web app](https://developer.chrome.com/blog/improvements-to-web-app-updates) và [Apple về apple-touch-icon](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html).
