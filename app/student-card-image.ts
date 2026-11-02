@@ -24,14 +24,22 @@ export async function downloadStudentCard(card:StudentCard,demo=false){
  // Keep the QR and its built-in four-module quiet zone fully opaque and unstyled.
  ctx.fillStyle='#ffffff';ctx.fillRect(30,38,445,445);ctx.imageSmoothingEnabled=false;ctx.drawImage(image,30,38,445,445);ctx.imageSmoothingEnabled=true;
  ctx.fillStyle='#3e6470';ctx.font='600 17px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';ctx.fillText('QUÉT MÃ ĐỂ ĐIỂM DANH',252.5,513);ctx.textAlign='left';
- const x=510,w=315;ctx.drawImage(logo,x,27,33,33);ctx.fillStyle='#173d59';ctx.font='700 27px "Segoe UI",Arial,sans-serif';ctx.fillText('AFYLLX',x+40,56);ctx.font='400 23px "Segoe UI",Arial,sans-serif';ctx.fillText('MealCheck',x+153,56);
- ctx.fillStyle='#4d697a';ctx.font='400 20px "Segoe UI",Arial,sans-serif';let y=88;for(const line of lines(ctx,SCHOOL,w)){ctx.fillText(line,x,y);y+=25;}
- y+=23;ctx.fillStyle='#376880';ctx.font='600 18px "Segoe UI",Arial,sans-serif';ctx.fillText('THẺ HỌC SINH',x,y);
+ const x=510,w=315;
+ ctx.fillStyle='#4d697a';ctx.font='400 20px "Segoe UI",Arial,sans-serif';let y=50;for(const line of lines(ctx,SCHOOL,w)){ctx.fillText(line,x,y);y+=25;}
+ y+=20;ctx.fillStyle='#376880';ctx.font='600 18px "Segoe UI",Arial,sans-serif';ctx.fillText('THẺ NHÀ ĂN',x,y);
  let size=card.name.length>30?31:35;let nameLines:string[]=[];for(;size>=20;size--){ctx.font=`700 ${size}px "Segoe UI",Arial,sans-serif`;nameLines=lines(ctx,card.name,w);if(nameLines.length<=3)break;}
- ctx.fillStyle='#15364e';y+=39;for(const line of nameLines){ctx.fillText(line,x,y);y+=size*1.15;}
- y+=19;ctx.font='600 24px "Segoe UI",Arial,sans-serif';ctx.fillText(`LỚP ${card.class}   ·   KHỐI ${card.grade}`,x,y,w);
+ ctx.fillStyle='#15364e';y+=42;for(const line of nameLines){ctx.fillText(line,x,y);y+=size*1.15;}
+ y+=21;ctx.font='600 24px "Segoe UI",Arial,sans-serif';ctx.fillText(`LỚP ${card.class}   ·   KHỐI ${card.grade}`,x,y,w);
  y+=41;ctx.font='500 16px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#45647a';ctx.fillText('MÃ HỌC SINH',x,y);y+=31;ctx.font='700 25px Consolas,monospace';ctx.fillStyle='#163e58';ctx.fillText(card.code,x,y,w);
- if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',x,h-27);}
+ if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',x,y+27);}
+ // Right-aligned signature shares one baseline, below the student information.
+ const logoSize=30,brandGap=9,wordGap=6,brandBottom=h-30;
+ ctx.font='700 23px "Segoe UI",Arial,sans-serif';const afyllxWidth=ctx.measureText('AFYLLX').width;
+ ctx.font='400 21px "Segoe UI",Arial,sans-serif';const mealcheckWidth=ctx.measureText('MealCheck').width;
+ const brandX=856-31-(logoSize+brandGap+afyllxWidth+wordGap+mealcheckWidth),baseline=brandBottom-6;
+ ctx.drawImage(logo,brandX,brandBottom-logoSize,logoSize,logoSize);
+ ctx.fillStyle='#173d59';ctx.font='700 23px "Segoe UI",Arial,sans-serif';ctx.fillText('AFYLLX',brandX+logoSize+brandGap,baseline);
+ ctx.fillStyle='#31576e';ctx.font='400 21px "Segoe UI",Arial,sans-serif';ctx.fillText('MealCheck',brandX+logoSize+brandGap+afyllxWidth+wordGap,baseline);
  const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('PNG failed')),'image/png'));
  const url=URL.createObjectURL(withPrintResolution(await blob.arrayBuffer())),link=document.createElement('a');link.href=url;link.download='The-hoc-sinh-'+card.code.replace(/[^\p{L}\p{N}_-]/gu,'-')+'.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }

@@ -8,9 +8,9 @@
 .qr-card-qr>img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
 .qr-card-code-area>span{color:#456875;font-size:1.9cqw;font-weight:650;letter-spacing:.15cqw;white-space:nowrap}
 .qr-card-info{align-self:stretch;min-width:0;display:flex;flex-direction:column;align-items:flex-start;padding:1cqw 0 .5cqw;gap:1.55cqw;color:#183b54}
-.qr-card-brand{display:flex;align-items:center;gap:1.3cqw;white-space:nowrap;font-size:3.15cqw;font-weight:750;line-height:1.1;letter-spacing:-.08cqw}
-.qr-card-brand>img{width:4.3cqw;height:4.3cqw;flex-shrink:0;object-fit:contain}
-.qr-card-brand em{font-weight:450;font-size:2.8cqw;color:#31576e}
+.qr-card-brand{margin-top:auto;align-self:flex-end;display:flex;align-items:center;gap:1cqw;white-space:nowrap;font-size:2.7cqw;font-weight:750;line-height:1.1;letter-spacing:-.08cqw}
+.qr-card-brand>img{width:3.8cqw;height:3.8cqw;flex-shrink:0;object-fit:contain}
+.qr-card-brand em{font-weight:450;font-size:2.45cqw;color:#31576e}
 .qr-card-school{margin:0;font-size:2.2cqw;line-height:1.4;color:#4c6676}
 .qr-card-type{font-size:2cqw;font-weight:700;letter-spacing:.18cqw;color:#38667b;margin-top:.5cqw}
 .qr-card-info>h2{margin:0;font-size:3.8cqw;font-weight:750;line-height:1.18;letter-spacing:-.07cqw;color:#17364f;overflow-wrap:anywhere}
@@ -21,7 +21,7 @@
 .qr-card-student-code{display:flex;flex-direction:column;gap:.7cqw;margin-top:.3cqw;max-width:100%}
 .qr-card-student-code>span{font-size:1.8cqw;letter-spacing:.12cqw;font-weight:600;color:#466277}
 .qr-card-student-code>b{font:700 2.9cqw/1.15 Consolas,'Courier New',monospace;color:#193d58;overflow-wrap:anywhere;max-width:100%}
-.qr-card-footer{margin-top:auto;padding-top:1cqw;color:#4d687b;font-size:1.65cqw;font-weight:600;letter-spacing:.14cqw}
+.qr-card-footer{margin-top:.5cqw;padding-top:1cqw;color:#4d687b;font-size:1.65cqw;font-weight:600;letter-spacing:.14cqw}
 .qr-card-item .qr-card-actions{margin-top:15px;gap:12px}
 .qr-card-item .qr-card-actions .secondary{font-size:11px;min-height:36px}
 .qr-card-download-error{font-size:12px;color:#ae3434;margin:10px 0 0}
