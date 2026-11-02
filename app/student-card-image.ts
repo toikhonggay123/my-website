@@ -31,7 +31,7 @@ export async function downloadStudentCard(card:StudentCard,demo=false){
  ctx.fillStyle='#15364e';y+=39;for(const line of nameLines){ctx.fillText(line,x,y);y+=size*1.15;}
  y+=19;ctx.font='600 24px "Segoe UI",Arial,sans-serif';ctx.fillText(`LỚP ${card.class}   ·   KHỐI ${card.grade}`,x,y,w);
  y+=41;ctx.font='500 16px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#45647a';ctx.fillText('MÃ HỌC SINH',x,y);y+=31;ctx.font='700 25px Consolas,monospace';ctx.fillStyle='#163e58';ctx.fillText(card.code,x,y,w);
- ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.fillText(demo?'DỮ LIỆU THỬ NGHIỆM':'SUẤT ĂN NỘI TRÚ',x,h-27);
+ if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',x,h-27);}
  const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('PNG failed')),'image/png'));
  const url=URL.createObjectURL(withPrintResolution(await blob.arrayBuffer())),link=document.createElement('a');link.href=url;link.download='The-hoc-sinh-'+card.code.replace(/[^\p{L}\p{N}_-]/gu,'-')+'.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
