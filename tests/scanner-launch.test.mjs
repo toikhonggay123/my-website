@@ -30,16 +30,16 @@ const oldComputedStyle = globalThis.getComputedStyle;
 globalThis.getComputedStyle = node => ({ getPropertyValue: property => property === "--motion-launch" ? node.motionDuration : "" });
 test.after(() => { globalThis.getComputedStyle = oldComputedStyle; });
 
-test("Scanner launch finishes within 280 ms and only animates transform/opacity", async () => {
+test("Scanner launch finishes within 760 ms and clears every visual effect", async () => {
   const f = fixture();
   playScannerLaunch(f.surface, { x: 10, y: 20 });
   assert.equal(f.scene.style.transformOrigin, "10% 10%");
   assert.ok(f.attributes.has("data-launching"));
-  assert.equal(f.calls.length, 7);
+  assert.equal(f.calls.length, 8);
   for (const call of f.calls) {
-    assert.ok(call.timing.duration + (call.timing.delay || 0) <= 280);
+    assert.ok(call.timing.duration + (call.timing.delay || 0) <= 760);
     for (const frame of call.frames)
-      assert.ok(Object.keys(frame).every(key => ["opacity", "transform", "offset"].includes(key)));
+      assert.ok(Object.keys(frame).every(key => ["opacity", "transform", "filter", "clipPath", "offset"].includes(key)));
     call.finish();
   }
   await Promise.resolve(); await Promise.resolve();
@@ -73,14 +73,14 @@ test("Missing WAAPI or partial animation failure leaves the scanner usable", asy
   assert.doesNotThrow(() => playScannerLaunch(partial.surface)());
   await Promise.resolve(); await Promise.resolve();
   assert.equal(partial.attributes.size, 0);
-  assert.equal(partial.calls.length, 3);
+  assert.equal(partial.calls.length, 4);
   assert.ok(partial.calls.every(call => call.animation.cancelCount === 1));
 });
 
-test("Production CSS seconds and source milliseconds retain all seven launch animations", () => {
-  for (const [value, expected] of [[".28s", 280], ["0.280s", 280], ["280ms", 280], [".18s", 180]]) {
+test("Production CSS seconds and source milliseconds retain all eight launch animations", () => {
+  for (const [value, expected] of [[".76s", 760], ["760ms", 760], [".28s", 280], ["0.280s", 280], ["280ms", 280], [".18s", 180]]) {
     const f = fixture(value), stop = playScannerLaunch(f.surface);
-    assert.equal(f.calls.length, 7, `CSS ${value} must not abort launch on a negative stagger duration`);
+    assert.equal(f.calls.length, 8, `CSS ${value} must not abort launch on a negative stagger duration`);
     assert.ok(f.attributes.has("data-launching"));
     assert.equal(f.calls[0].timing.duration, expected);
     assert.ok(f.calls.every(call => call.timing.duration + (call.timing.delay || 0) === expected));
@@ -91,8 +91,8 @@ test("Production CSS seconds and source milliseconds retain all seven launch ani
 test("Invalid or excessively short CSS times use a safe launch duration", () => {
   for (const value of ["", "invalid", "0s", "-1s", "1ms", "Infinityms"]) {
     const f = fixture(value), stop = playScannerLaunch(f.surface);
-    assert.equal(f.calls.length, 7, value);
-    assert.equal(f.calls[0].timing.duration, 280, value);
+    assert.equal(f.calls.length, 8, value);
+    assert.equal(f.calls[0].timing.duration, 760, value);
     stop();
   }
 });

@@ -2,6 +2,8 @@
 
 import { ClipboardCheck, Clock3, QrCode, Users } from "lucide-react";
 import { sectionForView } from "@/lib/navigation.mjs";
+import { useRef } from "react";
+import { useLiquidIndicator } from "./liquid-motion";
 
 export function SectionTabs({
   current,
@@ -13,6 +15,8 @@ export function SectionTabs({
   onNavigate: (view: string) => void;
 }) {
   const section = sectionForView(current);
+  const tablist = useRef<HTMLDivElement>(null);
+  useLiquidIndicator(tablist, current, '[role="tab"][aria-selected="true"]');
   const tabs = section === "attendance"
     ? [
         { id: "attendance", label: "Đã điểm danh", Icon: Clock3 },
@@ -29,9 +33,11 @@ export function SectionTabs({
   return (
     <div
       className="section-tabs"
+      ref={tablist}
       role="tablist"
       aria-label={section === "attendance" ? "Tra cứu điểm danh" : "Quản lý học sinh"}
     >
+      <span className="liquid-indicator" aria-hidden="true"/>
       {tabs.map(({ id, label, Icon }, index) => (
         <button
           key={id}

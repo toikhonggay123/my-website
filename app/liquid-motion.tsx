@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { playScannerLaunch } from "@/lib/scanner-launch.mjs";
+import { capturePage, playPageEntrance, playPageExit } from "@/lib/page-motion.mjs";
 
 const easeOut = "cubic-bezier(0.23, 1, 0.32, 1)";
 const easeDrawer = "cubic-bezier(0.32, 0.72, 0, 1)";
@@ -10,8 +11,11 @@ const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matc
 // Animate the existing surface, never remount the scanner or animate React state per frame.
 export function usePageMotion(ref: RefObject<HTMLDivElement | null>, view: string, scannerLaunch: RefObject<boolean>) {
   const previous = useRef(view);
+  const previousView = useRef(view);
   const keyboard = useRef(false);
-  const animation = useRef<Animation | null>(null);
+  const entranceCleanup = useRef<(() => void) | null>(null);
+  const exitCleanup = useRef<(() => void) | null>(null);
+  const snapshot = useRef<HTMLElement | null>(null);
   const launchCleanup = useRef<(() => void) | null>(null);
   const origin = useRef<{ x: number; y: number } | null>(null);
   useEffect(() => {
@@ -35,42 +39,84 @@ export function usePageMotion(ref: RefObject<HTMLDivElement | null>, view: strin
     scannerLaunch.current = false;
     launchCleanup.current?.();
     launchCleanup.current = null;
+    entranceCleanup.current?.();
+    exitCleanup.current?.();
     const node = ref.current;
-    if (!node?.animate || keyboard.current) {
-      animation.current?.cancel();
+    if (!node?.animate) {
+      snapshot.current?.remove(); snapshot.current = null;
       return;
     }
-    if (launch && fromOverview && view === "scanner" && !reduced()) {
-      animation.current?.cancel();
+    const order = ["overview", "scanner", "attendance", "missing", "students", "qrcards", "reports", "settings", "guide"];
+    const direction = order.indexOf(view) >= order.indexOf(previousView.current) ? 1 : -1;
+    previousView.current = view;
+    const gentle = reduced() || keyboard.current;
+    if (gentle) snapshot.current?.remove();
+    else exitCleanup.current = playPageExit(snapshot.current, direction);
+    snapshot.current = null;
+    if (launch && fromOverview && view === "scanner" && !gentle) {
       launchCleanup.current = playScannerLaunch(node, origin.current);
       return;
     }
-    const interrupted = animation.current?.playState === "running";
-    const current = getComputedStyle(node);
-    const from = interrupted
-      ? { opacity: current.opacity, transform: current.transform }
-      : { opacity: 0.65, transform: view === "scanner" || reduced() ? "none" : "translateY(6px)" };
-    animation.current?.cancel();
-    animation.current = node.animate([from, { opacity: 1, transform: "none" }], {
-      duration: reduced() ? 90 : 180,
-      easing: easeOut,
-    });
+    entranceCleanup.current = playPageEntrance(node, direction, gentle);
   }, [ref, view, scannerLaunch]);
   useEffect(() => () => {
-    animation.current?.cancel();
+    entranceCleanup.current?.();
+    exitCleanup.current?.();
     launchCleanup.current?.();
+    snapshot.current?.remove();
   }, []);
+  return () => {
+    entranceCleanup.current?.(); exitCleanup.current?.(); launchCleanup.current?.();
+    snapshot.current?.remove();
+    snapshot.current = !keyboard.current && !reduced() ? capturePage(ref.current) : null;
+  };
+}
+
+export function useLiquidIndicator(ref: RefObject<HTMLElement | null>, selection: string, selector = "button.active") {
+  const animation = useRef<Animation | null>(null);
+  useLayoutEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    const update = () => {
+      const target = root.querySelector<HTMLElement>(selector);
+      const indicator = root.querySelector<HTMLElement>(".liquid-indicator");
+      if (!target || !indicator) return;
+      const bounds = target.getBoundingClientRect(), parent = root.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      const old = indicator.getBoundingClientRect();
+      const ready = indicator.dataset.ready === "true";
+      animation.current?.cancel();
+      Object.assign(indicator.style, { left: `${bounds.left - parent.left + root.scrollLeft - root.clientLeft}px`, top: `${bounds.top - parent.top + root.scrollTop - root.clientTop}px`, width: `${bounds.width}px`, height: `${bounds.height}px` });
+      indicator.dataset.ready = "true";
+      if (ready && indicator.animate && !reduced()) {
+        animation.current = indicator.animate([
+          { transform: `translate(${old.left - bounds.left}px, ${old.top - bounds.top}px) scale(${old.width / bounds.width}, ${old.height / bounds.height})` },
+          { transform: "translate(0, 0) scale(1, 1)" },
+        ], { duration: 480, easing: easeDrawer });
+      }
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(root);
+    window.addEventListener("resize", update);
+    return () => { observer.disconnect(); window.removeEventListener("resize", update); };
+  }, [ref, selection, selector]);
+  useEffect(() => () => animation.current?.cancel(), []);
 }
 
 // Retain the last visible content only during exit; reopening cancels that exit.
-export function MotionPresence({ open, variant = "modal", children }: {
+export function MotionPresence({ open, variant = "modal", onDismiss, children }: {
   open: boolean;
   variant?: "modal" | "popover" | "feedback";
+  onDismiss?: () => void;
   children: ReactNode;
 }) {
   const [visible, setVisible] = useState(open);
   const [retained, setRetained] = useState(children);
   const root = useRef<HTMLDivElement>(null);
+  const labelId = useId();
+  const dismiss = useRef(onDismiss);
+  useEffect(() => { dismiss.current = onDismiss; }, [onDismiss]);
   const animations = useRef<Animation[]>([]);
   useLayoutEffect(() => {
     if (open) {
@@ -79,19 +125,43 @@ export function MotionPresence({ open, variant = "modal", children }: {
     }
   }, [open, children]);
   useLayoutEffect(() => {
+    if (!open || !visible || variant !== "modal") return;
+    const panel = root.current?.querySelector<HTMLElement>(".modal");
+    if (!panel) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const heading = panel.querySelector("h2");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    if (heading) { heading.id ||= `modal-${labelId}`; panel.setAttribute("aria-labelledby", heading.id); }
+    const targets = () => [...panel.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]')].filter(node => node.getClientRects().length);
+    targets()[0]?.focus({ preventScroll: true });
+    const keys = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && dismiss.current) { event.preventDefault(); dismiss.current(); }
+      if (event.key !== "Tab") return;
+      const focusable = targets(), first = focusable[0], last = focusable.at(-1);
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || !panel.contains(document.activeElement))) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || !panel.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", keys);
+    return () => { document.removeEventListener("keydown", keys); if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true }); };
+  }, [open, visible, variant, labelId]);
+  useLayoutEffect(() => {
     const outer = root.current?.firstElementChild as HTMLElement | undefined;
     if (!outer || !visible) return;
     const inner = outer.querySelector<HTMLElement>(".modal, .camera-feedback-glass") || outer;
     const wasRunning = animations.current.some(a => a.playState === "running");
     const outerOpacity = wasRunning ? getComputedStyle(outer).opacity : open ? 0 : 1;
-    const innerTransform = wasRunning ? getComputedStyle(inner).transform : open ? "translateY(8px) scale(0.97)" : "none";
+    const innerTransform = wasRunning ? getComputedStyle(inner).transform : open ? "perspective(1100px) translateY(34px) rotateX(9deg) scale(0.92)" : "none";
+    const innerFilter = wasRunning ? getComputedStyle(inner).filter : open ? "blur(6px)" : "blur(0px)";
     animations.current.forEach(a => a.cancel());
     if (!outer.animate) { if (!open) setVisible(false); return; }
-    const duration = reduced() ? 90 : open ? 240 : 180;
+    const duration = reduced() ? 90 : open ? variant === "feedback" ? 480 : 560 : 320;
     const opacity = outer.animate([{ opacity: outerOpacity }, { opacity: open ? 1 : 0 }], { duration, easing: easeOut, fill: "both" });
     const transform = reduced() ? null : inner.animate([
-      { transform: innerTransform },
-      { transform: open ? "none" : "translateY(8px) scale(0.97)" },
+      { transform: innerTransform, filter: innerFilter, offset: 0 },
+      ...(open ? [{ transform: "perspective(1100px) translateY(-3px) rotateX(0deg) scale(1.018)", filter: "blur(0px)", offset: 0.72 }] : []),
+      { transform: open ? "none" : "perspective(1100px) translateY(24px) rotateX(6deg) scale(0.94)", filter: open ? "blur(0px)" : "blur(5px)", offset: 1 },
     ], { duration, easing: variant === "popover" ? easeDrawer : easeOut, fill: "both" });
     const active = [opacity, ...(transform ? [transform] : [])];
     animations.current = active;

@@ -93,7 +93,7 @@ export default function App() {
     [busy, SBu] = useState(false);
   const pageSurface = useRef<HTMLDivElement>(null);
   const scannerLaunch = useRef(false);
-  usePageMotion(pageSurface, tab, scannerLaunch);
+  const preparePageMotion = usePageMotion(pageSurface, tab, scannerLaunch);
   const [query, SQ] = useState(""),
     [grade, SG] = useState(""),
     [cl, SC] = useState(""),
@@ -368,6 +368,7 @@ export default function App() {
   const section = sectionForView(tab);
   const hasSectionTabs = section === "attendance" || (section === "students" && admin);
   const navigate = (id: string) => {
+    if (id !== tab) preparePageMotion();
     scannerLaunch.current = tab === "overview" && id === "scanner";
     ST(id);
     const search = searchForView(id, location.search);
@@ -933,7 +934,7 @@ export default function App() {
                     key={space}
                     devices={devices}
                     busy={busy}
-                    onScan={() => ST("scanner")}
+                    onScan={() => navigate("scanner")}
                     onRevoke={(id) =>
                       void act(async () => {
                         await api("devices/revoke" + suffix, { id });
@@ -985,7 +986,7 @@ export default function App() {
           </footer>
         </main>
       </div>
-      <MotionPresence open={!!edit}>
+      <MotionPresence open={!!edit} onDismiss={busy ? undefined : () => SEdit(null)}>
       {edit && (
         <div className="modal-backdrop">
           <form
@@ -1012,7 +1013,7 @@ export default function App() {
                 <input
                   required
                   value={edit[k]}
-                  disabled={!!edit.id && k === "code"}
+                  disabled={busy || (!!edit.id && k === "code")}
                   onChange={(e) => SEdit({ ...edit, [k]: e.target.value })}
                 />
               </label>

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { SCHOOL } from "@/lib/mealcheck.mjs";
 import { sectionForView } from "@/lib/navigation.mjs";
+import { useLiquidIndicator } from "./liquid-motion";
 
 export function navigationItems(admin: boolean) {
   return [
@@ -59,6 +60,12 @@ export function AppNavigation({
   const section = sectionForView(current);
   const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
+  const sidebarNav = useRef<HTMLElement>(null);
+  const mobileNav = useRef<HTMLElement>(null);
+  const dialogNav = useRef<HTMLElement>(null);
+  useLiquidIndicator(sidebarNav, section);
+  useLiquidIndicator(mobileNav, section);
+  useLiquidIndicator(dialogNav, section + String(open));
   const primary = ["overview", "scanner", "attendance", "students"];
   const mobileLabels: Record<string, string> = {
     overview: "Tổng quan",
@@ -101,7 +108,7 @@ export function AppNavigation({
           <GraduationCap size={19} aria-hidden="true" />
           <span>{SCHOOL}</span>
         </div>
-        <nav aria-label="Điều hướng chính">{links}</nav>
+        <nav ref={sidebarNav} className="liquid-navigation" aria-label="Điều hướng chính"><span className="liquid-indicator" aria-hidden="true"/>{links}</nav>
         <div className="sidebar-bottom">
           <div className="private">
             <ShieldCheck size={18} aria-hidden="true" />
@@ -109,7 +116,8 @@ export function AppNavigation({
           </div>
         </div>
       </aside>
-      <nav className="mobile-navigation" aria-label="Điều hướng nhanh">
+      <nav ref={mobileNav} className="mobile-navigation liquid-navigation" aria-label="Điều hướng nhanh">
+        <span className="liquid-indicator" aria-hidden="true"/>
         {items
           .filter((item) => primary.includes(item.id))
           .map(({ id, Icon }) => (
@@ -158,7 +166,7 @@ export function AppNavigation({
               <X size={22} />
             </button>
           </header>
-          <nav aria-label="Tất cả chức năng">{links}</nav>
+          <nav ref={dialogNav} className="liquid-navigation" aria-label="Tất cả chức năng"><span className="liquid-indicator" aria-hidden="true"/>{links}</nav>
         </div>
       </dialog>
     </>

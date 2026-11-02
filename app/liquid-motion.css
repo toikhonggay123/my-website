@@ -2,10 +2,11 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --motion-press: 140ms;
-  --motion-ui: 180ms;
-  --motion-overlay: 240ms;
-  --motion-launch: 280ms;
+  --motion-press: 180ms;
+  --motion-ui: 320ms;
+  --motion-overlay: 600ms;
+  --motion-launch: 760ms;
+  --motion-page: 620ms;
 }
 .motion-presence { display: contents; }
 .motion-presence[data-exiting] > * { pointer-events: none; }
@@ -45,13 +46,15 @@
      browsers retain the top layer during the discrete closing transition. */
   :is(.navigation-dialog, .reset-dialog) {
     opacity: 0;
-    transform: translateY(12px) scale(0.97);
+    transform: perspective(1100px) translateY(48px) rotateX(10deg) scale(0.91);
+    filter: blur(7px);
     transition: opacity var(--motion-overlay) var(--ease-out),
       transform var(--motion-overlay) var(--ease-drawer),
+      filter var(--motion-overlay) var(--ease-out),
       display var(--motion-overlay) allow-discrete,
       overlay var(--motion-overlay) allow-discrete;
   }
-  :is(.navigation-dialog, .reset-dialog)[open] { opacity: 1; transform: none; }
+  :is(.navigation-dialog, .reset-dialog)[open] { opacity: 1; transform: none; filter: blur(0px); }
   :is(.navigation-dialog, .reset-dialog)::backdrop {
     opacity: 0;
     transition: opacity var(--motion-overlay) var(--ease-out),
@@ -65,7 +68,8 @@
   @starting-style {
     :is(.navigation-dialog, .reset-dialog)[open] {
       opacity: 0;
-      transform: translateY(12px) scale(0.97);
+      transform: perspective(1100px) translateY(48px) rotateX(10deg) scale(0.91);
+    filter: blur(7px);
     }
     :is(.navigation-dialog, .reset-dialog)[open]::backdrop { opacity: 0; }
     :is(.toast, .pwa-sync-note, .pwa-update, .scan-message, .pwa-install-help) { opacity: 0; }
@@ -86,10 +90,60 @@
   :root { --motion-press: 90ms; --motion-ui: 90ms; --motion-overlay: 90ms; }
   :is(button, a.primary, a.secondary, .file-button, .scan-dock-action) { transition-property: opacity, background-color, color; }
   :is(button, a.primary, a.secondary, .file-button, .scan-dock-action):is(:active, :hover) { transform: none !important; }
-  :is(.navigation-dialog, .reset-dialog) { transform: none; transition-property: opacity, display, overlay; }
-  @starting-style { :is(.navigation-dialog, .reset-dialog)[open] { transform: none; } }
+  :is(.navigation-dialog, .reset-dialog) { transform: none; filter: none; transition-property: opacity, display, overlay; }
+  @starting-style { :is(.navigation-dialog, .reset-dialog)[open] { transform: none; filter: none; } }
 }
 
 @media print {
   #section-panel { transform: none !important; opacity: 1 !important; }
+}
+
+/* A shared glass surface follows the selected control instead of flashing in. */
+.sidebar .liquid-navigation, .navigation-dialog .liquid-navigation, .section-tabs { position:relative; isolation:isolate; }
+.liquid-indicator { position:absolute; z-index:0; pointer-events:none; border-radius:12px; opacity:0; transform-origin:0 0; background:linear-gradient(145deg,#ffffffed,#dfebffef); border:1px solid #ffffffd9; box-shadow:inset 0 1px 0 white,0 6px 18px #2454c61c; transition:opacity 220ms var(--ease-out); }
+.liquid-indicator[data-ready="true"] { opacity:1; }
+.liquid-navigation > button, .section-tabs > button { position:relative; z-index:1; }
+.sidebar .liquid-navigation button.active, .sidebar .liquid-navigation button.active:hover, .navigation-dialog .liquid-navigation button.active, .mobile-navigation.liquid-navigation button.active { background:transparent; }
+.section-tabs { display:flex; width:fit-content; max-width:100%; gap:6px; padding:6px; border:1px solid #d9e5f6; border-radius:17px; background:#e9f0fa; }
+.section-tabs > button { padding:10px 18px; border:0; margin:0; min-height:46px; border-radius:12px; }
+.section-tabs > button[aria-selected="true"] { border:0; color:#2454c6; }
+.section-tabs .liquid-indicator { background:linear-gradient(145deg,#ffffff,#f9fcff); }
+.motion-snapshot { position:fixed; z-index:30; pointer-events:none; overflow:hidden; background:var(--bg); border-radius:16px; transform-origin:50% 20%; }
+.motion-snapshot * { pointer-events:none!important; animation:none!important; transition:none!important; }
+#section-panel { transform-origin:50% 16%; }
+.scanner-launch-badge { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); display:flex; align-items:center; gap:16px; width:max-content; max-width:calc(100% - 36px); padding:23px 27px; border-radius:26px; background:linear-gradient(135deg,#fffffffa,#eaf4ffe8); border:1px solid #ffffffee; color:#173c67; box-shadow:inset 0 1px 0 white,0 24px 70px #04182d50; backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%); }
+.scanner-launch-badge > img { width:52px; height:52px; object-fit:contain; flex-shrink:0; }
+.scanner-launch-badge b { display:block; font-size:19px; line-height:1.4; white-space:nowrap; }
+.scanner-launch-badge small { display:block; color:#42658a; font-size:12px; margin-top:5px; }
+.scanner-launch-badge > svg { width:27px; height:27px; color:#3264e6; }
+.camera-feedback-glass { position:relative; isolation:isolate; }
+.camera-feedback-ripple { position:absolute; inset:-8px; border:2px solid #39bc8b88; border-radius:inherit; pointer-events:none; animation:confirmation-ripple 800ms var(--ease-out) both; z-index:-1; }
+.camera-feedback.duplicate .camera-feedback-ripple { border-color:#d8b15c88; }
+.camera-check { animation:confirmation-pop 650ms var(--ease-drawer) both; }
+@keyframes confirmation-ripple { 0% { opacity:.8; transform:scale(.94); } 100% { opacity:0; transform:scale(1.22); } }
+@keyframes confirmation-pop { 0% { transform:perspective(600px) rotateY(-35deg) scale(.78); } 65% { transform:perspective(600px) rotateY(4deg) scale(1.12); } 100% { transform:none; } }
+:is(.navigation-dialog, .reset-dialog):not([open]), :is(.navigation-dialog, .reset-dialog):not([open])::backdrop { pointer-events:none; }
+@media (hover:hover) and (pointer:fine) {
+  .primary { position:relative; overflow:hidden; }
+  .primary::after { content:""; position:absolute; inset:-60% -10%; background:linear-gradient(105deg,transparent 30%,#ffffff40 49%,transparent 68%); transform:translateX(-120%) skewX(-16deg); transition:transform 680ms var(--ease-drawer); pointer-events:none; }
+  .primary:hover::after { transform:translateX(120%) skewX(-16deg); }
+  :is(.primary,.secondary,.scan-start):hover:not(:disabled) { transform:translateY(-2px) scale(1.02); }
+}
+@media(max-width:600px) {
+  .section-tabs { width:100%; gap:4px; padding:5px; }
+  .section-tabs > button { flex:1; min-width:0; padding:10px 8px; font-size:12px; }
+  .section-tabs > button span { overflow-wrap:anywhere; }
+  .scanner-launch-badge { gap:12px; padding:20px; border-radius:23px; }
+  .scanner-launch-badge > img { width:43px; height:43px; }
+  .scanner-launch-badge b { font-size:16px; }
+  .scanner-launch-badge > svg { display:none; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .camera-feedback-ripple,.camera-check { animation:none; }
+  .camera-feedback-ripple { display:none; }
+  .primary::after { display:none; }
+}
+@media print {
+  .liquid-indicator,.scanner-launch-fx,.motion-snapshot { display:none!important; }
+  #section-panel { transform:none!important; filter:none!important; clip-path:none!important; opacity:1!important; }
 }
