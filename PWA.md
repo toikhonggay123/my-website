@@ -36,7 +36,7 @@ Nguồn kỹ thuật: [MDN PWA installation](https://developer.mozilla.org/en-US
 
 ## Giao diện quét tập trung
 
-Màn quét trên điện thoại phủ toàn trang, camera làm nền, khung vuông bo góc và đường quét chuyển động (tắt chuyển động khi người dùng bật reduced motion). Thanh dưới chọn bữa, đổi camera và mở lịch sử; ba nút Chọn ảnh QR, Mở/Tắt camera và Thẻ học sinh. Tùy chọn camera và toàn màn hình nằm ở góc trên; đèn flash chỉ hoạt động khi track hỗ trợ. Camera không tự xin quyền khi mở trang, giáo viên chủ động bấm Mở camera. Desktop giữ sidebar và khung quét lớn. Popup 3 giây nằm chính giữa khung, không khóa quét tiếp hoặc trì hoãn lưu; offline tiếp tục chờ xác nhận như trước.
+Màn quét trên điện thoại phủ toàn trang, camera làm nền, khung vuông bo góc và đường quét chuyển động (tắt chuyển động khi người dùng bật reduced motion). Thanh dưới chọn bữa, đổi camera và mở lịch sử; hai nút Chọn ảnh QR và Mở/Tắt camera. Thẻ QR được quản lý trong Học sinh → Thẻ QR học sinh. Tùy chọn camera và toàn màn hình nằm ở góc trên; đèn flash chỉ hoạt động khi track hỗ trợ. Camera không tự xin quyền khi mở trang, giáo viên chủ động bấm Mở camera. Desktop giữ sidebar và khung quét lớn. Popup 3 giây nằm chính giữa khung, không khóa quét tiếp hoặc trì hoãn lưu; offline tiếp tục chờ xác nhận như trước.
 
 ## Tương thích iPhone/iPad
 
