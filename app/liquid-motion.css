@@ -47,14 +47,12 @@
   :is(.navigation-dialog, .reset-dialog) {
     opacity: 0;
     transform: perspective(1100px) translateY(48px) rotateX(10deg) scale(0.91);
-    filter: blur(7px);
     transition: opacity var(--motion-overlay) var(--ease-out),
       transform var(--motion-overlay) var(--ease-drawer),
-      filter var(--motion-overlay) var(--ease-out),
       display var(--motion-overlay) allow-discrete,
       overlay var(--motion-overlay) allow-discrete;
   }
-  :is(.navigation-dialog, .reset-dialog)[open] { opacity: 1; transform: none; filter: blur(0px); }
+  :is(.navigation-dialog, .reset-dialog)[open] { opacity: 1; transform: none; }
   :is(.navigation-dialog, .reset-dialog)::backdrop {
     opacity: 0;
     transition: opacity var(--motion-overlay) var(--ease-out),
@@ -69,7 +67,6 @@
     :is(.navigation-dialog, .reset-dialog)[open] {
       opacity: 0;
       transform: perspective(1100px) translateY(48px) rotateX(10deg) scale(0.91);
-    filter: blur(7px);
     }
     :is(.navigation-dialog, .reset-dialog)[open]::backdrop { opacity: 0; }
     :is(.toast, .pwa-sync-note, .pwa-update, .scan-message, .pwa-install-help) { opacity: 0; }
@@ -109,7 +106,7 @@
 .section-tabs > button[aria-selected="true"] { border:0; color:#2454c6; }
 .section-tabs .liquid-indicator { background:linear-gradient(145deg,#ffffff,#f9fcff); }
 .motion-snapshot { position:fixed; z-index:30; pointer-events:none; overflow:hidden; background:var(--bg); border-radius:16px; transform-origin:50% 20%; }
-.motion-snapshot * { pointer-events:none!important; animation:none!important; transition:none!important; }
+.motion-snapshot * { backdrop-filter:none!important; -webkit-backdrop-filter:none!important; pointer-events:none!important; animation:none!important; transition:none!important; }
 #section-panel { transform-origin:50% 16%; }
 .scanner-launch-badge { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); display:flex; align-items:center; gap:16px; width:max-content; max-width:calc(100% - 36px); padding:23px 27px; border-radius:26px; background:linear-gradient(135deg,#fffffffa,#eaf4ffe8); border:1px solid #ffffffee; color:#173c67; box-shadow:inset 0 1px 0 white,0 24px 70px #04182d50; backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%); }
 .scanner-launch-badge > img { width:52px; height:52px; object-fit:contain; flex-shrink:0; }

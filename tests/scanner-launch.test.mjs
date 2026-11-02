@@ -39,7 +39,7 @@ test("Scanner launch finishes within 760 ms and clears every visual effect", asy
   for (const call of f.calls) {
     assert.ok(call.timing.duration + (call.timing.delay || 0) <= 760);
     for (const frame of call.frames)
-      assert.ok(Object.keys(frame).every(key => ["opacity", "transform", "filter", "clipPath", "offset"].includes(key)));
+      assert.ok(Object.keys(frame).every(key => ["opacity", "transform", "offset"].includes(key)));
     call.finish();
   }
   await Promise.resolve(); await Promise.resolve();

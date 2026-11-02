@@ -85,9 +85,10 @@ export function useLiquidIndicator(ref: RefObject<HTMLElement | null>, selection
       // stable while a parent dialog/page is scaled, tilted or translated.
       const bounds = { left: target.offsetLeft, top: target.offsetTop, width: target.offsetWidth, height: target.offsetHeight };
       if (!bounds.width || !bounds.height) return;
+      const ready = indicator.dataset.ready === "true";
+      if (ready && indicator.offsetLeft === bounds.left && indicator.offsetTop === bounds.top && indicator.offsetWidth === bounds.width && indicator.offsetHeight === bounds.height) return;
       const matrix = new DOMMatrixReadOnly(getComputedStyle(indicator).transform);
       const old = { left: indicator.offsetLeft + matrix.m41, top: indicator.offsetTop + matrix.m42, width: indicator.offsetWidth * matrix.m11, height: indicator.offsetHeight * matrix.m22 };
-      const ready = indicator.dataset.ready === "true";
       animation.current?.cancel();
       Object.assign(indicator.style, { left: `${bounds.left}px`, top: `${bounds.top}px`, width: `${bounds.width}px`, height: `${bounds.height}px` });
       indicator.dataset.ready = "true";
@@ -102,7 +103,7 @@ export function useLiquidIndicator(ref: RefObject<HTMLElement | null>, selection
     const observer = new ResizeObserver(update);
     observer.observe(root);
     window.addEventListener("resize", update);
-    return () => { observer.disconnect(); window.removeEventListener("resize", update); animation.current?.cancel(); };
+    return () => { observer.disconnect(); window.removeEventListener("resize", update); };
   }, [ref, selection, selector]);
   useEffect(() => () => animation.current?.cancel(), []);
 }
@@ -156,15 +157,14 @@ export function MotionPresence({ open, variant = "modal", onDismiss, children }:
     const wasRunning = animations.current.some(a => a.playState === "running");
     const outerOpacity = wasRunning ? getComputedStyle(outer).opacity : open ? 0 : 1;
     const innerTransform = wasRunning ? getComputedStyle(inner).transform : open ? "perspective(1100px) translateY(34px) rotateX(9deg) scale(0.92)" : "none";
-    const innerFilter = wasRunning ? getComputedStyle(inner).filter : open ? "blur(6px)" : "blur(0px)";
     animations.current.forEach(a => a.cancel());
     if (!outer.animate) { if (!open) setVisible(false); return; }
     const duration = reduced() ? 90 : open ? variant === "feedback" ? 480 : 560 : 320;
     const opacity = outer.animate([{ opacity: outerOpacity }, { opacity: open ? 1 : 0 }], { duration, easing: easeOut, fill: "both" });
     const transform = reduced() ? null : inner.animate([
-      { transform: innerTransform, filter: innerFilter, offset: 0 },
-      ...(open ? [{ transform: "perspective(1100px) translateY(-3px) rotateX(0deg) scale(1.018)", filter: "blur(0px)", offset: 0.72 }] : []),
-      { transform: open ? "none" : "perspective(1100px) translateY(24px) rotateX(6deg) scale(0.94)", filter: open ? "blur(0px)" : "blur(5px)", offset: 1 },
+      { transform: innerTransform, offset: 0 },
+      ...(open ? [{ transform: "perspective(1100px) translateY(-3px) rotateX(0deg) scale(1.018)", offset: 0.72 }] : []),
+      { transform: open ? "none" : "perspective(1100px) translateY(24px) rotateX(6deg) scale(0.94)", offset: 1 },
     ], { duration, easing: variant === "popover" ? easeDrawer : easeOut, fill: "both" });
     const active = [opacity, ...(transform ? [transform] : [])];
     animations.current = active;

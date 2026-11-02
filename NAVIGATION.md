@@ -10,12 +10,18 @@ Menu chính giữ 7 mục: Tổng quan, Quét QR điểm danh, Lịch sử đi�
 
 Theo yêu cầu chủ dự án, ưu tiên hiệu ứng nổi bật, không giới hạn ở fade ngắn. Không có mục UI riêng tên “Tối ưu hiệu năng”.
 
-- Trang cũ rời đi bằng một lớp ảnh DOM tạm thời; trang mới mở theo chiều sâu, blur và overshoot nhẹ trong 620 ms. Lớp tạm inert, aria-hidden, bỏ ID/name/autofocus, không nhận thao tác, không lưu trữ; tự xóa khi xong hoặc bị ngắt. Thanh điều hướng điện thoại luôn nằm trên lớp chuyển cảnh.
-- Nền kính trong menu và tab trượt/morph theo vị trí mục được chọn trong 480 ms, đo lại khi đổi kích thước hoặc mở menu.
-- Từ Tổng quan sang Quét QR: khung camera mở bằng perspective và clip-path, ánh sáng lướt qua, bảng AFYLLX nổi lên rồi hòa vào máy quét trong 760 ms. Không tự xin quyền camera hay chờ hiệu ứng để lưu lượt.
+- Trang nhỏ (tối đa 240 phần tử, không có video/canvas/iframe) rời đi bằng một lớp DOM tạm thời; trang dài chuyển trực tiếp để tránh sao chép bảng/thẻ lớn. Trang mới mở theo chiều sâu và overshoot nhẹ trong 620 ms, chỉ tween transform/opacity. Lớp tạm inert, aria-hidden, bỏ ID/name/autofocus, không nhận thao tác, không lưu trữ; tự xóa khi xong hoặc bị ngắt. Thanh điều hướng điện thoại luôn nằm trên lớp chuyển cảnh.
+- Nền kính trong menu và tab trượt/morph theo vị trí mục được chọn trong 480 ms, đo lại khi đổi kích thước hoặc mở menu. Không khởi động lại animation nếu hình học không đổi; thao tác liên tiếp tiếp tục từ vị trí đang hiển thị.
+- Từ Tổng quan sang Quét QR: khung camera mở bằng perspective/scale, ánh sáng lướt qua, bảng AFYLLX nổi lên rồi hòa vào máy quét trong 760 ms. Không tự xin quyền camera hay chờ hiệu ứng để lưu lượt.
 - Popup mở 480–560 ms, đóng 320 ms; menu/hộp xác nhận native 600 ms. Popup sửa/cấp lại có nhãn, giữ focus, Escape để hủy khi không bận và trả focus khi đóng.
 - Xác nhận QR giữ dấu tích xanh, tên/lớp/mã trong 3 giây, thêm vòng sáng và dấu tích bật nổi. Lưu lịch sử ngay, không chặn quét tiếp. Các phản hồi liên tiếp không phải chờ hiệu ứng.
 - Giảm chuyển động của hệ điều hành dùng fade nhẹ; khi in, lớp chuyển cảnh và nền chọn kính không xuất hiện. Bộ đọc thời gian hỗ trợ cả `ms` và `s`, kể cả CSS đã nén thành `.76s`.
+
+## Mục tiêu màn hình tần số cao
+
+Mục tiêu tối ưu là 144 Hz (khoảng 6,94 ms mỗi khung); không có API web ép/cap tần số quét của màn hình hay CSS/WAAPI. Animation theo đồng hồ thời gian của trình duyệt, không thêm vòng setInterval/RAF để giả lập FPS hoặc làm hiệu ứng chạy nhanh hơn trên màn tần số cao. FPS thực tế phụ thuộc trình duyệt, thiết bị, nhiệt độ và chế độ pin. Camera/giải mã QR tiếp tục có nhịp riêng, không tăng lên 144 fps.
+
+Đã bỏ blur động trên toàn trang/modal và clip-path động của khung scanner; giữ kính ở các mặt nhỏ, chuyển động 3D và độ nảy. Snapshot không chạy backdrop blur. Bài kiểm thử kiểm soát chi phí sao chép và thuộc tính animation; đây không phải phép đo 144 fps trên điện thoại. Xem [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame) và [hướng dẫn animation của Chrome](https://web.dev/articles/animations-guide).
 
 ## Checkpoint
 

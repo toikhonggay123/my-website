@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { motionMilliseconds } from "../lib/motion-time.mjs";
-import { playPageEntrance, playPageExit } from "../lib/page-motion.mjs";
+import { canCapturePage, playPageEntrance, playPageExit } from "../lib/page-motion.mjs";
 
 const oldStyle = globalThis.getComputedStyle;
 globalThis.getComputedStyle = () => ({ getPropertyValue: () => ".62s" });
@@ -35,12 +35,32 @@ test("Page entrance has depth and always restores the live surface", async () =>
   const f = surface(), stop = playPageEntrance(f.node);
   assert.ok(f.attrs.has("data-page-motion"));
   assert.equal(f.calls[0].options.duration, 620);
-  assert.ok(f.calls[0].frames[0].filter.includes("blur"));
+  assert.match(f.calls[0].frames[0].transform, /perspective/);
+  const exit = surface(), stopExit = playPageExit(exit.node);
+  for (const call of [...f.calls, ...exit.calls]) for (const frame of call.frames)
+    assert.ok(Object.keys(frame).every(key => ["opacity", "transform", "offset"].includes(key)));
+  stopExit();
   f.calls[0].finish();
   await Promise.resolve(); await Promise.resolve();
   stop();
   assert.equal(f.attrs.size, 0);
   assert.equal(f.calls[0].animation.cancels, 1);
+});
+
+test("Snapshot work stops at the node budget without walking a long roster", () => {
+  let visits = 0;
+  const page = { ownerDocument: { createTreeWalker: () => ({ nextNode: () => { visits++; return { tagName: 'DIV' }; } }) } };
+  assert.equal(canCapturePage(page), false);
+  assert.equal(visits, 241);
+});
+
+test("Small pages can crossfade; camera, canvas and iframe surfaces are never cloned", () => {
+  const page = tags => ({ ownerDocument: { createTreeWalker: () => {
+    let index = 0;
+    return { nextNode: () => index < tags.length ? { tagName: tags[index++] } : null };
+  } } });
+  assert.equal(canCapturePage(page(Array(240).fill('DIV'))), true);
+  for (const media of ['VIDEO', 'CANVAS', 'IFRAME']) assert.equal(canCapturePage(page(['DIV',media])), false);
 });
 
 test("Rapid navigation cancels the entrance and removes outgoing snapshots once", async () => {
