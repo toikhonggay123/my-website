@@ -4,12 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
   ChartNoAxesCombined,
-  ClipboardCheck,
   Clock3,
   GraduationCap,
   LayoutDashboard,
   Menu,
-  QrCode,
   ScanLine,
   Settings,
   ShieldCheck,
@@ -17,18 +15,17 @@ import {
   X,
 } from "lucide-react";
 import { SCHOOL } from "@/lib/mealcheck.mjs";
+import { sectionForView } from "@/lib/navigation.mjs";
 
 export function navigationItems(admin: boolean) {
   return [
     { id: "overview", label: "Tổng quan", Icon: LayoutDashboard },
     { id: "scanner", label: "Quét QR điểm danh", Icon: ScanLine },
     { id: "attendance", label: "Lịch sử điểm danh", Icon: Clock3 },
-    { id: "missing", label: "Chưa điểm danh", Icon: ClipboardCheck },
     { id: "students", label: "Học sinh", Icon: Users },
     { id: "reports", label: "Báo cáo", Icon: ChartNoAxesCombined },
     ...(admin
       ? [
-          { id: "qrcards", label: "Thẻ QR học sinh", Icon: QrCode },
           { id: "settings", label: "Cài đặt", Icon: Settings },
         ]
       : []),
@@ -59,6 +56,7 @@ export function AppNavigation({
   onNavigate: (tab: string) => void;
 }) {
   const items = navigationItems(admin);
+  const section = sectionForView(current);
   const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const primary = ["overview", "scanner", "attendance", "students"];
@@ -86,8 +84,8 @@ export function AppNavigation({
   const links = items.map(({ id, label, Icon }) => (
     <button
       key={id}
-      className={current === id ? "active" : ""}
-      aria-current={current === id ? "page" : undefined}
+      className={section === id ? "active" : ""}
+      aria-current={section === id ? "page" : undefined}
       onClick={() => navigate(id)}
     >
       <Icon size={20} aria-hidden="true" />
@@ -117,8 +115,8 @@ export function AppNavigation({
           .map(({ id, Icon }) => (
             <button
               key={id}
-              className={current === id ? "active" : ""}
-              aria-current={current === id ? "page" : undefined}
+              className={section === id ? "active" : ""}
+              aria-current={section === id ? "page" : undefined}
               onClick={() => navigate(id)}
             >
               <Icon size={21} aria-hidden="true" />
@@ -126,7 +124,7 @@ export function AppNavigation({
             </button>
           ))}
         <button
-          className={!primary.includes(current) ? "active" : ""}
+          className={!primary.includes(section) ? "active" : ""}
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls="navigation-dialog"

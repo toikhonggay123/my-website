@@ -1,4 +1,7 @@
 /* Shared admin layout. Scanner and printable student cards keep their own styles. */
+@media print {
+  .section-tabs { display: none !important; }
+}
 @media screen {
   :root {
     --ink: #202d43;
@@ -143,6 +146,49 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
+  }
+  .section-tabs {
+    display: flex;
+    gap: 24px;
+    margin: -4px 0 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-tabs button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 10px 2px;
+    margin-bottom: -1px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .section-tabs button[aria-selected="true"] {
+    color: #2454c6;
+    border-bottom-color: currentColor;
+  }
+  .section-tabs button:hover { color: #2454c6; }
+  .section-tabs button:focus-visible {
+    outline: 2px solid #2454c6;
+    outline-offset: -3px;
+    border-radius: 4px;
+  }
+  #section-panel { min-width: 0; }
+  #section-panel:focus-visible {
+    outline: 2px solid #2454c6;
+    outline-offset: 4px;
+  }
+  @media (max-width: 600px) {
+    .section-tabs { gap: 12px; margin-bottom: 20px; }
+    .section-tabs button { flex: 1; font-size: 13px; gap: 6px; }
+    .section-tabs button svg { flex-shrink: 0; }
   }
   .date-chip {
     display: flex;

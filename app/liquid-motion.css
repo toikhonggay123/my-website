@@ -1,0 +1,75 @@
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --motion-press: 140ms;
+  --motion-ui: 180ms;
+  --motion-overlay: 240ms;
+}
+.motion-presence { display: contents; }
+.motion-presence[data-exiting] > * { pointer-events: none; }
+
+@media screen {
+  :is(button, a.primary, a.secondary, .file-button, .scan-dock-action) {
+    transition: transform var(--motion-press) var(--ease-out),
+      opacity var(--motion-ui) var(--ease-out),
+      background-color var(--motion-ui) ease, color var(--motion-ui) ease;
+  }
+  :is(button, a.primary, a.secondary, .file-button, .scan-dock-action):active:not(:disabled):not(.disabled) {
+    transform: scale(0.97);
+  }
+  .section-tabs button {
+    transition: color var(--motion-ui) ease, border-color var(--motion-ui) ease,
+      transform var(--motion-press) var(--ease-out);
+  }
+  /* Keep native dialog focus trapping and immediate close semantics. Modern
+     browsers retain the top layer during the discrete closing transition. */
+  :is(.navigation-dialog, .reset-dialog) {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+    transition: opacity var(--motion-overlay) var(--ease-out),
+      transform var(--motion-overlay) var(--ease-drawer),
+      display var(--motion-overlay) allow-discrete,
+      overlay var(--motion-overlay) allow-discrete;
+  }
+  :is(.navigation-dialog, .reset-dialog)[open] { opacity: 1; transform: none; }
+  :is(.navigation-dialog, .reset-dialog)::backdrop {
+    opacity: 0;
+    transition: opacity var(--motion-overlay) var(--ease-out),
+      display var(--motion-overlay) allow-discrete,
+      overlay var(--motion-overlay) allow-discrete;
+  }
+  :is(.navigation-dialog, .reset-dialog)[open]::backdrop { opacity: 1; }
+  :is(.toast, .pwa-sync-note, .pwa-update, .scan-message, .pwa-install-help) {
+    transition: opacity var(--motion-ui) var(--ease-out);
+  }
+  @starting-style {
+    :is(.navigation-dialog, .reset-dialog)[open] {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+    :is(.navigation-dialog, .reset-dialog)[open]::backdrop { opacity: 0; }
+    :is(.toast, .pwa-sync-note, .pwa-update, .scan-message, .pwa-install-help) { opacity: 0; }
+  }
+  /* Retain the glass design; WAAPI owns panel entry/exit so rapid scans don't
+     replay competing CSS keyframes or delay saving. */
+  .motion-presence .camera-feedback,
+  .motion-presence .camera-feedback-glass { animation: none; }
+  .camera-check path { animation-timing-function: var(--ease-out); }
+
+  @media (hover: hover) and (pointer: fine) {
+    :is(.primary, .secondary, .scan-start):hover:not(:disabled) { transform: translateY(-1px); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion-press: 90ms; --motion-ui: 90ms; --motion-overlay: 90ms; }
+  :is(button, a.primary, a.secondary, .file-button, .scan-dock-action) { transition-property: opacity, background-color, color; }
+  :is(button, a.primary, a.secondary, .file-button, .scan-dock-action):is(:active, :hover) { transform: none !important; }
+  :is(.navigation-dialog, .reset-dialog) { transform: none; transition-property: opacity, display, overlay; }
+  @starting-style { :is(.navigation-dialog, .reset-dialog)[open] { transform: none; } }
+}
+
+@media print {
+  #section-panel { transform: none !important; opacity: 1 !important; }
+}

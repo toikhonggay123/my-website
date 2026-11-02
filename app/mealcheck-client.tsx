@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ScanLine,
   Sun,
@@ -36,6 +36,9 @@ import { TodayExport, MissingAttendance } from "./daily-attendance";
 import { InstallApp } from "./pwa";
 import { readDevicePref, saveDevicePref } from "./offline-store";
 import { AppNavigation, Brand, navigationItems } from "./app-navigation";
+import { SectionTabs } from "./section-tabs";
+import { searchForView, sectionForView, viewFromSearch } from "@/lib/navigation.mjs";
+import { MotionPresence, usePageMotion } from "./liquid-motion";
 type R = Record<string, any>;
 const LABELS: R = LABEL_MAP;
 const mealIcons: R = { sang: Sun, trua: Sunset, toi: Moon },
@@ -87,8 +90,9 @@ export default function App() {
     [space, SP] = useState("live"),
     [error, SE] = useState(""),
     [note, SN] = useState(""),
-    [busy, SBu] = useState(false),
-    [online, SO] = useState(false);
+    [busy, SBu] = useState(false);
+  const pageSurface = useRef<HTMLDivElement>(null);
+  usePageMotion(pageSurface, tab);
   const [query, SQ] = useState(""),
     [grade, SG] = useState(""),
     [cl, SC] = useState(""),
@@ -101,7 +105,6 @@ export default function App() {
   const user = who?.user,
     admin = user?.role === "admin",
     publicDemo = !!who?.publicDemo,
-    publicCloud = !!who?.publicCloud,
     canEditRoster = admin && !publicDemo,
     suffix = "?space=" + space;
   const flash = (s: string) => {
@@ -139,8 +142,7 @@ export default function App() {
         },
       });
       SWho(d);
-      const requested = new URLSearchParams(location.search).get("tab");
-      if (requested === "scanner" || requested === "guide") ST(requested);
+      ST(viewFromSearch(location.search));
     } catch (e) {
       const cached = readDevicePref("boot", null);
       if ((!navigator.onLine || e instanceof TypeError) && cached) {
@@ -155,7 +157,6 @@ export default function App() {
             ? "guide"
             : "scanner",
         );
-        SO(false);
         window.dispatchEvent(new Event("mealcheck-server-offline"));
       } else throw e;
     }
@@ -163,7 +164,6 @@ export default function App() {
   async function boardLoad() {
     const b = await api("board" + suffix + "&date=" + date);
     SB(b);
-    SO(true);
     setRevision((n) => n + 1);
   }
   async function rosterLoad() {
@@ -186,6 +186,9 @@ export default function App() {
   }
   useEffect(() => {
     void identity().catch((e) => SE(e.message));
+    const restoreView = () => ST(viewFromSearch(location.search));
+    window.addEventListener("popstate", restoreView);
+    return () => window.removeEventListener("popstate", restoreView);
   }, []);
   useEffect(() => {
     if (!user) return;
@@ -223,7 +226,6 @@ export default function App() {
         });
         if (gone || document.hidden) return;
         SB(b);
-        SO(true);
         window.dispatchEvent(new Event("mealcheck-server-online"));
         SDate(b.date);
         setRevision((n) => n + 1);
@@ -239,7 +241,8 @@ export default function App() {
           if (!gone && !document.hidden) SR(rows);
         }
       } catch (e: any) {
-        if (!gone && e.name !== "AbortError") SO(false);
+        if (!gone && e.name !== "AbortError")
+          window.dispatchEvent(new Event("mealcheck-server-offline"));
       } finally {
         inFlight = false;
       }
@@ -361,8 +364,12 @@ export default function App() {
       </div>
     );
   const nav = navigationItems(admin);
+  const section = sectionForView(tab);
+  const hasSectionTabs = section === "attendance" || (section === "students" && admin);
   const navigate = (id: string) => {
     ST(id);
+    const search = searchForView(id, location.search);
+    if (search !== location.search) window.history.pushState(null, "", location.pathname + search);
     SQ("");
     window.scrollTo({
       top: 0,
@@ -389,30 +396,7 @@ export default function App() {
           <div>
             <span>Nhà trường</span>
             <ChevronRight size={14} />
-            <b>{nav.find((n) => n.id === tab)?.label}</b>
-          </div>
-          <div>
-            <select
-              aria-label="Môi trường dữ liệu"
-              value={space}
-              onChange={(e) => {
-                SP(e.target.value);
-                saveDevicePref("dataSpace", e.target.value);
-                SB(null);
-              }}
-            >
-              {!publicDemo && <option value="live">Dữ liệu chính thức</option>}
-              {(!publicCloud || publicDemo) && (
-                <option value="demo">Môi trường thử nghiệm</option>
-              )}
-            </select>
-            <span className={"connection " + (online ? "online" : "")}>
-              <i />
-              {online ? "Đang kết nối" : "Kết nối lại"}
-            </span>
-            <span className="avatar small">
-              {user.email.slice(0, 1).toUpperCase()}
-            </span>
+            <b>{nav.find((n) => n.id === section)?.label}</b>
           </div>
         </header>
         <main id="main-content" className="main-content" tabIndex={-1}>
@@ -447,15 +431,13 @@ export default function App() {
                     {
                       overview: "Tổng quan hôm nay",
                       scanner: "Quét QR điểm danh",
-                      qrcards: "Thẻ QR học sinh",
                       attendance: "Lịch sử điểm danh",
-                      missing: "Học sinh chưa điểm danh",
-                      students: "Danh sách học sinh",
+                      students: "Học sinh",
                       reports: "Báo cáo suất ăn",
                       settings: "Cài đặt nhà trường",
                       guide: "Hướng dẫn sử dụng",
                     } as R
-                  )[tab]
+                  )[section]
                 }
               </h1>
             </div>
@@ -467,6 +449,14 @@ export default function App() {
               {tab === "overview" && <TodayExport space={space} />}
             </div>
           </div>
+          <SectionTabs current={tab} admin={admin} onNavigate={navigate} />
+          <div
+            ref={pageSurface}
+            id="section-panel"
+            role={hasSectionTabs ? "tabpanel" : undefined}
+            aria-labelledby={hasSectionTabs ? `view-tab-${tab}` : undefined}
+            tabIndex={hasSectionTabs ? 0 : undefined}
+          >
           {!board && !["scanner", "guide"].includes(tab) ? (
             <section className="panel">
               <Empty title="Đang tải dữ liệu…" />
@@ -482,10 +472,7 @@ export default function App() {
               )}
               {tab === "guide" && (
                 <TeacherGuide
-                  onNavigate={(target) => {
-                    ST(target);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
+                  onNavigate={navigate}
                 />
               )}
               {tab === "scanner" && (
@@ -493,10 +480,7 @@ export default function App() {
                   key={space}
                   space={space}
                   onRecord={() => void boardLoad().catch((e) => SE(e.message))}
-                  onNavigate={(target) => {
-                    ST(target);
-                    window.scrollTo({ top: 0 });
-                  }}
+                  onNavigate={navigate}
                 />
               )}
               {tab === "qrcards" && admin && (
@@ -991,6 +975,7 @@ export default function App() {
               )}
             </>
           )}
+          </div>
           {tab === "overview" && <InstallApp />}
           <footer className="app-footer">
             <span>AFYLLX MealCheck v1.0</span>
@@ -998,6 +983,7 @@ export default function App() {
           </footer>
         </main>
       </div>
+      <MotionPresence open={!!edit}>
       {edit && (
         <div className="modal-backdrop">
           <form
@@ -1045,6 +1031,7 @@ export default function App() {
           </form>
         </div>
       )}
+      </MotionPresence>
     </div>
   );
 }
