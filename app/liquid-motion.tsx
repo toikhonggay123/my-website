@@ -81,12 +81,15 @@ export function useLiquidIndicator(ref: RefObject<HTMLElement | null>, selection
       const target = root.querySelector<HTMLElement>(selector);
       const indicator = root.querySelector<HTMLElement>(".liquid-indicator");
       if (!target || !indicator) return;
-      const bounds = target.getBoundingClientRect(), parent = root.getBoundingClientRect();
+      // Both are direct children of the positioned nav. Layout offsets stay
+      // stable while a parent dialog/page is scaled, tilted or translated.
+      const bounds = { left: target.offsetLeft, top: target.offsetTop, width: target.offsetWidth, height: target.offsetHeight };
       if (!bounds.width || !bounds.height) return;
-      const old = indicator.getBoundingClientRect();
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(indicator).transform);
+      const old = { left: indicator.offsetLeft + matrix.m41, top: indicator.offsetTop + matrix.m42, width: indicator.offsetWidth * matrix.m11, height: indicator.offsetHeight * matrix.m22 };
       const ready = indicator.dataset.ready === "true";
       animation.current?.cancel();
-      Object.assign(indicator.style, { left: `${bounds.left - parent.left + root.scrollLeft - root.clientLeft}px`, top: `${bounds.top - parent.top + root.scrollTop - root.clientTop}px`, width: `${bounds.width}px`, height: `${bounds.height}px` });
+      Object.assign(indicator.style, { left: `${bounds.left}px`, top: `${bounds.top}px`, width: `${bounds.width}px`, height: `${bounds.height}px` });
       indicator.dataset.ready = "true";
       if (ready && indicator.animate && !reduced()) {
         animation.current = indicator.animate([
@@ -99,7 +102,7 @@ export function useLiquidIndicator(ref: RefObject<HTMLElement | null>, selection
     const observer = new ResizeObserver(update);
     observer.observe(root);
     window.addEventListener("resize", update);
-    return () => { observer.disconnect(); window.removeEventListener("resize", update); };
+    return () => { observer.disconnect(); window.removeEventListener("resize", update); animation.current?.cancel(); };
   }, [ref, selection, selector]);
   useEffect(() => () => animation.current?.cancel(), []);
 }
