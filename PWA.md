@@ -37,3 +37,11 @@ Nguồn kỹ thuật: [MDN PWA installation](https://developer.mozilla.org/en-US
 ## Giao diện quét tập trung
 
 Màn quét trên điện thoại phủ toàn trang, camera làm nền, khung vuông bo góc và đường quét chuyển động (tắt chuyển động khi người dùng bật reduced motion). Thanh dưới chọn bữa, đổi camera và mở lịch sử; ba nút Chọn ảnh QR, Mở/Tắt camera và Thẻ học sinh. Tùy chọn camera và toàn màn hình nằm ở góc trên; đèn flash chỉ hoạt động khi track hỗ trợ. Camera không tự xin quyền khi mở trang, giáo viên chủ động bấm Mở camera. Desktop giữ sidebar và khung quét lớn. Popup 3 giây nằm chính giữa khung, không khóa quét tiếp hoặc trì hoãn lưu; offline tiếp tục chờ xác nhận như trước.
+
+## Tương thích iPhone/iPad
+
+- Trên iPhone/iPad, nút hướng dẫn cài mở các bước Safari → Chia sẻ → Thêm vào Màn hình chính. Website không tự hiện hộp cài như Android. Trên iPadOS dùng giao diện desktop, nhận diện bằng thông tin Mac và màn hình cảm ứng.
+- Khi kết nối IndexedDB bị đóng trong lúc app tạm dừng, ứng dụng mở lại kết nối. Chỉ thử lại thao tác chưa tạo transaction; không tự lặp lại một giao dịch ghi đã bắt đầu.
+- Gửi hàng đợi dùng AbortController và bộ hẹn giờ, không bắt buộc Safari phải có AbortSignal.timeout. Đọc ảnh QR có phương án dùng phần tử ảnh nếu ImageBitmap thiếu hoặc không đọc được định dạng.
+- Khi app quay lại màn hình hoặc có mạng, kiểm tra cập nhật service worker. Theo dõi cả worker đang cài từ trước, không chỉ sự kiện updatefound mới.
+- Đã kiểm tra bằng Chromium với profile iPhone SE/iPhone 13/iPad, mô phỏng các API Safari thiếu và chạy service worker thật trên HTTP cục bộ: mở offline, giữ request ID qua cập nhật, gửi lại sau khi có mạng. Đây không phải bằng chứng đã thử Safari/WebKit hoặc cài lên iPhone thật. WebKit hiện chưa tải được vì chính sách mạng; cần kiểm tra tiếp camera, cài từ màn hình chính và hệ điều hành tạm dừng app trên thiết bị iOS thật.
