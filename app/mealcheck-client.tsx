@@ -21,7 +21,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import {
-  SCHOOL,
   MEALS,
   LABELS as LABEL_MAP,
   normalize,
@@ -980,10 +979,6 @@ export default function App() {
           )}
           </div>
           {tab === "overview" && <InstallApp />}
-          <footer className="app-footer">
-            <span>AFYLLX MealCheck v1.0</span>
-            <span>{SCHOOL}</span>
-          </footer>
         </main>
       </div>
       <MotionPresence open={!!edit} onDismiss={busy ? undefined : () => SEdit(null)}>
