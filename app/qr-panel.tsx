@@ -74,6 +74,7 @@ export function QRScanner({space,onRecord,onNavigate}:{space:string;onRecord:()=
  function leave(target:string){stop();setOptions(false);if(document.fullscreenElement===stage.current)void document.exitFullscreen().catch(()=>{});setImmersive(false);onNavigate?.(target);}
  return <div ref={stage} className={'qr-scanner scanner-view '+(immersive?'immersive':'')}>
   <section className={'camera-stage scan-scene '+(running?'active':'')} aria-label="Camera quét điểm danh">
+   <div className="scanner-launch-fx" aria-hidden="true"><div className="scanner-launch-sheen"/></div>
    <video ref={video} muted playsInline className="scan-video" style={{display:running?'block':'none'}}/>
    <div className="scan-scrim" aria-hidden="true"/>
    <div className="scan-layout">

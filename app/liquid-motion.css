@@ -5,9 +5,28 @@
   --motion-press: 140ms;
   --motion-ui: 180ms;
   --motion-overlay: 240ms;
+  --motion-launch: 280ms;
 }
 .motion-presence { display: contents; }
 .motion-presence[data-exiting] > * { pointer-events: none; }
+.scanner-launch-fx { display: none; }
+.scan-scene[data-launching] > .scanner-launch-fx {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  border: 1px solid #d6efff70;
+  border-radius: inherit;
+  background: linear-gradient(140deg, #b8e9ff24, #ffffff08 45%, #7dc6ff14);
+  pointer-events: none;
+}
+.scanner-launch-sheen {
+  position: absolute;
+  inset: -30% auto -30% 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, #e3f7ff26 50%, transparent);
+}
 
 @media screen {
   :is(button, a.primary, a.secondary, .file-button, .scan-dock-action) {
@@ -63,6 +82,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .scan-scene[data-launching] > .scanner-launch-fx { display: none; }
   :root { --motion-press: 90ms; --motion-ui: 90ms; --motion-overlay: 90ms; }
   :is(button, a.primary, a.secondary, .file-button, .scan-dock-action) { transition-property: opacity, background-color, color; }
   :is(button, a.primary, a.secondary, .file-button, .scan-dock-action):is(:active, :hover) { transform: none !important; }

@@ -92,7 +92,8 @@ export default function App() {
     [note, SN] = useState(""),
     [busy, SBu] = useState(false);
   const pageSurface = useRef<HTMLDivElement>(null);
-  usePageMotion(pageSurface, tab);
+  const scannerLaunch = useRef(false);
+  usePageMotion(pageSurface, tab, scannerLaunch);
   const [query, SQ] = useState(""),
     [grade, SG] = useState(""),
     [cl, SC] = useState(""),
@@ -367,6 +368,7 @@ export default function App() {
   const section = sectionForView(tab);
   const hasSectionTabs = section === "attendance" || (section === "students" && admin);
   const navigate = (id: string) => {
+    scannerLaunch.current = tab === "overview" && id === "scanner";
     ST(id);
     const search = searchForView(id, location.search);
     if (search !== location.search) window.history.pushState(null, "", location.pathname + search);

@@ -1,19 +1,25 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { playScannerLaunch } from "@/lib/scanner-launch.mjs";
 
 const easeOut = "cubic-bezier(0.23, 1, 0.32, 1)";
 const easeDrawer = "cubic-bezier(0.32, 0.72, 0, 1)";
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Animate the existing surface, never remount the scanner or animate React state per frame.
-export function usePageMotion(ref: RefObject<HTMLDivElement | null>, view: string) {
+export function usePageMotion(ref: RefObject<HTMLDivElement | null>, view: string, scannerLaunch: RefObject<boolean>) {
   const previous = useRef(view);
   const keyboard = useRef(false);
   const animation = useRef<Animation | null>(null);
+  const launchCleanup = useRef<(() => void) | null>(null);
+  const origin = useRef<{ x: number; y: number } | null>(null);
   useEffect(() => {
     const onKey = () => { keyboard.current = true; };
-    const onPointer = () => { keyboard.current = false; };
+    const onPointer = (event: PointerEvent) => {
+      keyboard.current = false;
+      origin.current = { x: event.clientX, y: event.clientY };
+    };
     document.addEventListener("keydown", onKey, true);
     document.addEventListener("pointerdown", onPointer, true);
     return () => {
@@ -23,9 +29,22 @@ export function usePageMotion(ref: RefObject<HTMLDivElement | null>, view: strin
   }, []);
   useLayoutEffect(() => {
     if (previous.current === view) return;
+    const fromOverview = previous.current === "overview";
     previous.current = view;
+    const launch = scannerLaunch.current;
+    scannerLaunch.current = false;
+    launchCleanup.current?.();
+    launchCleanup.current = null;
     const node = ref.current;
-    if (!node?.animate || keyboard.current) return;
+    if (!node?.animate || keyboard.current) {
+      animation.current?.cancel();
+      return;
+    }
+    if (launch && fromOverview && view === "scanner" && !reduced()) {
+      animation.current?.cancel();
+      launchCleanup.current = playScannerLaunch(node, origin.current);
+      return;
+    }
     const interrupted = animation.current?.playState === "running";
     const current = getComputedStyle(node);
     const from = interrupted
@@ -36,8 +55,11 @@ export function usePageMotion(ref: RefObject<HTMLDivElement | null>, view: strin
       duration: reduced() ? 90 : 180,
       easing: easeOut,
     });
-  }, [ref, view]);
-  useEffect(() => () => animation.current?.cancel(), []);
+  }, [ref, view, scannerLaunch]);
+  useEffect(() => () => {
+    animation.current?.cancel();
+    launchCleanup.current?.();
+  }, []);
 }
 
 // Retain the last visible content only during exit; reopening cancels that exit.

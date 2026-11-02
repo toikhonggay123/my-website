@@ -18,3 +18,6 @@
 @media(max-width:380px){.scan-layout{grid-template-rows:64px 110px minmax(240px,1fr) auto}.scan-wordmark{font-size:26px}.scan-top h2{font-size:18px}.scan-top-actions{gap:0}.scan-meal-bar{margin-bottom:20px}.scan-target{max-width:calc(100vw - 56px)}.scan-dock{padding-top:17px}.scan-meal{padding-left:13px;padding-right:13px}.scan-meal-value{font-size:14px}}
 @media(max-height:700px) and (min-width:600px){.scanner-view:fullscreen .scan-layout,.scanner-view.immersive .scan-layout{min-height:720px}}
 @media(prefers-reduced-motion:reduce){.scan-sweep{animation:none;top:50%}}
+
+/* The wordmark is also the last paragraph after removing the old intro copy. */
+.scanner-view .scan-intro>.scan-wordmark{font-size:clamp(26px,3vw,34px);line-height:1.3;letter-spacing:-.8px;margin:0}
