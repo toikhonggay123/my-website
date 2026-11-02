@@ -274,6 +274,7 @@ export default function App() {
       (!cl || s.class === cl) &&
       normalize(s.name + " " + s.code).includes(normalize(query)),
   );
+  const visibleRecords = records.filter(r => normalize(r.name + " " + r.code).includes(normalize(query)));
   const alerts = (
     <>
       {error && (
@@ -860,14 +861,14 @@ export default function App() {
                         </div>
                         <div className="bar-chart">
                           {MEALS.map((m) => {
-                            const n = records.filter(
+                            const n = visibleRecords.filter(
                                 (r) => r.meal === m,
                               ).length,
                               max = Math.max(
                                 1,
                                 ...MEALS.map(
                                   (x) =>
-                                    records.filter((r) => r.meal === x).length,
+                                    visibleRecords.filter((r) => r.meal === x).length,
                                 ),
                               ),
                               Icon = mealIcons[m];
@@ -895,16 +896,12 @@ export default function App() {
                     <div className="panel-heading">
                       <h2>
                         {nf.format(
-                          records.filter((r) =>
-                            normalize(r.name + " " + r.code).includes(
-                              normalize(query),
-                            ),
-                          ).length,
+                          visibleRecords.length,
                         )}{" "}
                         lượt được xác nhận
                       </h2>
                     </div>
-                    {records.length ? (
+                    {visibleRecords.length ? (
                       <div className="table-scroll">
                         <table>
                           <thead>
@@ -918,13 +915,7 @@ export default function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {records
-                              .filter((r) =>
-                                normalize(r.name + " " + r.code).includes(
-                                  normalize(query),
-                                ),
-                              )
-                              .map((r) => (
+                            {visibleRecords.map((r) => (
                                 <tr key={r.seq}>
                                   <td>
                                     <b>{LABELS[r.meal]}</b>

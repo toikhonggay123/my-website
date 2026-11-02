@@ -29,3 +29,12 @@ test('PWA cache explicitly excludes APIs and mutations, manifest has Android/iOS
  for(const size of ['192x192','512x512'])assert.ok(manifest.icons.some(icon=>icon.sizes===size&&fs.existsSync('public'+icon.src)));
  assert.ok(fs.existsSync('public/icons/apple-touch-icon.png'));
 });
+test('temporary HTTP failures remain pending and retry with the original id',async()=>{
+ for(const status of [408,425,429]){
+  const store=fixture(),row=await enqueueScan(store,scan);let ack=0;
+  await syncScans(store,async()=>({ok:false,status,data:{error:'Thử lại sau'}}),()=>ack++);
+  assert.equal((await store.all())[0].state,'pending');assert.equal(ack,0);
+  await syncScans(store,async retry=>{assert.equal(retry.id,row.id);return {ok:true,status:200,data:{status:'recorded'}};},()=>ack++);
+  assert.equal(ack,1);assert.equal((await store.all()).length,0);
+ }
+});

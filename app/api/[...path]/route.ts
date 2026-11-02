@@ -6,7 +6,7 @@ import {resetPreview,resetBackups,restoreReset} from '@/lib/reset-backup.mjs';
 import {localAdminUser} from '@/lib/access.mjs';
 import {deploymentPolicy,deploymentSpace,allowDemoOperation,deploymentCookies} from '@/lib/deployment.mjs';
 import { studentCards, issuedStudentCards, reissueStudentCard, scanStudentCard } from '@/lib/qr.mjs';
-import { discardRequestBody } from '@/lib/http-body.mjs';
+import { discardRequestBody, readJsonBody } from '@/lib/http-body.mjs';
 export const dynamic='force-dynamic';
 const json=(data:any,status=200,headers:any={})=>Response.json(data,{status,headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff',...headers}});
 function cookie(req:Request,name='mc_device'){return req.headers.get('cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(name+'='))?.slice(name.length+1);}
@@ -27,7 +27,7 @@ async function handle(req:Request,{params}:any){
   }
   const cookies=deploymentCookies(policy),token=cookie(req,cookies.device),device=await app.device(token),user=policy.publicCloud?{...localAdminUser(),id:policy.demoOnly?'demo-admin':'cloud-admin',name:policy.demoOnly?'Quản trị bản demo':'Quản trị nhà trường',email:policy.demoOnly?'Quản trị bản demo':'Quản trị nhà trường'}:localAdminUser();
   if(route==='identity'&&req.method==='GET')return json({localAdmin:!policy.publicCloud,publicCloud:policy.publicCloud,publicDemo:policy.demoOnly,defaultSpace:policy.defaultSpace,deployment:policy.mode,user});
-  const text=req.method==='POST'?await req.text():'';if(text.length>2_000_000)throw new AppError('Dữ liệu quá lớn.',413);let body:any={};if(text){try{body=JSON.parse(text);}catch{throw new AppError('Dữ liệu JSON không hợp lệ.');}}
+  const body:any=req.method==='POST'?await readJsonBody(req):{};
   if(route==='device/start'&&req.method==='POST'){
     // Browser identity is issued by the server; pupils never enter a device code.
     if(device)return json({device});

@@ -13,7 +13,7 @@ export function ResetAttendance({space,onReset}:{space:string;onReset:()=>Promis
   if(busy||loading||(!preview&&mode==='reset')||(!chosen&&mode==='restore'))return;setBusy(true);setError('');
   try{
    const result=mode==='reset'?await call('reset-today'+suffix,{confirmDate:preview!.date}):await call('restore-reset'+suffix,{backupId:chosen!.id});
-   dialog.current?.close();setNotice(mode==='reset'?`Đã đặt lại ${result.removed} lượt. Bản sao đã lưu trên máy.`:`Đã khôi phục ${result.restored} lượt; ${result.skipped} lượt đã có hoặc không còn phù hợp được giữ nguyên.`);
+   dialog.current?.close();setNotice(mode==='reset'?`Đã đặt lại ${result.removed} lượt. Bản sao đã lưu trong hệ thống.`:`Đã khôi phục ${result.restored} lượt; ${result.skipped} lượt đã có hoặc không còn phù hợp được giữ nguyên.`);
    try{await onReset();}catch{setNotice('Đã xử lý. Vui lòng tải lại trang để cập nhật số liệu.');}
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }

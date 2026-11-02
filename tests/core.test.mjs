@@ -123,3 +123,29 @@ test('Không tự chọn bữa, không gửi bữa của ngày cũ',async()=>{co
 
 test('Thu hồi thiết bị không cho duyệt yêu cầu đang chờ',async()=>{const f=await fixture(),r=await submit(f,f.a,'demo:001',crypto.randomUUID());await f.app.run('UPDATE devices SET active=0 WHERE id=?',f.a.id);await assert.rejects(f.app.decide('demo',r.id,true,'teacher'),/session_no_longer_active/);assert.equal(f.db.prepare('SELECT count(*) n FROM attendance').get().n,0);});
 test('Hai bữa đồng thời vẫn giữ bản ghi và giáo viên xác nhận độc lập',async()=>{const f=await fixture(),a=await submit(f,f.a,'demo:001',crypto.randomUUID(),'sang'),b=await submit(f,f.b,'demo:001',crypto.randomUUID(),'trua');await f.app.decide('demo',a.id,true,'teacher-a');await f.app.decide('demo',b.id,true,'teacher-b');const board=await f.app.dashboard('demo');assert.equal(board.meals.sang.count,1);assert.equal(board.meals.trua.count,1);assert.equal(board.meals.toi.count,0);});
+test('Mã yêu cầu không được tái sử dụng cho bữa khác',async()=>{
+ const f=await fixture(false),id=crypto.randomUUID();await checkIn(f,f.a,'demo:001',id,'sang');
+ await assert.rejects(checkIn(f,f.a,'demo:001',id,'trua'),/Mã yêu cầu đã được dùng/);
+});
+test('Dòng nhập học sinh sai kiểu bị từ chối trước khi ghi dữ liệu',async()=>{
+ for(const invalid of [null,42,'student',[]]){
+  const f=await fixture();await assert.rejects(f.app.saveStudents('demo',[{code:'NEW',name:'Mẫu',grade:'9',class:'9A'},invalid],'test'),e=>e.status===400);
+  assert.equal((await f.app.roster('demo')).length,2);
+ }
+});
+test('Báo cáo quá 50.000 lượt bị báo rõ thay vì xuất thiếu dữ liệu',async()=>{
+ const db=new DatabaseSync(':memory:');
+ try{
+  db.exec("CREATE TABLE meal_sessions(id TEXT,date TEXT,meal TEXT);INSERT INTO meal_sessions VALUES('demo:2026-10-30:sang','2026-10-30','sang');CREATE VIEW attendance AS WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<50001) SELECT x seq,'demo' space,'demo:2026-10-30:sang' session_id,'' grade,'' class,x confirmed_at FROM n;");
+  const app=new MealCheck(new Adapter(db));await assert.rejects(app.records('demo','2026-10-30','2026-10-30'),/50.000/);
+ }finally{db.close();}
+});
+test('Cấp mã cho học sinh mới giữ nguyên toàn bộ thẻ đã phát hành',async()=>{
+ const f=await fixture(false),before=await studentCards(f.app,qrEnv,'demo');
+ await f.app.saveStudents('demo',[{code:'NEW',name:'Học sinh mới',grade:'9',class:'9A'}],'test');
+ assert.equal((await issuedStudentCards(f.app,'demo')).missing,1);
+ const after=await studentCards(f.app,qrEnv,'demo');
+ for(const card of before)assert.equal(after.find(s=>s.id===card.id).token,card.token);
+ assert.equal((await issuedStudentCards(f.app,'demo')).missing,0);
+ assert.equal(after.length,3);
+});
