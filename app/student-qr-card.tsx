@@ -2,6 +2,7 @@
 import {useId,useState} from 'react';
 import {Download,LoaderCircle} from 'lucide-react';
 import {SCHOOL} from '@/lib/mealcheck.mjs';
+import {Brand} from './brand';
 import {downloadStudentCard,STUDENT_CARD_TITLE_COLORS} from './student-card-image';
 
 export type StudentCard={id:string;code:string;name:string;grade:string;class:string;image:string};
@@ -22,7 +23,7 @@ export function StudentQRCard({card,demo=false,onReissue}:{card:StudentCard;demo
     </div>
     <footer className="qr-card-signature">
      {demo&&<span className="qr-card-footer">DỮ LIỆU THỬ NGHIỆM</span>}
-     <div className="qr-card-brand"><img src="/brand/afyllx-logo.png" alt="" width="24" height="24"/><span><small>AFYLLX</small><b>EdTech <em>MealCheck</em></b></span></div>
+     <Brand className="qr-card-brand"/>
     </footer>
    </div>
   </article>

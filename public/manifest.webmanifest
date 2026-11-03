@@ -2,7 +2,7 @@
  "id":"/quan-tri",
  "name":"EdTech MealCheck",
  "short_name":"EdTech MealCheck",
- "description":"Sản phẩm thuộc AFYLLX EdTech — quét QR và quản lý suất ăn học đường.",
+ "description":"EdTech MealCheck — quét QR và quản lý suất ăn học đường.",
  "lang":"vi",
  "start_url":"/quan-tri?source=pwa",
  "scope":"/",
@@ -10,9 +10,9 @@
  "background_color":"#f6f8fc",
  "theme_color":"#3264e6",
  "icons":[
-  {"src":"/icons/afyllx-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
-  {"src":"/icons/afyllx-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
-  {"src":"/icons/afyllx-icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  {"src":"/icons/edtech-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+  {"src":"/icons/edtech-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+  {"src":"/icons/edtech-icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
  ],
- "shortcuts":[{"name":"Mở máy quét QR","url":"/quan-tri?tab=scanner","icons":[{"src":"/icons/afyllx-icon-192.png","sizes":"192x192"}]}]
+ "shortcuts":[{"name":"Mở máy quét QR","url":"/quan-tri?tab=scanner","icons":[{"src":"/icons/edtech-icon-192.png","sizes":"192x192"}]}]
 }

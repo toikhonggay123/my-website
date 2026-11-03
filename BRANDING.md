@@ -1,19 +1,13 @@
-# Logo AFYLLX
+# EdTech MealCheck
 
-## Cấu trúc thương hiệu — 03/11/2026
+Owner direction, 03/11/2026: every logo lockup uses the EdTech symbol on the left, **EdTech** in bold on the first line and MealCheck in regular weight on the second line. Do not add AFYLLX to this lockup, including menus, loading states, home, scanner, install pages and student cards.
 
-AFYLLX là công ty mẹ; AFYLLX EdTech là phần mềm/hệ sinh thái con; MealCheck là sản phẩm thuộc EdTech. Tên sản phẩm hiển thị thống nhất là **EdTech MealCheck**. Logo AFYLLX được giữ nguyên.
+- Use `Brand` from `app/brand.tsx` for HTML lockups. Size through its `className`; preserve the shared mark and two-line order.
+- Symbol: `public/brand/edtech-mark.png`, derived from the supplied `logo EDTECH.png` without its printed words. The transparent extraction used the built-in image tool with the instruction to retain the symbol, book, orbit, three squares, geometry and blue gradients while removing all lettering and the white background. The final web derivative is 512 × 341 px.
+- Canvas card exports use the same mark plus `BRAND_TOP` and `BRAND_BOTTOM` from `lib/branding.mjs`.
+- Active browser/PWA icons use the `edtech-` prefix so cached old icon URLs do not hide the new artwork. Keep the existing manifest ID, scope and start URL.
+- Support email remains `contact.afyllx@gmail.com`. AFYLLX remains the parent company; internal identifiers, existing QR cryptography, keys and records are independent of visual branding.
 
-Menu và màn hình tải dùng tên công ty nhỏ phía trên tên sản phẩm. Trang chủ có nhận diện này ở đầu trang cùng dòng “Thuộc AFYLLX EdTech”. Cuối sidebar và menu điện thoại có AFYLLX, AFYLLX EdTech / MealCheck và email hỗ trợ **contact.afyllx@gmail.com** dạng liên kết mailto. Email chỉ mở trình soạn thư, không tự gửi.
+Run `python scripts/build-pwa-icons.py` with Pillow installed to derive the five launcher/browser icons. Their white background and central safe area preserve maskable-icon compatibility; the website mark retains transparency. Existing installed apps may keep their old launcher artwork until their operating system refreshes it.
 
-Tên hiển thị trên trình duyệt, trang cài ứng dụng, manifest/PWA, máy quét, thẻ xem/in/PNG và báo cáo dùng EdTech MealCheck. Nhãn trong source Android cũng được cập nhật; thay đổi source không tự đổi APK đã cài. Hệ điều hành quyết định thời điểm cập nhật tên của PWA đã cài.
-
-Đây là thay đổi nhận diện. Giữ nguyên định dạng/token QR, chuỗi AAD mã hóa, khóa, dữ liệu và manifest id/start_url. Trường `app` của API health là định danh tương thích cho launcher và bộ kiểm tra, không phải tên hiển thị.
-
-The owner supplied the AFYLLX blue mark on 2 November 2026 and requested replacing the cutlery brand mark. `public/brand/afyllx-logo.png` is the transparent PNG used in navigation, the dashboard, settings, printed cards and PNG card exports.
-
-The built-in image editing tool removed the white background. Prompt: remove only the white background and negative spaces, preserve the logo silhouette, proportions and blue gradients, and add no text, shadow or background tile. The selected result was inspected and resized for web use. The original attachment and unused alternatives remain outside the repository.
-
-Run `python scripts/build-pwa-icons.py` with Pillow installed to derive the 192/512 px app icons, 180 px Apple touch icon and 32 px browser icon. App icons have a white background and keep the full mark within the central maskable safe circle. The website logo itself retains transparency.
-
-This change affects branding only. It does not replace QR tokens, issue cards again or change attendance data. Reload/reprint an existing card to obtain the updated artwork with its existing QR.
+This is an artwork change. Reprinting/downloading an already-issued student card keeps its existing QR. Preserve QR prefix/AAD, runtime keys, all records, the manifest ID/scope/start URL and the compatibility identifier returned by `/api/health`.

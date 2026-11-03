@@ -1,7 +1,7 @@
 .home-overview{display:grid;gap:24px;max-width:1060px;margin:0 auto}
 .home-brand{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 0 22px;border-bottom:1px solid #e0e7f2}
 .home-brand .brand .brandmark{width:48px;height:48px}
-.home-brand .brand .brand-copy>b{font-size:25px;letter-spacing:-.7px}
+.home-brand .brand .brand-copy>strong{font-size:25px;letter-spacing:-.7px}
 .home-brand>p{margin:0;font-size:12px;line-height:1.7;color:#52637b;text-align:right;text-wrap:balance;max-width:280px}
 .home-brand>p>b{font-weight:650}
 .home-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
@@ -48,7 +48,7 @@
 @media(max-width:760px){
  .home-brand{align-items:flex-start;flex-direction:column;gap:10px;padding-bottom:18px}
  .home-brand .brand .brandmark{width:42px;height:42px}
- .home-brand .brand .brand-copy>b{font-size:23px}
+ .home-brand .brand .brand-copy>strong{font-size:23px}
  .home-brand>p{text-align:left;font-size:11px;max-width:none}
  .home-page>.workspace>.topbar{display:none}
  .home-overview{gap:20px}.home-heading{gap:12px}.home-heading h1{font-size:28px;margin-bottom:8px}.home-date{font-size:12px}

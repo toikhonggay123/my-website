@@ -5,6 +5,7 @@ import {MotionPresence} from './liquid-motion';
 import './qr-scanner.css';
 import {createCameraDecoder} from './qr-camera-decoder';
 import {ScannerReceipts} from './scanner-receipts';
+import {Brand} from './brand';
 import {cameraRegion,videoFramePump} from '@/lib/camera-region.mjs';
 import {StudentQRCard,type StudentCard} from './student-qr-card';
 import {MEALS,LABELS as MEAL_LABELS,SCHOOL,localClock} from '@/lib/mealcheck.mjs';
@@ -89,13 +90,13 @@ export function QRScanner({space,onNavigate}:{space:string;onNavigate?:(tab:stri
  function leave(target:string){stop();setOptions(false);if(document.fullscreenElement===stage.current)void document.exitFullscreen().catch(()=>{});setImmersive(false);onNavigate?.(target);}
  return <div ref={stage} onPointerDown={unlockSound} className={'qr-scanner scanner-view '+(immersive?'immersive':'')}>
   <section className={'camera-stage scan-scene '+(running?'active':'')} aria-label="Camera quét điểm danh">
-   <div className="scanner-launch-fx" aria-hidden="true"><div className="scanner-launch-sheen"/><div className="scanner-launch-badge"><img src="/brand/afyllx-logo.png" width="52" height="52" alt=""/><span><b>EdTech MealCheck</b><small>Quét QR điểm danh</small></span><ScanLine aria-hidden="true"/></div></div>
+   <div className="scanner-launch-fx" aria-hidden="true"><div className="scanner-launch-sheen"/><div className="scanner-launch-badge"><Brand className="launch-brand"/><ScanLine aria-hidden="true"/></div></div>
    <video ref={video} muted playsInline className="scan-video" style={{display:running?'block':'none'}}/>
    <div className="scan-scrim" aria-hidden="true"/>
    <div className="scan-layout">
     <header className="scan-top"><button className="scan-icon" aria-label="Về tổng quan" onClick={()=>leave('overview')}><ArrowLeft size={25}/></button><h2>Quét mã QR</h2><div className="scan-top-actions"><button className="scan-icon" aria-label={torch?'Tắt đèn flash':'Bật đèn flash'} title={running?(torchSupported?'Đèn flash':'Camera này không hỗ trợ đèn flash'):'Mở camera để sử dụng đèn flash'} aria-pressed={torch} disabled={!running||!torchSupported||torchBusy} onClick={()=>void toggleTorch()}>{torch?<ZapOff size={24}/>:<Zap size={24}/>}</button><button className={'scan-icon '+(options?'selected':'')} aria-label="Tùy chọn camera" aria-expanded={options} aria-controls="scan-options" onClick={()=>setOptions(!options)}><SlidersHorizontal size={24}/></button></div></header>
     <MotionPresence open={options} variant="popover">{options&&<section className="scan-options" id="scan-options" aria-label="Tùy chọn camera"><label>Camera<select aria-label="Camera quét QR" value={facing} disabled={busy} onChange={e=>changeCamera(e.target.value)}><option value="environment">Camera sau</option><option value="user">Camera trước</option></select></label><button onClick={()=>void fullscreen()}>{full||immersive?<Minimize size={18}/>:<Maximize size={18}/>} {full||immersive?'Thoát toàn màn hình':'Toàn màn hình'}</button><button onClick={()=>leave('guide')}>Hướng dẫn sử dụng</button></section>}</MotionPresence>
-    <div className="scan-intro"><p className="scan-wordmark"><strong>EdTech</strong> <span>MealCheck</span></p><p className="scan-hint">Hướng camera điện thoại vào mã QR trên thẻ học sinh.</p></div>
+    <div className="scan-intro"><Brand className="scanner-brand"/><p className="scan-hint">Hướng camera điện thoại vào mã QR trên thẻ học sinh.</p></div>
     <div className="scan-target-area"><div ref={scanTarget} className="scan-target"><div className="scan-target-border" aria-hidden="true"/>{running&&<span className="scan-sweep" aria-hidden="true"/>}{!running&&<div className="scan-standby"><ScanLine size={40} strokeWidth={1.4}/><p>{configured===false?'Chờ bổ sung khóa QR':configured===null?'Đang chuẩn bị máy quét…':!meal?'Chọn bữa ăn để bắt đầu':'Sẵn sàng quét thẻ'}</p>{configured!==null&&<button className="scan-start" disabled={busy} onClick={()=>void start()}>{busy?<LoaderCircle className="spin" size={17}/>:<Camera size={18}/>}{busy?'Đang mở camera…':'Mở camera quét'}</button>}</div>}
 
     </div><div className="scan-live-status" role="status">{busy?<><LoaderCircle size={14} className="spin"/>{running?'Đang ghi nhận…':'Đang mở camera…'}</>:running?(configured===false?'Camera đã mở · Chờ bổ sung khóa QR':meal?'Đang quét':'Chọn bữa ăn để bắt đầu điểm danh'):''}</div></div>

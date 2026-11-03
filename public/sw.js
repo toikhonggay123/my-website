@@ -1,6 +1,6 @@
 const BUILD='development';
 const CACHE='mealcheck-pwa-v9-'+BUILD;
-const PUBLIC=['/brand/afyllx-logo.png','/icons/afyllx-favicon-32.png','/offline.html','/manifest.webmanifest','/icons/afyllx-icon-192.png','/icons/afyllx-icon-512.png','/icons/afyllx-icon-maskable-512.png','/icons/afyllx-apple-touch-icon.png','/install-qr.svg'];
+const PUBLIC=['/brand/edtech-mark.png','/icons/edtech-favicon-32.png','/offline.html','/manifest.webmanifest','/icons/edtech-icon-192.png','/icons/edtech-icon-512.png','/icons/edtech-icon-maskable-512.png','/icons/edtech-apple-touch-icon.png','/install-qr.svg'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const response=await fetch('/precache.json',{cache:'no-store'});if(!response.ok)throw Error('PWA asset list unavailable');
  const assets=await response.json();if(!Array.isArray(assets)||!assets.length||assets.some(path=>typeof path!=='string'||!/^\/_next\/static\/[-\w/.]+\.(js|css)$/.test(path)))throw Error('Invalid PWA asset list');

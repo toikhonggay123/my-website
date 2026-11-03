@@ -11,12 +11,11 @@
 /* Half the QR caption (1.9 * 1.2 + 1.8 cqw) keeps this square centered on the QR itself. */
 .qr-card-identity{position:absolute;left:0;top:calc(50% - 2.04cqw);transform:translateY(-50%);width:100%;aspect-ratio:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1.25cqw;text-align:left}
 .qr-card-signature{position:absolute;right:0;bottom:.5cqw;display:flex;flex-direction:column;align-items:flex-end;gap:1.5cqw;max-width:100%}
-.qr-card-brand{display:flex;align-items:center;gap:1cqw;white-space:nowrap;font-size:2.7cqw;font-weight:750;line-height:1.1;letter-spacing:-.08cqw}
-.qr-card-brand>img{width:4.6cqw;height:4.6cqw;flex-shrink:0;object-fit:contain}
-.qr-card-brand>span{display:flex;flex-direction:column;gap:.4cqw;align-items:flex-start}
-.qr-card-brand small{color:#45647a;font-size:1.65cqw;font-weight:700;line-height:1.2;letter-spacing:.15cqw}
-.qr-card-brand b{font-weight:750;line-height:1.2}
-.qr-card-brand em{font-weight:450;font-size:2.45cqw;color:#31576e}
+.qr-card-brand.brand{gap:1cqw}
+.qr-card-brand.brand .brandmark{width:6cqw;height:6cqw}
+.qr-card-brand.brand .brand-copy{display:flex;gap:.4cqw}
+.qr-card-brand.brand .brand-copy>strong{font-size:2.5cqw;font-weight:750;line-height:1.15;letter-spacing:0;color:#173d59}
+.qr-card-brand.brand .brand-copy>span{font-size:2.25cqw;font-weight:400;line-height:1.2;letter-spacing:0;color:#31576e}
 .qr-card-school-line,.qr-card-type-line{display:block;flex:none;width:100%;height:auto;overflow:visible;font-family:"Segoe UI",Arial,sans-serif}
 .qr-card-school-line{position:absolute;top:.5cqw;left:0}
 .qr-card-school{font-size:14.5px;font-weight:700;fill:#4c6676}

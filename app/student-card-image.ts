@@ -1,5 +1,6 @@
 import type {StudentCard} from './student-qr-card';
 import {SCHOOL} from '@/lib/mealcheck.mjs';
+import {BRAND_MARK,BRAND_TOP,BRAND_BOTTOM} from '@/lib/branding.mjs';
 
 const DPI=300,WIDTH=Math.round(85.6/25.4*DPI),HEIGHT=Math.round(54/25.4*DPI);
 export const STUDENT_CARD_TITLE_COLORS=['#2454ce','#3264e6','#087c9e'] as const;
@@ -21,7 +22,7 @@ function fittedLine(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,w
 }
 export async function downloadStudentCard(card:StudentCard,demo=false){
  await document.fonts.ready;
- const image=new Image();image.src=card.image;const logo=new Image();logo.src="/brand/afyllx-logo.png";await Promise.all([image.decode(),logo.decode()]);
+ const image=new Image();image.src=card.image;const logo=new Image();logo.src=BRAND_MARK;await Promise.all([image.decode(),logo.decode()]);
  const canvas=document.createElement('canvas');canvas.width=WIDTH;canvas.height=HEIGHT;const ctx=canvas.getContext('2d')!;
  const scale=WIDTH/856;ctx.scale(scale,scale);const h=HEIGHT/scale;
  ctx.beginPath();ctx.roundRect(0,0,856,h,31.8);ctx.clip();
@@ -46,14 +47,15 @@ export async function downloadStudentCard(card:StudentCard,demo=false){
  let y=titleY+classOffset;ctx.font='600 24px "Segoe UI",Arial,sans-serif';ctx.fillText(`LỚP ${card.class}   ·   KHỐI ${card.grade}`,x,y,w);
  y+=41;ctx.font='500 16px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#45647a';ctx.fillText('MÃ HỌC SINH',x,y);y+=31;ctx.font='700 25px Consolas,monospace';ctx.fillStyle='#163e58';ctx.fillText(card.code,x,y,w);
  ctx.textAlign='left';
- // The company sits above its product; only artwork changes, never the QR.
- const logoSize=38,brandGap=9,brandBottom=h-30;
- ctx.font='600 21px "Segoe UI",Arial,sans-serif';const productWidth=ctx.measureText('EdTech MealCheck').width;
+ // Match the shared two-line lockup; QR data and quiet zone are unchanged.
+ const logoSize=44,brandGap=10,brandBottom=h-30;
+ ctx.font='400 21px "Segoe UI",Arial,sans-serif';const productWidth=ctx.measureText(BRAND_BOTTOM).width;
  const brandX=856-31-(logoSize+brandGap+productWidth);
  if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.textAlign='right';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',825,brandBottom-logoSize-14);ctx.textAlign='left';}
- ctx.drawImage(logo,brandX,brandBottom-logoSize,logoSize,logoSize);
- ctx.fillStyle='#45647a';ctx.font='700 14px "Segoe UI",Arial,sans-serif';ctx.fillText('AFYLLX',brandX+logoSize+brandGap,brandBottom-28);
- ctx.fillStyle='#173d59';ctx.font='600 21px "Segoe UI",Arial,sans-serif';ctx.fillText('EdTech MealCheck',brandX+logoSize+brandGap,brandBottom-4);
+ const markHeight=logoSize*logo.naturalHeight/logo.naturalWidth;
+ ctx.drawImage(logo,brandX,brandBottom-logoSize+(logoSize-markHeight)/2,logoSize,markHeight);
+ ctx.fillStyle='#173d59';ctx.font='700 23px "Segoe UI",Arial,sans-serif';ctx.fillText(BRAND_TOP,brandX+logoSize+brandGap,brandBottom-26);
+ ctx.fillStyle='#31576e';ctx.font='400 21px "Segoe UI",Arial,sans-serif';ctx.fillText(BRAND_BOTTOM,brandX+logoSize+brandGap,brandBottom-4);
  const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('PNG failed')),'image/png'));
  const url=URL.createObjectURL(withPrintResolution(await blob.arrayBuffer())),link=document.createElement('a');link.href=url;link.download='The-hoc-sinh-'+card.code.replace(/[^\p{L}\p{N}_-]/gu,'-')+'.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }

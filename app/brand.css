@@ -3,15 +3,15 @@
 .overview-banner .session-icon{background:#fffffff2;border-color:#fff}
 @media(max-width:1200px){.brand .brandmark{width:38px;height:38px}}
 
-/* Company, suite and product keep distinct roles at every size. */
+/* One lockup: mark on the left, bold EdTech above regular MealCheck. */
 .brand{min-width:0;gap:10px}
 .brand .brand-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
-.brand .brand-company{font-size:11px;line-height:1.2;letter-spacing:1.6px;font-weight:700;color:#52637b}
-.brand .brand-copy>b{font-size:16px;line-height:1.3;letter-spacing:-.3px;color:#19283f;white-space:normal;text-wrap:balance}
+.brand .brand-copy>strong{font-size:18px;line-height:1.1;letter-spacing:-.3px;font-weight:750;color:#19283f;white-space:nowrap}
+.brand .brand-copy>span{font-size:14px;line-height:1.2;letter-spacing:0;font-weight:400;color:#52637b;white-space:nowrap}
 .brand-support{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:18px 0 20px;border-top:1px solid var(--line,#e2e8f0);min-width:0}
-.brand-support .support-company{font-size:12px;font-weight:750;letter-spacing:.9px;line-height:1.4;color:#24364f}
-.brand-support .support-product{font-size:11px;color:#52637b;line-height:1.5}
-.brand-support .support-product>span{margin:0 3px;color:#7a8799}
+.brand-support .brand .brandmark{width:36px;height:36px}
+.brand-support .brand .brand-copy>strong{font-size:16px}
+.brand-support .brand .brand-copy>span{font-size:12px}
 .brand-support .support-label{font-size:11px;color:#52637b;margin-top:8px;line-height:1.4}
 .brand-support>a{display:inline-flex;align-items:center;gap:7px;min-height:32px;max-width:100%;color:#2454c6;border-radius:4px}
 .brand-support>a>svg{flex-shrink:0}
@@ -24,5 +24,17 @@
 .navigation-dialog .brand-support>a{min-height:44px}
 .install-intro .brand{justify-content:center;text-align:left;margin-bottom:24px}
 .install-intro .brand .brandmark{width:54px;height:54px}
-.install-intro .brand .brand-copy>b{font-size:22px}
+.install-intro .brand .brand-copy>strong{font-size:25px}
+.install-intro .brand .brand-copy>span{font-size:18px}
 @media print{.brand-support{display:none!important}}
+
+.home-brand .brand .brand-copy>span{font-size:18px}
+.scanner-view .scanner-brand{justify-content:center;gap:12px;margin:0 auto 10px}
+.scanner-view .scanner-brand .brandmark{width:52px;height:52px}
+.scanner-view .scanner-brand .brand-copy{gap:4px;text-align:left}
+.scanner-view .scanner-brand .brand-copy>strong{font-size:27px;color:#fff}
+.scanner-view .scanner-brand .brand-copy>span{font-size:19px;color:#edf4fb;font-weight:400}
+.scanner-launch-badge .launch-brand .brandmark{width:52px;height:52px}
+.scanner-launch-badge .launch-brand .brand-copy>strong{font-size:21px}
+.scanner-launch-badge .launch-brand .brand-copy>span{font-size:16px}
+@media(max-width:760px){.scanner-view .scanner-brand .brandmark{width:44px;height:44px}.scanner-view .scanner-brand .brand-copy>strong{font-size:23px}.scanner-view .scanner-brand .brand-copy>span{font-size:16px}.home-brand .brand .brand-copy>span{font-size:16px}}
