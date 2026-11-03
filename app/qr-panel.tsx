@@ -1,10 +1,11 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {X,ArrowLeft,Zap,ZapOff,SlidersHorizontal,SwitchCamera,CircleCheck,ChevronDown,Camera,Maximize,Minimize,AlertCircle,Download,Printer,RefreshCw,ScanLine,Upload,LoaderCircle} from 'lucide-react';
-import './camera-feedback.css';
+import {X,ArrowLeft,Zap,ZapOff,SlidersHorizontal,SwitchCamera,ChevronDown,Camera,Maximize,Minimize,AlertCircle,Download,Printer,RefreshCw,ScanLine,Upload,LoaderCircle} from 'lucide-react';
 import {MotionPresence} from './liquid-motion';
 import './qr-scanner.css';
 import {createCameraDecoder} from './qr-camera-decoder';
+import {ScannerReceipts} from './scanner-receipts';
+import {cameraRegion,videoFramePump} from '@/lib/camera-region.mjs';
 import {StudentQRCard,type StudentCard} from './student-qr-card';
 import {MEALS,LABELS as MEAL_LABELS,SCHOOL,localClock} from '@/lib/mealcheck.mjs';
 import {saveScan,flushScans,readDevicePref,saveDevicePref} from './offline-store';
@@ -13,34 +14,35 @@ const LABELS:Record<string,string>=MEAL_LABELS;
 async function api(path:string,body?:any):Promise<any>{const r=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});const data:any=await r.json();if(!r.ok)throw Error(data.error||'Không kết nối được máy chủ.');return data;}
 function ErrorNote({text}:{text:string}){return text?<div className="alert" role="alert"><AlertCircle size={18}/><span>{text}</span></div>:null;}
 
-export function QRScanner({space,onRecord,onNavigate}:{space:string;onRecord:()=>void;onNavigate?:(tab:string)=>void}){
- const [meal,setMeal]=useState(''),[running,setRunning]=useState(false),[error,setError]=useState(''),[result,setResult]=useState<Row|null>(null),[busy,setBusy]=useState(false),[facing,setFacing]=useState('environment'),[configured,setConfigured]=useState<boolean|null>(null),[full,setFull]=useState(false),[immersive,setImmersive]=useState(false),[queued,setQueued]=useState(''),[options,setOptions]=useState(false),[torch,setTorch]=useState(false),[torchSupported,setTorchSupported]=useState(false),[torchBusy,setTorchBusy]=useState(false);
+export function QRScanner({space,onNavigate}:{space:string;onNavigate?:(tab:string)=>void}){
+ const [meal,setMeal]=useState(''),[running,setRunning]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false),[facing,setFacing]=useState('environment'),[configured,setConfigured]=useState<boolean|null>(null),[full,setFull]=useState(false),[immersive,setImmersive]=useState(false),[queued,setQueued]=useState(''),[options,setOptions]=useState(false),[torch,setTorch]=useState(false),[torchSupported,setTorchSupported]=useState(false),[torchBusy,setTorchBusy]=useState(false);
  const stage=useRef<HTMLDivElement>(null),audio=useRef<AudioContext|null>(null);
- const video=useRef<HTMLVideoElement>(null),canvas=useRef<HTMLCanvasElement>(null),stream=useRef<MediaStream|null>(null),timer=useRef<ReturnType<typeof setTimeout>|null>(null),alive=useRef(true),processing=useRef(false),last=useRef({token:'',at:0}),session=useRef(''),feedbackId=useRef(0),runId=useRef(0),decoderRef=useRef<Awaited<ReturnType<typeof createCameraDecoder>>|null>(null);
+ const video=useRef<HTMLVideoElement>(null),canvas=useRef<HTMLCanvasElement>(null),stream=useRef<MediaStream|null>(null),alive=useRef(true),processing=useRef(false),last=useRef({token:'',at:0}),session=useRef(''),runId=useRef(0),decoderRef=useRef<Awaited<ReturnType<typeof createCameraDecoder>>|null>(null);
  const selectedMeal=useRef(''),autoStarted=useRef(false),starting=useRef(false);
+ const scanTarget=useRef<HTMLDivElement>(null),historyOpen=useRef(false),stopFrames=useRef<(()=>void)|null>(null);
+ useEffect(()=>{document.body.classList.add('mealcheck-scanning');return()=>document.body.classList.remove('mealcheck-scanning');},[]);
  const suffix='?space='+space;
- useEffect(()=>{const ack=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail.space!==space)return;if(detail.result.meal!==selectedMeal.current){onRecord();return;}setResult({...detail.result,feedbackId:++feedbackId.current});setQueued('');chime(detail.result.duplicate?'duplicate':'success');try{navigator.vibrate?.(detail.result.duplicate?[50,40,50]:80);}catch{}onRecord();};window.addEventListener('mealcheck-scan-ack',ack);return()=>window.removeEventListener('mealcheck-scan-ack',ack);},[space,onRecord]);
+ useEffect(()=>{const ack=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.space!==space||!['recorded','already'].includes(detail.result?.status))return;if(detail.result.meal===selectedMeal.current)setQueued('');chime(detail.result.duplicate?'duplicate':'success');try{navigator.vibrate?.(detail.result.duplicate?[50,40,50]:80);}catch{}};window.addEventListener('mealcheck-scan-ack',ack);return()=>window.removeEventListener('mealcheck-scan-ack',ack);},[space]);
  useEffect(()=>{let lock:WakeLockSentinel|null=null,cancelled=false,acquiring=false;const request=async()=>{if(!running||document.hidden||!navigator.wakeLock||acquiring||(lock&&!lock.released))return;acquiring=true;try{const acquired=await navigator.wakeLock.request('screen');if(cancelled){await acquired.release();return;}lock=acquired;}catch{}finally{acquiring=false;}};void request();document.addEventListener('visibilitychange',request);window.addEventListener('focus',request);return()=>{cancelled=true;document.removeEventListener('visibilitychange',request);window.removeEventListener('focus',request);void lock?.release().catch(()=>{});};},[running]);
- useEffect(()=>{document.body.classList.toggle('scanner-immersive',immersive);const escape=(event:KeyboardEvent)=>{if(event.key==='Escape')setImmersive(false);};window.addEventListener('keydown',escape);return()=>{document.body.classList.remove('scanner-immersive');window.removeEventListener('keydown',escape);};},[immersive]);
+ useEffect(()=>{document.body.classList.toggle('scanner-immersive',immersive);const escape=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!historyOpen.current)setImmersive(false);};window.addEventListener('keydown',escape);return()=>{document.body.classList.remove('scanner-immersive');window.removeEventListener('keydown',escape);};},[immersive]);
  function unlockSound(){try{if(!audio.current)audio.current=new AudioContext();void audio.current.resume().catch(()=>{});}catch{}}
  function chime(kind:string){try{if(!audio.current)audio.current=new AudioContext();const ctx=audio.current;void ctx.resume().catch(()=>{});const gain=ctx.createGain(),osc=ctx.createOscillator();gain.gain.setValueAtTime(.09,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.18);osc.frequency.setValueAtTime(kind==='error'?220:kind==='duplicate'?440:880,ctx.currentTime);osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.2);}catch{}}
  useEffect(()=>{const change=()=>setFull(document.fullscreenElement===stage.current);document.addEventListener('fullscreenchange',change);return()=>{document.removeEventListener('fullscreenchange',change);void audio.current?.close();};},[]);
  async function fullscreen(){try{if(immersive){setImmersive(false);return;}if(document.fullscreenElement)await document.exitFullscreen();else if(stage.current?.requestFullscreen)await stage.current.requestFullscreen().catch(()=>setImmersive(true));else setImmersive(!immersive);}catch(e:any){setError(e.message);}}
 
- function stop(){starting.current=false;if(alive.current){setTorch(false);setTorchSupported(false);}runId.current++;decoderRef.current?.close();decoderRef.current=null;stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;if(timer.current)clearTimeout(timer.current);timer.current=null;if(video.current)video.current.srcObject=null;if(alive.current){setRunning(false);setBusy(false);}}
+ function stop(){stopFrames.current?.();stopFrames.current=null;starting.current=false;if(alive.current){setTorch(false);setTorchSupported(false);}runId.current++;decoderRef.current?.close();decoderRef.current=null;stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;if(video.current)video.current.srcObject=null;if(alive.current){setRunning(false);setBusy(false);}}
  useEffect(()=>{alive.current=true;const saved=readDevicePref('meal:'+space,null);if(saved?.date===localClock().date&&MEALS.includes(saved.meal))changeMeal(saved.meal);if(!navigator.onLine)setConfigured(!!readDevicePref('scannerReady:'+space,null));else void api('qr/config').then(r=>{if(alive.current)setConfigured(r.configured);}).catch(e=>{if(alive.current){if(e instanceof TypeError&&readDevicePref('scannerReady:'+space,null))setConfigured(true);else setError(e instanceof TypeError?'Kết nối mạng để chuẩn bị máy quét lần đầu trên thiết bị này.':e.message);}});return()=>{alive.current=false;stop();};},[space]);
  useEffect(()=>{const pause=()=>stop();const visibility=()=>{if(document.hidden)stop();};window.addEventListener('mealcheck-camera-pause',pause);document.addEventListener('visibilitychange',visibility);return()=>{window.removeEventListener('mealcheck-camera-pause',pause);document.removeEventListener('visibilitychange',visibility);};},[]);
  // One automatic attempt per visit. A manual stop or denied permission must not
  // cause another prompt; returning to the scanner creates a fresh visit.
  useEffect(()=>{if(configured===null)return;const open=()=>{if(document.hidden||!alive.current||autoStarted.current)return;autoStarted.current=true;void start();};open();document.addEventListener('visibilitychange',open);return()=>document.removeEventListener('visibilitychange',open);},[configured]);
- useEffect(()=>{if(!result)return;const dismiss=setTimeout(()=>setResult(null),3000);return()=>clearTimeout(dismiss);},[result]);
  function changeMeal(next:string){
   if(!MEALS.includes(next)||processing.current)return;
   selectedMeal.current=next;
   // All meals are prepared together. Keep the server date and camera stream,
   // while changing the session used by the next decoded frame.
   if(session.current){const date=session.current.split(':')[1];session.current=`${space}:${date}:${next}`;}
-  last.current={token:'',at:0};setMeal(next);setResult(null);setError('');setQueued('');
+  last.current={token:'',at:0};setMeal(next);setError('');setQueued('');
   saveDevicePref('meal:'+space,{date:localClock().date,meal:next});
  }
  async function prepare(requireMeal=true){
@@ -50,30 +52,35 @@ export function QRScanner({space,onRecord,onNavigate}:{space:string;onRecord:()=
   else{const saved=readDevicePref('scannerReady:'+space,null);if(!saved)throw Error('Mở máy quét một lần khi có mạng trên thiết bị này trước.');session.current=`${space}:${localClock().date}:${nextMeal}`;}
   if(nextMeal)saveDevicePref('meal:'+space,{date:localClock().date,meal:nextMeal});
  }
- async function record(token:string,manual=false){
+ async function record(token:string){
   if(processing.current)return;
-  if(!manual&&last.current.token===token)return;
+  if(last.current.token===token)return;
   processing.current=true;last.current={token,at:Date.now()};setBusy(true);setError('');
-  try{await saveScan({token,space,sessionId:session.current});if(!alive.current)return;setResult(null);setQueued('Đã lưu lượt quét trên máy · Chờ máy chủ xác nhận.');if(navigator.onLine)void flushScans().catch(()=>{});}
-  catch(e:any){if(alive.current){setError(e.message);setResult(null);chime('error');}}
+  try{await saveScan({token,space,sessionId:session.current});if(!alive.current)return;setQueued('Đã lưu lượt quét trên máy · Chờ máy chủ xác nhận.');if(navigator.onLine)void flushScans().catch(()=>{});}
+  catch(e:any){if(alive.current){setError(e.message);chime('error');}}
   finally{processing.current=false;if(alive.current)setBusy(false);}
  }
  async function start(nextFacing=facing,restart=false){
   unlockSound();
   if(starting.current||busy||(running&&!restart))return;
-  setError('');setResult(null);stop();starting.current=true;setBusy(true);
+  setError('');stop();starting.current=true;setBusy(true);
   const run=runId.current;
   try{
    if(!navigator.mediaDevices?.getUserMedia)throw Error('Trình duyệt chưa hỗ trợ camera. Mở ứng dụng bằng Chrome/Safari tại localhost hoặc HTTPS, rồi thử lại.');
-   if(configured===true)await prepare(false);if(!alive.current||run!==runId.current)return;
-   const decoder=await createCameraDecoder(canvas.current!);if(!alive.current||run!==runId.current){decoder.close();return;}decoderRef.current=decoder;
+   const preparation=configured===true?prepare(false).then(()=>null,error=>error):Promise.resolve(null);if(!alive.current||run!==runId.current)return;
+   const decoder=await createCameraDecoder(canvas.current!,()=>{const v=video.current,guide=scanTarget.current;return v&&guide?cameraRegion(v.videoWidth,v.videoHeight,v.getBoundingClientRect(),guide.getBoundingClientRect()):null;});if(!alive.current||run!==runId.current){decoder.close();return;}decoderRef.current=decoder;
    const media=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:nextFacing},width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30,max:30}},audio:false});
    if(!alive.current||run!==runId.current){decoder.close();media.getTracks().forEach(t=>t.stop());return;}
    stream.current=media;setRunning(true);video.current!.srcObject=media;await video.current!.play();if(!alive.current||run!==runId.current)return;const track=media.getVideoTracks()[0];setTorchSupported(!!(track.getCapabilities?.() as any)?.torch);if((track.getCapabilities?.() as any)?.focusMode?.includes('continuous'))void track.applyConstraints({advanced:[{focusMode:'continuous'}]} as any).catch(()=>{});
-   const tick=async()=>{if(!stream.current||!alive.current||run!==runId.current)return;const v=video.current;
-    if(configured===true&&selectedMeal.current&&v&&v.readyState>=2&&!processing.current){try{const frameSession=session.current;const token=await decoder.decode(v);if(!stream.current||!alive.current||run!==runId.current)return;if(frameSession===session.current){if(token)void record(token);else last.current={token:'',at:0};}}catch{if(alive.current&&run===runId.current){stop();setError('Không đọc được hình ảnh camera. Mở lại camera để tiếp tục.');}return;}}
-    if(stream.current&&alive.current)timer.current=setTimeout(()=>{const current=video.current as any;if(current?.requestVideoFrameCallback)current.requestVideoFrameCallback(()=>void tick());else void tick();},32);
-   };void tick();
+   const preparationError=await preparation;if(!alive.current||run!==runId.current)return;if(preparationError)throw preparationError;
+   stopFrames.current=videoFramePump(video.current!,async()=>{
+    if(!stream.current||!alive.current||run!==runId.current||historyOpen.current)return;
+    const v=video.current;if(configured!==true||!selectedMeal.current||!v||v.readyState<2||processing.current)return;
+    const frameSession=session.current,token=await decoder.decode(v);
+    if(!stream.current||!alive.current||run!==runId.current||frameSession!==session.current)return;
+    if(token){if(last.current.token===token)last.current.at=Date.now();else void record(token);}
+    else if(Date.now()-last.current.at>400)last.current={token:'',at:0};
+   },{onError:()=>{if(alive.current&&run===runId.current){stop();setError('Không đọc được hình ảnh camera. Mở lại camera để tiếp tục.');}}});
   }catch(e:any){if(!alive.current||run!==runId.current)return;stop();setBusy(false);const messages:Row={NotAllowedError:'Camera chưa được cho phép. Bật quyền Camera cho ứng dụng trong cài đặt trình duyệt rồi thử lại.',NotFoundError:'Không tìm thấy camera. Kiểm tra camera của thiết bị rồi thử lại.',NotReadableError:'Camera đang được ứng dụng khác sử dụng. Đóng ứng dụng đó rồi thử lại.'};setError(messages[e.name]||e.message||'Không mở được camera.');}
   finally{if(alive.current&&run===runId.current){starting.current=false;setBusy(false);}}
  }
@@ -89,10 +96,10 @@ export function QRScanner({space,onRecord,onNavigate}:{space:string;onRecord:()=
     <header className="scan-top"><button className="scan-icon" aria-label="Về tổng quan" onClick={()=>leave('overview')}><ArrowLeft size={25}/></button><h2>Quét mã QR</h2><div className="scan-top-actions"><button className="scan-icon" aria-label={torch?'Tắt đèn flash':'Bật đèn flash'} title={running?(torchSupported?'Đèn flash':'Camera này không hỗ trợ đèn flash'):'Mở camera để sử dụng đèn flash'} aria-pressed={torch} disabled={!running||!torchSupported||torchBusy} onClick={()=>void toggleTorch()}>{torch?<ZapOff size={24}/>:<Zap size={24}/>}</button><button className={'scan-icon '+(options?'selected':'')} aria-label="Tùy chọn camera" aria-expanded={options} aria-controls="scan-options" onClick={()=>setOptions(!options)}><SlidersHorizontal size={24}/></button></div></header>
     <MotionPresence open={options} variant="popover">{options&&<section className="scan-options" id="scan-options" aria-label="Tùy chọn camera"><label>Camera<select aria-label="Camera quét QR" value={facing} disabled={busy} onChange={e=>changeCamera(e.target.value)}><option value="environment">Camera sau</option><option value="user">Camera trước</option></select></label><button onClick={()=>void fullscreen()}>{full||immersive?<Minimize size={18}/>:<Maximize size={18}/>} {full||immersive?'Thoát toàn màn hình':'Toàn màn hình'}</button><button onClick={()=>leave('guide')}>Hướng dẫn sử dụng</button></section>}</MotionPresence>
     <div className="scan-intro"><p className="scan-wordmark"><strong>EdTech</strong> <span>MealCheck</span></p><p className="scan-hint">Hướng camera điện thoại vào mã QR trên thẻ học sinh.</p></div>
-    <div className="scan-target-area"><div className="scan-target"><div className="scan-target-border" aria-hidden="true"/>{running&&<span className="scan-sweep" aria-hidden="true"/>}{!running&&!result&&<div className="scan-standby"><ScanLine size={40} strokeWidth={1.4}/><p>{configured===false?'Chờ bổ sung khóa QR':configured===null?'Đang chuẩn bị máy quét…':!meal?'Chọn bữa ăn để bắt đầu':'Sẵn sàng quét thẻ'}</p>{configured!==null&&<button className="scan-start" disabled={busy} onClick={()=>void start()}>{busy?<LoaderCircle className="spin" size={17}/>:<Camera size={18}/>}{busy?'Đang mở camera…':'Mở camera quét'}</button>}</div>}
-     <MotionPresence open={!!result} variant="feedback">{result&&<div className={'camera-feedback '+(result.duplicate?'duplicate':'success')} role="status" aria-live="polite" aria-atomic="true"><div className="camera-feedback-glass"><span key={"ripple-"+result.feedbackId} className="camera-feedback-ripple" aria-hidden="true"/><CircleCheck key={result.feedbackId} className="camera-check" size={64} aria-hidden="true"/><div className="camera-feedback-copy"><p className="camera-feedback-label">{result.duplicate?'Đã điểm danh bữa này':'Điểm danh thành công'}</p><h3>{result.student.name}</h3><p>Lớp <b>{result.student.class}</b> · {LABELS[result.meal]}</p><p>Mã học sinh: <b>{result.student.code}</b></p><small>{result.duplicate?'Không tính thêm suất ăn.':'Đã lưu vào lịch sử.'}</small></div></div></div>}</MotionPresence>
+    <div className="scan-target-area"><div ref={scanTarget} className="scan-target"><div className="scan-target-border" aria-hidden="true"/>{running&&<span className="scan-sweep" aria-hidden="true"/>}{!running&&<div className="scan-standby"><ScanLine size={40} strokeWidth={1.4}/><p>{configured===false?'Chờ bổ sung khóa QR':configured===null?'Đang chuẩn bị máy quét…':!meal?'Chọn bữa ăn để bắt đầu':'Sẵn sàng quét thẻ'}</p>{configured!==null&&<button className="scan-start" disabled={busy} onClick={()=>void start()}>{busy?<LoaderCircle className="spin" size={17}/>:<Camera size={18}/>}{busy?'Đang mở camera…':'Mở camera quét'}</button>}</div>}
+
     </div><div className="scan-live-status" role="status">{busy?<><LoaderCircle size={14} className="spin"/>{running?'Đang ghi nhận…':'Đang mở camera…'}</>:running?(configured===false?'Camera đã mở · Chờ bổ sung khóa QR':meal?'Đang quét':'Chọn bữa ăn để bắt đầu điểm danh'):''}</div></div>
-    <div className="scan-bottom"><div className="scan-messages">{configured===false&&<p className="scan-message">Người quản lý cần bổ sung đúng khóa QR cũ để quét các thẻ hiện có.</p>}{queued&&<p className="scan-message pending" role="status">{queued}</p>}{error&&<p className="scan-message scan-error" role="alert"><AlertCircle size={17}/><span>{error}</span><button aria-label="Đóng thông báo camera" onClick={()=>setError('')}><X size={18}/></button></p>}</div>
+    <div className="scan-bottom"><ScannerReceipts space={space} meal={meal} target={scanTarget} onOpenChange={open=>{historyOpen.current=open;}}/><div className="scan-messages">{configured===false&&<p className="scan-message">Người quản lý cần bổ sung đúng khóa QR cũ để quét các thẻ hiện có.</p>}{queued&&<p className="scan-message pending" role="status">{queued}</p>}{error&&<p className="scan-message scan-error" role="alert"><AlertCircle size={17}/><span>{error}</span><button aria-label="Đóng thông báo camera" onClick={()=>setError('')}><X size={18}/></button></p>}</div>
      <div className="scan-meal-bar"><label className="scan-meal"><span>Bữa ăn hôm nay</span><span className="scan-meal-value">{meal?LABELS[meal]:'Chọn bữa ăn'}<ChevronDown size={17}/></span><select aria-label="Bữa ăn quét QR" value={meal} disabled={busy} onChange={e=>changeMeal(e.target.value)}><option value="" disabled>Chọn bữa ăn</option>{MEALS.map(m=><option key={m} value={m}>{LABELS[m]}</option>)}</select></label><button className="scan-icon" aria-label="Đổi camera" disabled={busy} onClick={()=>changeCamera(facing==='environment'?'user':'environment')} title="Đổi camera"><SwitchCamera size={25}/></button></div>
 
     </div>

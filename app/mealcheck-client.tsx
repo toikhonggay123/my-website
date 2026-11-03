@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Sun,
   Sunset,
@@ -192,8 +192,10 @@ export default function App() {
     return () => window.removeEventListener("popstate", restoreView);
   }, []);
   useEffect(() => {
-    if (!user) return;
+    if (!user || !["students", "qrcards", "attendance", "missing", "reports"].includes(tab)) return;
     void rosterLoad().catch((e) => SE(e.message));
+  }, [user?.id, space, date, tab]);
+  useEffect(() => {
     SG("");
     SC("");
     SQ("");
@@ -210,6 +212,7 @@ export default function App() {
   }, [tab, user?.id, space, from, to, meal, grade, cl]);
   useEffect(() => {
     if (!user) return;
+    if (!["overview", "attendance", "missing", "reports"].includes(tab)) return;
     let gone = false,
       inFlight = false;
     const controller = new AbortController();
@@ -261,23 +264,23 @@ export default function App() {
       document.removeEventListener("visibilitychange", visible);
     };
   }, [user?.id, space, tab, from, to, meal, grade, cl]);
-  const grades = Array.from(
+  const grades = useMemo(() => Array.from(
     new Set(students.filter((s) => s.active).map((s) => s.grade)),
-  ).sort((a, b) => a.localeCompare(b, "vi", { numeric: true }));
-  const classes = Array.from(
+  ).sort((a, b) => a.localeCompare(b, "vi", { numeric: true })),[students]);
+  const classes = useMemo(() => Array.from(
     new Set(
       students
         .filter((s) => (!grade || s.grade === grade) && s.active)
         .map((s) => s.class),
     ),
-  ).sort((a, b) => a.localeCompare(b, "vi", { numeric: true }));
-  const filtered = students.filter(
+  ).sort((a, b) => a.localeCompare(b, "vi", { numeric: true })),[students,grade]);
+  const filtered = useMemo(() => students.filter(
     (s) =>
       (!grade || s.grade === grade) &&
       (!cl || s.class === cl) &&
       normalize(s.name + " " + s.code).includes(normalize(query)),
-  );
-  const visibleRecords = records.filter(r => normalize(r.name + " " + r.code).includes(normalize(query)));
+  ),[students,grade,cl,query]);
+  const visibleRecords = useMemo(() => records.filter(r => normalize(r.name + " " + r.code).includes(normalize(query))),[records,query]);
   const alerts = (
     <>
       {error && (
@@ -462,7 +465,7 @@ export default function App() {
             aria-labelledby={hasSectionTabs ? `view-tab-${tab}` : undefined}
             tabIndex={hasSectionTabs ? 0 : undefined}
           >
-          {!board && !["scanner", "guide"].includes(tab) ? (
+          {!board && ["overview", "attendance", "missing", "reports"].includes(tab) ? (
             <section className="panel">
               <Empty title="Đang tải dữ liệu…" />
             </section>
@@ -486,7 +489,6 @@ export default function App() {
                 <QRScanner
                   key={space}
                   space={space}
-                  onRecord={() => void boardLoad().catch((e) => SE(e.message))}
                   onNavigate={navigate}
                 />
               )}

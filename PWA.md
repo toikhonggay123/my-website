@@ -32,11 +32,11 @@ Nguồn kỹ thuật: [MDN PWA installation](https://developer.mozilla.org/en-US
 
 ## Máy quét tự bật tiện ích
 
-Âm báo, rung khi xác nhận, nhớ bữa trong ngày trên thiết bị và giữ màn hình sáng lúc camera chạy luôn được bật; không còn nút/công tắc cho bốn mục này. Các thiết lập tắt cũ không được sử dụng. Âm báo cần thao tác mở camera/chọn ảnh; rung và giữ sáng phụ thuộc hỗ trợ của thiết bị. Popup kính mờ xuất hiện ngay trong vùng camera sau xác nhận máy chủ, tự ẩn sau 3 giây và không chặn quét tiếp. Quét trùng dùng thông báo màu vàng, không tính thêm suất; mất mạng chỉ báo chờ đồng bộ.
+Âm báo, rung khi xác nhận, nhớ bữa trong ngày trên thiết bị và giữ màn hình sáng lúc camera chạy luôn được bật; không còn nút/công tắc cho bốn mục này. Các thiết lập tắt cũ không được sử dụng. Âm báo cần thao tác mở camera/chọn ảnh; rung và giữ sáng phụ thuộc hỗ trợ của thiết bị. Popup xác nhận hiện trong khung ngắm rồi rơi xuống ô Vừa quét trên thanh chọn bữa; danh sách cập nhật ngay khi máy chủ xác nhận và không chờ animation. Quét trùng dùng thông báo màu vàng, không tính thêm suất; mất mạng chỉ báo chờ đồng bộ.
 
 ## Giao diện quét tập trung
 
-Màn quét trên điện thoại phủ toàn trang, camera làm nền, khung vuông bo góc và đường quét chuyển động (tắt chuyển động khi người dùng bật reduced motion). Thanh chọn bữa và đổi camera nằm cuối màn hình, chừa vùng an toàn của điện thoại. Không còn thanh Chọn ảnh QR/Mở-Tắt camera. Thẻ QR được quản lý trong Học sinh → Thẻ QR học sinh. Tùy chọn camera và toàn màn hình nằm ở góc trên; đèn flash chỉ hoạt động khi track hỗ trợ. Camera tự mở khi vào mục quét; quyền Camera lần đầu do trình duyệt hỏi. Đổi camera sẽ tự mở lại camera mới; rời mục quét hoặc ẩn app sẽ dừng camera. Desktop giữ sidebar và khung quét lớn. Popup 3 giây nằm chính giữa khung, không khóa quét tiếp hoặc trì hoãn lưu; offline tiếp tục chờ xác nhận như trước.
+Màn quét trên điện thoại phủ toàn trang, camera làm nền, khung vuông bo góc và đường quét chuyển động (tắt chuyển động khi người dùng bật reduced motion). Thanh chọn bữa và đổi camera nằm cuối màn hình, chừa vùng an toàn của điện thoại. Không còn thanh Chọn ảnh QR/Mở-Tắt camera. Thẻ QR được quản lý trong Học sinh → Thẻ QR học sinh. Tùy chọn camera và toàn màn hình nằm ở góc trên; đèn flash chỉ hoạt động khi track hỗ trợ. Camera tự mở khi vào mục quét; quyền Camera lần đầu do trình duyệt hỏi. Đổi camera sẽ tự mở lại camera mới; rời mục quét hoặc ẩn app sẽ dừng camera. Desktop giữ sidebar và khung quét lớn. Chạm ô Vừa quét để mở danh sách xác nhận trong lần mở máy quét này. Camera vẫn hiển thị, tạm ngừng giải mã khi đang đọc danh sách; đóng để tiếp tục. Lượt offline chỉ vào danh sách sau khi máy chủ xác nhận.
 
 ## Tương thích iPhone/iPad
 

@@ -37,3 +37,17 @@ test('Giải mã đồng thời và đóng khi native đang chạy không tạo 
  globalThis.Worker=class{constructor(){throw Error('Must not start worker after closing');}};
  const decoder=await createCameraDecoder(canvas()),reading=decoder.decode(video);assert.equal(await decoder.decode(video),'');decoder.close();reject(Error('native failed'));assert.equal(await reading,'');
 });
+
+test('Native misses try the worker on the actual guide instead of remaining stuck on native',async()=>{
+ globalThis.window={BarcodeDetector:class{static async getSupportedFormats(){return ['qr_code'];}async detect(){return [];}}};
+ globalThis.Worker=class{postMessage(){queueMicrotask(()=>this.onmessage({data:{token}}));}terminate(){}};
+ const c=canvas(),decoder=await createCameraDecoder(c,()=>({x:440,y:200,width:300,height:300}));
+ assert.equal(await decoder.decode(video),'');assert.equal(await decoder.decode(video),'');assert.equal(await decoder.decode(video),token);
+ assert.deepEqual(c.draws[0].slice(1,5),[440,200,300,300]);decoder.close();
+});
+
+test('A hanging native decode switches to the worker and can still be closed',async()=>{
+ globalThis.window={BarcodeDetector:class{static async getSupportedFormats(){return ['qr_code'];}detect(){return new Promise(()=>{});}}};
+ globalThis.Worker=class{postMessage(){queueMicrotask(()=>this.onmessage({data:{token}}));}terminate(){}};
+ const decoder=await createCameraDecoder(canvas());assert.equal(await decoder.decode(video),token);decoder.close();
+});

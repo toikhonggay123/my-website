@@ -14,7 +14,7 @@ Theo yêu cầu chủ dự án, ưu tiên hiệu ứng nổi bật, không giớ
 - Nền kính trong menu và tab trượt/morph theo vị trí mục được chọn trong 480 ms, đo lại khi đổi kích thước hoặc mở menu. Không khởi động lại animation nếu hình học không đổi; thao tác liên tiếp tiếp tục từ vị trí đang hiển thị.
 - Từ Tổng quan sang Quét QR: khung camera mở bằng perspective/scale, ánh sáng lướt qua, bảng AFYLLX nổi lên rồi hòa vào máy quét trong 760 ms. Không tự xin quyền camera hay chờ hiệu ứng để lưu lượt.
 - Popup mở 480–560 ms, đóng 320 ms; menu/hộp xác nhận native 600 ms. Popup sửa/cấp lại có nhãn, giữ focus, Escape để hủy khi không bận và trả focus khi đóng.
-- Xác nhận QR giữ dấu tích xanh, tên/lớp/mã trong 3 giây, thêm vòng sáng và dấu tích bật nổi. Lưu lịch sử ngay, không chặn quét tiếp. Các phản hồi liên tiếp không phải chờ hiệu ứng.
+- Xác nhận QR hiện tên/lớp/mã tại khung ngắm rồi rơi vào ô Vừa quét trên thanh chọn bữa. Chạm ô mở danh sách kính xám bằng dialog native, nảy nhẹ 250 ms, đóng 160 ms. Dữ liệu cập nhật ngay từ xác nhận máy chủ, độc lập với animation; khi kết quả đến dồn, chuyển động rút ngắn và không chặn quét tiếp. Chỉ danh sách xác nhận trong lần mở máy quét hiện tại được giữ trong bộ nhớ; lịch sử chính thức ở Lịch sử điểm danh.
 - Giảm chuyển động của hệ điều hành dùng fade nhẹ; khi in, lớp chuyển cảnh và nền chọn kính không xuất hiện. Bộ đọc thời gian hỗ trợ cả `ms` và `s`, kể cả CSS đã nén thành `.76s`.
 
 ## Mục tiêu màn hình tần số cao
