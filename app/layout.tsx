@@ -11,7 +11,7 @@ import "./home-overview.css";
 
 export const metadata: Metadata = {
   title: PRODUCT_NAME,
-  description: "EdTech MealCheck — quét QR và quản lý suất ăn học đường.",
+  description: "AFYLLX Edu MealCheck — quét QR và quản lý suất ăn học đường.",
   manifest:'/manifest.webmanifest',
   appleWebApp:{capable:true,title:PRODUCT_NAME,statusBarStyle:'default'},
   icons: {

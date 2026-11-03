@@ -1,8 +1,8 @@
 {
  "id":"/quan-tri",
- "name":"EdTech MealCheck",
- "short_name":"EdTech MealCheck",
- "description":"EdTech MealCheck — quét QR và quản lý suất ăn học đường.",
+ "name":"AFYLLX Edu MealCheck",
+ "short_name":"AFYLLX Edu",
+ "description":"AFYLLX Edu MealCheck — quét QR và quản lý suất ăn học đường.",
  "lang":"vi",
  "start_url":"/quan-tri?source=pwa",
  "scope":"/",

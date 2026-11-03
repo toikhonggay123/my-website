@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
 import App from '../mealcheck-client';
 export const dynamic='force-dynamic';
-export const metadata: Metadata={title:'Quản trị · EdTech MealCheck'};
+export const metadata: Metadata={title:'Quản trị · AFYLLX Edu MealCheck'};
 export default function Page(){return <App/>;}

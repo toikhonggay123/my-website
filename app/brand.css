@@ -3,7 +3,7 @@
 .overview-banner .session-icon{background:#fffffff2;border-color:#fff}
 @media(max-width:1200px){.brand .brandmark{width:38px;height:38px}}
 
-/* One lockup: mark on the left, bold EdTech above regular MealCheck. */
+/* One lockup: mark on the left, bold AFYLLX Edu above regular MealCheck. */
 .brand{min-width:0;gap:10px}
 .brand .brand-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
 .brand .brand-copy>strong{font-size:18px;line-height:1.1;letter-spacing:-.3px;font-weight:750;color:#19283f;white-space:nowrap}

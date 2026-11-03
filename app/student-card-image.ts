@@ -50,7 +50,8 @@ export async function downloadStudentCard(card:StudentCard,demo=false){
  // Match the shared two-line lockup; QR data and quiet zone are unchanged.
  const logoSize=44,brandGap=10,brandBottom=h-30;
  ctx.font='400 21px "Segoe UI",Arial,sans-serif';const productWidth=ctx.measureText(BRAND_BOTTOM).width;
- const brandX=856-31-(logoSize+brandGap+productWidth);
+ ctx.font='700 23px "Segoe UI",Arial,sans-serif';const brandWidth=Math.max(productWidth,ctx.measureText(BRAND_TOP).width);
+ const brandX=856-31-(logoSize+brandGap+brandWidth);
  if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.textAlign='right';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',825,brandBottom-logoSize-14);ctx.textAlign='left';}
  const markHeight=logoSize*logo.naturalHeight/logo.naturalWidth;
  ctx.drawImage(logo,brandX,brandBottom-logoSize+(logoSize-markHeight)/2,logoSize,markHeight);

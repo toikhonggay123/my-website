@@ -12,4 +12,4 @@ for name,size in [('edtech-icon-192.png',192),('edtech-icon-512.png',512),('edte
     im=Image.new('RGBA',(size,size),'white')
     im.alpha_composite(mark,((size-mark.width)//2,(size-mark.height)//2))
     im.convert('RGB').save(out/name,optimize=True)
-print('Generated 5 EdTech app/browser icons')
+print('Generated 5 AFYLLX Edu app/browser icons')
