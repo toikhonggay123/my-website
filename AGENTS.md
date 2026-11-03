@@ -1,6 +1,6 @@
 # AFYLLX MealCheck
 
-- Owner hosting update 04/11/2026: canonical cloud entry is https://edu.afyllx.com/mealcheck; install at /mealcheck/cai-dat. Keep the same my-website Worker/D1/key and retain afyllx.com plus the workers.dev host as explicit aliases. /quan-tri remains supported locally and for installed apps. Preserve the manifest ID and old-origin queues.
+- Owner hosting update 04/11/2026: edu.afyllx.com root is the Edu portal, served by the afyllx-edu gateway Worker from C:/Users/HarmoniaNEXT/.gemini/antigravity/scratch/afyllx-edu. MealCheck stays at /mealcheck, installation at /mealcheck/cai-dat. The gateway forwards MealCheck pages/API/PWA/assets to my-website using a service binding. Do not attach the Edu custom domain to my-website or replace the portal. Keep the same my-website Worker/D1/key, afyllx.com and the legacy workers.dev host. /quan-tri remains supported locally and for installed apps; preserve manifest identity and old-origin queues.
 
 - Owner branding update 04/11/2026: the education brand is AFYLLX Edu. Keep the symbol on the left, bold AFYLLX Edu on top and regular MealCheck below, using the shared `app/brand.tsx`. Existing artwork URLs (`public/brand/edtech-mark.png`, `public/icons/edtech-*`) remain stable for installed-app compatibility; they are not display names. See BRANDING.md. Preserve internal QR identifiers and all keys/data.
 

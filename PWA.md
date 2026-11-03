@@ -56,4 +56,5 @@ Trang Tổng quan dùng liên kết Cài ứng dụng thu gọn ở gần đầu
 
 
 ## Tên miền Edu — 04/11/2026
+Root `edu.afyllx.com` hiện là portal giới thiệu. Gateway `afyllx-edu` chuyển các đường dẫn ứng dụng/API/PWA/assets tới Worker MealCheck; các trang và bundle portal được phục vụ riêng. Service worker không cache root portal, `/assets/` hoặc các trang giới thiệu.
 Dùng cùng Worker/D1 và bộ QR hiện có tại `edu.afyllx.com/mealcheck`; tên miền gốc và workers.dev vẫn chạy. API, JS/CSS, manifest và service worker dùng đường dẫn gốc của cùng origin. Đây là đường dẫn vào ứng dụng, không phải một bản triển khai basePath tách biệt. Service worker cache v10 chuẩn bị cả `/mealcheck`, `/mealcheck/cai-dat`, `/quan-tri` và `/cai-dat`. Manifest ID `/quan-tri` giữ nguyên, start URL và shortcut quét chuyển sang `/mealcheck`. Các origin có cookie/IndexedDB riêng; đồng bộ hết lượt chờ trên origin cũ trước khi dùng app mới.

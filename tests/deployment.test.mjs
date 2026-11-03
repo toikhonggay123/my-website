@@ -32,7 +32,8 @@ test('configured live domain and legacy host work while unlisted hosts and HTTP 
   const config=JSON.parse(fs.readFileSync(new URL('../wrangler.cloud.jsonc',import.meta.url),'utf8'));
   assert.equal(config.vars.MEALCHECK_PUBLIC_HOST,'edu.afyllx.com');
   assert.ok(config.routes.some(route=>route.pattern==='afyllx.com'&&route.custom_domain===true));
-  assert.ok(config.routes.some(route=>route.pattern==='edu.afyllx.com'&&route.custom_domain===true));
+  // Edu root belongs to the portal gateway, which calls this Worker over a service binding.
+  assert.equal(config.routes.some(route=>route.pattern==='edu.afyllx.com'),false);
   for(const hostname of ['edu.afyllx.com','afyllx.com','my-website.fyllxestonia.workers.dev']){
     const policy=deploymentPolicy(new URL('https://'+hostname+'/api/health'),config.vars);
     assert.equal(policy.liveOnly,true);

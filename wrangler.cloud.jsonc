@@ -7,8 +7,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "routes": [
-    {"pattern": "afyllx.com", "custom_domain": true},
-    {"pattern": "edu.afyllx.com", "custom_domain": true}
+    {"pattern": "afyllx.com", "custom_domain": true}
   ],
   "preview_urls": false,
   "observability": {"enabled": false},
