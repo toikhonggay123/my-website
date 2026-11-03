@@ -45,12 +45,12 @@ export async function downloadStudentCard(card:StudentCard,demo=false){
  nameLines.forEach((line,index)=>ctx.fillText(line,x,titleY+56+index*size*1.15));
  let y=titleY+classOffset;ctx.font='600 24px "Segoe UI",Arial,sans-serif';ctx.fillText(`LỚP ${card.class}   ·   KHỐI ${card.grade}`,x,y,w);
  y+=41;ctx.font='500 16px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#45647a';ctx.fillText('MÃ HỌC SINH',x,y);y+=31;ctx.font='700 25px Consolas,monospace';ctx.fillStyle='#163e58';ctx.fillText(card.code,x,y,w);
- if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',x,h-77);}
  ctx.textAlign='left';
  // The company sits above its product; only artwork changes, never the QR.
  const logoSize=38,brandGap=9,brandBottom=h-30;
  ctx.font='600 21px "Segoe UI",Arial,sans-serif';const productWidth=ctx.measureText('EdTech MealCheck').width;
  const brandX=856-31-(logoSize+brandGap+productWidth);
+ if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.textAlign='right';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',825,brandBottom-logoSize-14);ctx.textAlign='left';}
  ctx.drawImage(logo,brandX,brandBottom-logoSize,logoSize,logoSize);
  ctx.fillStyle='#45647a';ctx.font='700 14px "Segoe UI",Arial,sans-serif';ctx.fillText('AFYLLX',brandX+logoSize+brandGap,brandBottom-28);
  ctx.fillStyle='#173d59';ctx.font='600 21px "Segoe UI",Arial,sans-serif';ctx.fillText('EdTech MealCheck',brandX+logoSize+brandGap,brandBottom-4);
