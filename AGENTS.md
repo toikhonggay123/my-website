@@ -1,5 +1,7 @@
 # AFYLLX MealCheck
 
+- Owner hosting update 04/11/2026: canonical cloud entry is https://edu.afyllx.com/mealcheck; install at /mealcheck/cai-dat. Keep the same my-website Worker/D1/key and retain afyllx.com plus the workers.dev host as explicit aliases. /quan-tri remains supported locally and for installed apps. Preserve the manifest ID and old-origin queues.
+
 - Owner branding update 04/11/2026: the education brand is AFYLLX Edu. Keep the symbol on the left, bold AFYLLX Edu on top and regular MealCheck below, using the shared `app/brand.tsx`. Existing artwork URLs (`public/brand/edtech-mark.png`, `public/icons/edtech-*`) remain stable for installed-app compatibility; they are not display names. See BRANDING.md. Preserve internal QR identifiers and all keys/data.
 
 - Owner update 03/11/2026: Cloudflare now uses 275 synthetic students across 6A/6B–9A/9B, with globally unique normalized names/codes and all QR issued. The real cloud roster (34 students/34 QR plus history) was exported and restore-verified before replacement at `.migration-private/checkpoints/20261103-real-before-eight-classes/`. Do not restore it without an owner request. Keep the Worker QR key unchanged so checkpoint cards remain recoverable. Preserve the local real roster/cards. Never commit private checkpoints, generated rosters or QR tokens.

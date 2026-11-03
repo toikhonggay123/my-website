@@ -6,13 +6,16 @@
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
-  "routes": [{"pattern": "afyllx.com", "custom_domain": true}],
+  "routes": [
+    {"pattern": "afyllx.com", "custom_domain": true},
+    {"pattern": "edu.afyllx.com", "custom_domain": true}
+  ],
   "preview_urls": false,
   "observability": {"enabled": false},
   "vars": {
     "MEALCHECK_DEPLOYMENT": "cloud-live",
-    "MEALCHECK_PUBLIC_HOST": "afyllx.com",
-    "MEALCHECK_PUBLIC_HOST_ALIASES": "my-website.fyllxestonia.workers.dev"
+    "MEALCHECK_PUBLIC_HOST": "edu.afyllx.com",
+    "MEALCHECK_PUBLIC_HOST_ALIASES": "afyllx.com,my-website.fyllxestonia.workers.dev"
   },
   "d1_databases": [{
     "binding": "DB",

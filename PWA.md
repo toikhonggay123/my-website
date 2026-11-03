@@ -1,6 +1,6 @@
 # MealCheck trên Android và iPhone
 
-Link cài: https://afyllx.com/cai-dat. QR cài app và nút chia sẻ dùng tên miền này. Host workers.dev cũ vẫn hoạt động; hàng đợi offline và cookie nằm riêng trên từng origin, nên đồng bộ hết lượt chờ trong app cũ trước khi chuyển sang domain mới. Dashboard đặt QR/link cài ngay đầu trang. Manifest dùng standalone, icon PNG 192/512, maskable và Apple touch icon; giao diện hỗ trợ safe area, bàn phím không tự zoom trên iOS, nút chạm lớn và chế độ quét toàn màn hình dự phòng.
+Link cài: https://edu.afyllx.com/mealcheck/cai-dat. Trang ứng dụng: https://edu.afyllx.com/mealcheck. QR cài app và nút chia sẻ dùng tên miền này. Host workers.dev cũ vẫn hoạt động; hàng đợi offline và cookie nằm riêng trên từng origin, nên đồng bộ hết lượt chờ trong app cũ trước khi chuyển sang domain mới. Dashboard đặt QR/link cài ngay đầu trang. Manifest dùng standalone, icon PNG 192/512, maskable và Apple touch icon; giao diện hỗ trợ safe area, bàn phím không tự zoom trên iOS, nút chạm lớn và chế độ quét toàn màn hình dự phòng.
 
 Android: mở bằng Chrome, bấm Cài ứng dụng; nếu trình duyệt chưa cung cấp hộp cài, dùng menu Cài đặt ứng dụng/Thêm vào màn hình chính. iPhone/iPad: mở Safari, Chia sẻ, Thêm vào Màn hình chính, bật Mở như ứng dụng web nếu có. Trình duyệt quyết định việc hiển thị hộp cài; website không tự cài thay người dùng.
 
@@ -47,9 +47,13 @@ Màn quét trên điện thoại phủ toàn trang, camera làm nền, khung vu�
 - Đã kiểm tra bằng Chromium với profile iPhone SE/iPhone 13/iPad, mô phỏng các API Safari thiếu và chạy service worker thật trên HTTP cục bộ: mở offline, giữ request ID qua cập nhật, gửi lại sau khi có mạng. Đây không phải bằng chứng đã thử Safari/WebKit hoặc cài lên iPhone thật. WebKit hiện chưa tải được vì chính sách mạng; cần kiểm tra tiếp camera, cài từ màn hình chính và hệ điều hành tạm dừng app trên thiết bị iOS thật.
 
 ## Biểu tượng ứng dụng AFYLLX
-Icon Android 192/512 px, maskable 512 px, Apple touch icon 180 px và favicon đều dùng logo AFYLLX đã duyệt, nền trắng. Đường dẫn `afyllx-*` tách khỏi đường dẫn cũ để tránh giữ icon cũ trong cache; service worker dùng phiên bản cache v9. Giữ nguyên manifest id, start_url và dữ liệu ứng dụng.
+Icon Android 192/512 px, maskable 512 px, Apple touch icon 180 px và favicon đều dùng logo AFYLLX đã duyệt, nền trắng. Đường dẫn `afyllx-*` tách khỏi đường dẫn cũ để tránh giữ icon cũ trong cache; service worker dùng phiên bản cache v9. Giữ nguyên manifest id và dữ liệu ứng dụng. Start URL hiện là /mealcheck?source=pwa; /quan-tri vẫn hoạt động cho liên kết cũ.
 
 Khi cài mới, Android và iPhone lấy bộ icon này. Với app đã cài, hệ điều hành/trình duyệt quyết định thời điểm đổi icon; cập nhật nội dung app không bảo đảm đổi ngay biểu tượng màn hình chính. Không xóa dữ liệu/gỡ app khi còn lượt quét chờ đồng bộ. Tham khảo [Chrome về cập nhật web app](https://developer.chrome.com/blog/improvements-to-web-app-updates) và [Apple về apple-touch-icon](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html).
 
 
 Trang Tổng quan dùng liên kết Cài ứng dụng thu gọn ở gần đầu trang; mở để xem QR/hướng dẫn. Trong app standalone hoặc sau khi trình duyệt báo appinstalled, liên kết này được ẩn. Trang cài đặt /cai-dat vẫn cung cấp hướng dẫn và link chia sẻ.
+
+
+## Tên miền Edu — 04/11/2026
+Dùng cùng Worker/D1 và bộ QR hiện có tại `edu.afyllx.com/mealcheck`; tên miền gốc và workers.dev vẫn chạy. API, JS/CSS, manifest và service worker dùng đường dẫn gốc của cùng origin. Đây là đường dẫn vào ứng dụng, không phải một bản triển khai basePath tách biệt. Service worker cache v10 chuẩn bị cả `/mealcheck`, `/mealcheck/cai-dat`, `/quan-tri` và `/cai-dat`. Manifest ID `/quan-tri` giữ nguyên, start URL và shortcut quét chuyển sang `/mealcheck`. Các origin có cookie/IndexedDB riêng; đồng bộ hết lượt chờ trên origin cũ trước khi dùng app mới.

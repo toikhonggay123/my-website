@@ -30,14 +30,15 @@ test('cloud demo rejects roster uploads while retaining synthetic seed and QR op
 
 test('configured live domain and legacy host work while unlisted hosts and HTTP remain blocked',()=>{
   const config=JSON.parse(fs.readFileSync(new URL('../wrangler.cloud.jsonc',import.meta.url),'utf8'));
-  assert.equal(config.vars.MEALCHECK_PUBLIC_HOST,'afyllx.com');
+  assert.equal(config.vars.MEALCHECK_PUBLIC_HOST,'edu.afyllx.com');
   assert.ok(config.routes.some(route=>route.pattern==='afyllx.com'&&route.custom_domain===true));
-  for(const hostname of ['afyllx.com','my-website.fyllxestonia.workers.dev']){
+  assert.ok(config.routes.some(route=>route.pattern==='edu.afyllx.com'&&route.custom_domain===true));
+  for(const hostname of ['edu.afyllx.com','afyllx.com','my-website.fyllxestonia.workers.dev']){
     const policy=deploymentPolicy(new URL('https://'+hostname+'/api/health'),config.vars);
     assert.equal(policy.liveOnly,true);
     assert.throws(()=>deploymentPolicy(new URL('http://'+hostname),config.vars),/Địa chỉ/);
   }
-  for(const hostname of ['other.example.test','afyllx.com.evil.test','www.afyllx.com']){
+  for(const hostname of ['other.example.test','afyllx.com.evil.test','edu.afyllx.com.evil.test','www.afyllx.com','other.afyllx.com']){
     assert.throws(()=>deploymentPolicy(new URL('https://'+hostname),config.vars),/Địa chỉ/);
   }
 });

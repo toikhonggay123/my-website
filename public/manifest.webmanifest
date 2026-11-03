@@ -4,7 +4,7 @@
  "short_name":"AFYLLX Edu",
  "description":"AFYLLX Edu MealCheck — quét QR và quản lý suất ăn học đường.",
  "lang":"vi",
- "start_url":"/quan-tri?source=pwa",
+ "start_url":"/mealcheck?source=pwa",
  "scope":"/",
  "display":"standalone",
  "background_color":"#f6f8fc",
@@ -14,5 +14,5 @@
   {"src":"/icons/edtech-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
   {"src":"/icons/edtech-icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
  ],
- "shortcuts":[{"name":"Mở máy quét QR","url":"/quan-tri?tab=scanner","icons":[{"src":"/icons/edtech-icon-192.png","sizes":"192x192"}]}]
+ "shortcuts":[{"name":"Mở máy quét QR","url":"/mealcheck?tab=scanner","icons":[{"src":"/icons/edtech-icon-192.png","sizes":"192x192"}]}]
 }

@@ -8,8 +8,8 @@ Lịch sử triển khai dữ liệu thật trước lần thay:
 
 Ngày 31/10/2026, chủ dự án xác nhận nhập danh sách thật lên Cloudflare và chấp nhận giao diện quản trị công khai không đăng nhập. Sau đó chủ dự án cho phép cấp QR mới để dùng ngay, giữ bản sao thẻ cũ, và yêu cầu bỏ bản sao khóa cũ. Khóa QR gốc cũ chưa từng xuất được về máy nên không có bản sao khóa gốc để xóa. Không sao chép khóa demo sang dữ liệu thật.
 
-- URL chính: https://afyllx.com/quan-tri. Host `my-website.fyllxestonia.workers.dev` vẫn được chấp nhận để giữ các liên kết/app cũ hoạt động.
-- Tên miền chính khai báo bằng `MEALCHECK_PUBLIC_HOST`; host cũ nằm trong danh sách rõ ràng `MEALCHECK_PUBLIC_HOST_ALIASES`. Chỉ chấp nhận HTTPS và hostname khớp chính xác; không tự nhận mọi subdomain. Custom Domain `afyllx.com` được khai báo trong cấu hình Wrangler.
+- URL chính: https://edu.afyllx.com/mealcheck. Cài PWA tại https://edu.afyllx.com/mealcheck/cai-dat. `afyllx.com` và `my-website.fyllxestonia.workers.dev` vẫn hoạt động. Trang `/quan-tri` cũ vẫn được phục vụ; điều hướng tab tại `/mealcheck` giữ nguyên đường dẫn này.
+- Tên miền chính khai báo bằng `MEALCHECK_PUBLIC_HOST`; host cũ nằm trong danh sách rõ ràng `MEALCHECK_PUBLIC_HOST_ALIASES`. Chỉ chấp nhận HTTPS và hostname khớp chính xác; không tự nhận mọi subdomain. Hai Custom Domain `edu.afyllx.com` và `afyllx.com` được khai báo trong cấu hình Wrangler. Đây là cùng Worker/D1, không sao chép database hoặc thay QR key.
 - Cấu hình hiện hành: `wrangler.cloud.jsonc`, chế độ `cloud-live`, D1 riêng `afyllx-mealcheck-live-20261031`.
 - Chỉ nhận dữ liệu `live`; API `space=demo` và tạo dữ liệu test bị từ chối. Giao diện không có môi trường thử nghiệm hoặc nút tạo học sinh giả lập.
 - Database demo cũ đã được xóa sau khi đối chiếu dữ liệu live thành công. Tên/ID demo trong cấu hình lịch sử không còn trỏ đến tài nguyên đang chạy.

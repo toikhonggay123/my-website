@@ -11,6 +11,8 @@ async function call(path,body,cookie='',expected=200,extra={}){
   const text=await r.text();let data;try{data=JSON.parse(text);}catch{throw Error(path+': HTTP '+r.status+' '+text.slice(0,200));}assert.equal(r.status,expected,path+': '+JSON.stringify(data));return {data,cookie:r.headers.getSetCookie().map(s=>s.split(';')[0]).join('; ')};
 }
 for(const route of ['/','/diem-danh']){const r=await fetch(base+route,{redirect:'manual'});assert.equal(r.status,307);assert.equal(r.headers.get('location'),'/quan-tri');}
+for(const route of ['/mealcheck','/mealcheck/cai-dat']){const r=await fetch(base+route);assert.equal(r.status,200,route);assert.match(await r.text(),/AFYLLX Edu MealCheck/);}
+const manifest=await fetch(base+'/manifest.webmanifest').then(r=>r.json());assert.equal(manifest.id,'/quan-tri');assert.equal(manifest.start_url,'/mealcheck?source=pwa');
 const qaReset=await call('qa/browser-reset');assert.equal(qaReset.data.qaBrowserReset,true);assert.equal(qaReset.cookie,'mc_scanner=');
 const identity=(await call('identity',undefined,'',200,{'oai-authenticated-user-id':'forged','oai-authenticated-user-email':'attacker@example.test'})).data;
 assert.equal(identity.localAdmin,true);assert.equal(identity.user.role,'admin');assert.equal(identity.user.name,'Quản trị tại máy');

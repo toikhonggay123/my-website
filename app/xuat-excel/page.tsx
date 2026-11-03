@@ -14,5 +14,5 @@ export default function ExportToday(){
    setTimeout(()=>URL.revokeObjectURL(url),60000);setDone(true);
   }catch(error:any){setError(error.message||'Không tạo được file Excel.');}finally{setBusy(false);}
  }
- return <main className="export-page"><section className="panel"><h1>Xuất danh sách Excel ngày hôm nay</h1><button className="primary" disabled={busy} onClick={()=>void download()}>{busy?'Đang tạo file…':'Tải danh sách .xls'}</button>{error&&<p role="alert">{error}</p>}{done&&<p role="status">Đã tạo file Excel. Nếu chưa thấy file, kiểm tra mục tải xuống của trình duyệt.</p>}<p><a className="text-button" href="/quan-tri">Về quản trị</a></p></section></main>;
+ return <main className="export-page"><section className="panel"><h1>Xuất danh sách Excel ngày hôm nay</h1><button className="primary" disabled={busy} onClick={()=>void download()}>{busy?'Đang tạo file…':'Tải danh sách .xls'}</button>{error&&<p role="alert">{error}</p>}{done&&<p role="status">Đã tạo file Excel. Nếu chưa thấy file, kiểm tra mục tải xuống của trình duyệt.</p>}<p><a className="text-button" href="/mealcheck">Về quản trị</a></p></section></main>;
 }

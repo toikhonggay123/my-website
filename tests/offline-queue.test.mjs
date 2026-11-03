@@ -25,7 +25,7 @@ test('different spaces/meals stay separate; nothing sends while offline; failed 
 });
 test('PWA cache explicitly excludes APIs and mutations, manifest has Android/iOS assets',()=>{
  const sw=fs.readFileSync('public/sw.js','utf8');assert.match(sw,/req.method!=='GET'/);assert.match(sw,/url.pathname.startsWith\('\/api\/'\)/);
- const manifest=JSON.parse(fs.readFileSync('public/manifest.webmanifest','utf8'));assert.equal(manifest.display,'standalone');assert.equal(manifest.scope,'/');assert.ok(manifest.start_url.startsWith('/quan-tri'));
+ const manifest=JSON.parse(fs.readFileSync('public/manifest.webmanifest','utf8'));assert.equal(manifest.display,'standalone');assert.equal(manifest.scope,'/');assert.equal(manifest.id,'/quan-tri');assert.equal(manifest.start_url,'/mealcheck?source=pwa');
  for(const size of ['192x192','512x512'])assert.ok(manifest.icons.some(icon=>icon.sizes===size&&fs.existsSync('public'+icon.src)));
  const layout=fs.readFileSync('app/layout.tsx','utf8'),apple=layout.match(/apple:'([^']+)'/)[1];
  assert.ok(fs.existsSync('public'+apple));assert.ok(sw.includes(apple));
