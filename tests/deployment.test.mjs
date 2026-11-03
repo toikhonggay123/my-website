@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {deploymentPolicy,deploymentSpace,allowDemoOperation} from '../lib/deployment.mjs';
 const host='mealcheck-demo.example.test',demo={MEALCHECK_DEPLOYMENT:'cloud-demo',MEALCHECK_PUBLIC_HOST:host};
 test('local policy remains loopback-only and defaults to real local data',()=>{
@@ -25,4 +26,27 @@ test('cloud demo rejects roster uploads while retaining synthetic seed and QR op
   assert.throws(()=>allowDemoOperation(policy,'students','POST'),/không nhận danh sách/);
   for(const [route,method] of [['students','GET'],['seed','POST'],['qr/scan','POST']])assert.doesNotThrow(()=>allowDemoOperation(policy,route,method));
   assert.doesNotThrow(()=>allowDemoOperation({demoOnly:false},'students','POST'));
+});
+
+test('configured live domain and legacy host work while unlisted hosts and HTTP remain blocked',()=>{
+  const config=JSON.parse(fs.readFileSync(new URL('../wrangler.cloud.jsonc',import.meta.url),'utf8'));
+  assert.equal(config.vars.MEALCHECK_PUBLIC_HOST,'afyllx.com');
+  assert.ok(config.routes.some(route=>route.pattern==='afyllx.com'&&route.custom_domain===true));
+  for(const hostname of ['afyllx.com','my-website.fyllxestonia.workers.dev']){
+    const policy=deploymentPolicy(new URL('https://'+hostname+'/api/health'),config.vars);
+    assert.equal(policy.liveOnly,true);
+    assert.throws(()=>deploymentPolicy(new URL('http://'+hostname),config.vars),/Địa chỉ/);
+  }
+  for(const hostname of ['other.example.test','afyllx.com.evil.test','www.afyllx.com']){
+    assert.throws(()=>deploymentPolicy(new URL('https://'+hostname),config.vars),/Địa chỉ/);
+  }
+});
+
+test('host aliases are explicit and cannot replace the required primary host or local restrictions',()=>{
+  const env={MEALCHECK_DEPLOYMENT:'cloud-live',MEALCHECK_PUBLIC_HOST:'primary.example.test',MEALCHECK_PUBLIC_HOST_ALIASES:' legacy.example.test, , other.example.test '};
+  for(const host of ['primary.example.test','legacy.example.test','other.example.test']){
+    assert.equal(deploymentPolicy(new URL('https://'+host),env).liveOnly,true);
+  }
+  assert.throws(()=>deploymentPolicy(new URL('https://legacy.example.test'),{...env,MEALCHECK_PUBLIC_HOST:''}),/Địa chỉ/);
+  assert.throws(()=>deploymentPolicy(new URL('https://legacy.example.test'),{...env,MEALCHECK_DEPLOYMENT:'local'}),/localhost/);
 });

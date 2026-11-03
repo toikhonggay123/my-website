@@ -1,6 +1,6 @@
 # MealCheck trên Android và iPhone
 
-Link cài: https://my-website.fyllxestonia.workers.dev/cai-dat. Dashboard đặt QR/link cài ngay đầu trang. Manifest dùng standalone, icon PNG 192/512, maskable và Apple touch icon; giao diện hỗ trợ safe area, bàn phím không tự zoom trên iOS, nút chạm lớn và chế độ quét toàn màn hình dự phòng.
+Link cài: https://afyllx.com/cai-dat. QR cài app và nút chia sẻ dùng tên miền này. Host workers.dev cũ vẫn hoạt động; hàng đợi offline và cookie nằm riêng trên từng origin, nên đồng bộ hết lượt chờ trong app cũ trước khi chuyển sang domain mới. Dashboard đặt QR/link cài ngay đầu trang. Manifest dùng standalone, icon PNG 192/512, maskable và Apple touch icon; giao diện hỗ trợ safe area, bàn phím không tự zoom trên iOS, nút chạm lớn và chế độ quét toàn màn hình dự phòng.
 
 Android: mở bằng Chrome, bấm Cài ứng dụng; nếu trình duyệt chưa cung cấp hộp cài, dùng menu Cài đặt ứng dụng/Thêm vào màn hình chính. iPhone/iPad: mở Safari, Chia sẻ, Thêm vào Màn hình chính, bật Mở như ứng dụng web nếu có. Trình duyệt quyết định việc hiển thị hộp cài; website không tự cài thay người dùng.
 
