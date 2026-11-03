@@ -21,7 +21,7 @@ export function StudentQRCard({card,demo=false,onReissue}:{card:StudentCard;demo
      <div className="qr-card-student-code"><span>MÃ HỌC SINH</span><b>{card.code}</b></div>
     </div>
     {demo&&<span className="qr-card-footer">DỮ LIỆU THỬ NGHIỆM</span>}
-    <div className="qr-card-brand"><img src="/brand/afyllx-logo.png" alt="" width="24" height="24"/><span>AFYLLX <em>MealCheck</em></span></div>
+    <div className="qr-card-brand"><img src="/brand/afyllx-logo.png" alt="" width="24" height="24"/><span><small>AFYLLX</small><b>EdTech <em>MealCheck</em></b></span></div>
    </div>
   </article>
   <div className="qr-card-actions"><button className="secondary" disabled={busy} onClick={()=>void download()}>{busy?<LoaderCircle className="spin" size={15}/>:<Download size={15}/>}Tải thẻ PNG</button>{onReissue&&<button className="text-button" onClick={onReissue}>Cấp lại QR</button>}</div>

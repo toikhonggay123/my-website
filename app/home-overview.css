@@ -1,4 +1,9 @@
 .home-overview{display:grid;gap:24px;max-width:1060px;margin:0 auto}
+.home-brand{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 0 22px;border-bottom:1px solid #e0e7f2}
+.home-brand .brand .brandmark{width:48px;height:48px}
+.home-brand .brand .brand-copy>b{font-size:25px;letter-spacing:-.7px}
+.home-brand>p{margin:0;font-size:12px;line-height:1.7;color:#52637b;text-align:right;text-wrap:balance;max-width:280px}
+.home-brand>p>b{font-weight:650}
 .home-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .home-date{font-size:13px;color:#5b6b81;margin:0 0 6px;line-height:1.4}
 .home-heading h1{font-size:34px;line-height:1.2;margin:0 0 10px;letter-spacing:-1px}
@@ -41,6 +46,10 @@
 .home-install .pwa-install{margin:10px 0 0;box-shadow:none}.home-install .pwa-install h2{font-size:15px}
 :is(.home-actions,.home-classes,.home-install)>summary:focus-visible{outline:3px solid #245bb7;outline-offset:3px}
 @media(max-width:760px){
+ .home-brand{align-items:flex-start;flex-direction:column;gap:10px;padding-bottom:18px}
+ .home-brand .brand .brandmark{width:42px;height:42px}
+ .home-brand .brand .brand-copy>b{font-size:23px}
+ .home-brand>p{text-align:left;font-size:11px;max-width:none}
  .home-page>.workspace>.topbar{display:none}
  .home-overview{gap:20px}.home-heading{gap:12px}.home-heading h1{font-size:28px;margin-bottom:8px}.home-date{font-size:12px}
  .home-roster{font-size:12px;gap:6px}.home-actions summary{padding:10px;gap:6px;font-size:11px;border-radius:12px}

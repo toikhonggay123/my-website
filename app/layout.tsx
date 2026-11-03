@@ -1,5 +1,6 @@
 import type { Metadata,Viewport } from "next";
 import {PwaRuntime} from './pwa';
+import {COMPANY_NAME,PRODUCT_NAME} from '@/lib/branding.mjs';
 import './pwa.css';
 import "./globals.css";
 import "./student-qr-card.css";
@@ -9,10 +10,10 @@ import "./liquid-motion.css";
 import "./home-overview.css";
 
 export const metadata: Metadata = {
-  title: "AFYLLX MealCheck · Na Rì",
-  description: "Quét QR và điểm danh suất ăn nội trú.",
+  title: PRODUCT_NAME+' · '+COMPANY_NAME,
+  description: "EdTech MealCheck thuộc AFYLLX EdTech — quét QR và quản lý suất ăn học đường.",
   manifest:'/manifest.webmanifest',
-  appleWebApp:{capable:true,title:'MealCheck',statusBarStyle:'default'},
+  appleWebApp:{capable:true,title:PRODUCT_NAME,statusBarStyle:'default'},
   icons: {
     icon: "/icons/afyllx-favicon-32.png",
     shortcut: "/icons/afyllx-favicon-32.png",

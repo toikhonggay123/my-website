@@ -17,6 +17,8 @@ import {
 import { SCHOOL } from "@/lib/mealcheck.mjs";
 import { sectionForView } from "@/lib/navigation.mjs";
 import { useLiquidIndicator } from "./liquid-motion";
+import {Brand,BrandSupport} from './brand';
+export {Brand} from './brand';
 
 export function navigationItems(admin: boolean) {
   return [
@@ -32,17 +34,6 @@ export function navigationItems(admin: boolean) {
       : []),
     { id: "guide", label: "Hướng dẫn sử dụng", Icon: BookOpen },
   ];
-}
-
-export function Brand() {
-  return (
-    <div className="brand">
-      <img className="brandmark" src="/brand/afyllx-logo.png" width="42" height="42" alt="Logo AFYLLX" />
-      <b>
-        AFYLLX <em>MealCheck</em>
-      </b>
-    </div>
-  );
 }
 
 export function AppNavigation({
@@ -114,6 +105,7 @@ export function AppNavigation({
             <ShieldCheck size={18} aria-hidden="true" />
             <b>{publicDemo ? "Bản demo" : "Quản trị nhà trường"}</b>
           </div>
+          <BrandSupport/>
         </div>
       </aside>
       <nav ref={mobileNav} className="mobile-navigation liquid-navigation" aria-label="Điều hướng nhanh">
@@ -167,6 +159,7 @@ export function AppNavigation({
             </button>
           </header>
           <nav ref={dialogNav} className="liquid-navigation" aria-label="Tất cả chức năng"><span className="liquid-indicator" aria-hidden="true"/>{links}</nav>
+          <BrandSupport/>
         </div>
       </dialog>
     </>

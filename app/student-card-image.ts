@@ -47,14 +47,13 @@ export async function downloadStudentCard(card:StudentCard,demo=false){
  y+=41;ctx.font='500 16px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#45647a';ctx.fillText('MÃ HỌC SINH',x,y);y+=31;ctx.font='700 25px Consolas,monospace';ctx.fillStyle='#163e58';ctx.fillText(card.code,x,y,w);
  if(demo){ctx.font='600 15px "Segoe UI",Arial,sans-serif';ctx.fillStyle='#4d697a';ctx.fillText('DỮ LIỆU THỬ NGHIỆM',x,h-77);}
  ctx.textAlign='left';
- // Right-aligned signature shares one baseline, below the student information.
- const logoSize=30,brandGap=9,wordGap=6,brandBottom=h-30;
- ctx.font='700 23px "Segoe UI",Arial,sans-serif';const afyllxWidth=ctx.measureText('AFYLLX').width;
- ctx.font='400 21px "Segoe UI",Arial,sans-serif';const mealcheckWidth=ctx.measureText('MealCheck').width;
- const brandX=856-31-(logoSize+brandGap+afyllxWidth+wordGap+mealcheckWidth),baseline=brandBottom-6;
+ // The company sits above its product; only artwork changes, never the QR.
+ const logoSize=38,brandGap=9,brandBottom=h-30;
+ ctx.font='600 21px "Segoe UI",Arial,sans-serif';const productWidth=ctx.measureText('EdTech MealCheck').width;
+ const brandX=856-31-(logoSize+brandGap+productWidth);
  ctx.drawImage(logo,brandX,brandBottom-logoSize,logoSize,logoSize);
- ctx.fillStyle='#173d59';ctx.font='700 23px "Segoe UI",Arial,sans-serif';ctx.fillText('AFYLLX',brandX+logoSize+brandGap,baseline);
- ctx.fillStyle='#31576e';ctx.font='400 21px "Segoe UI",Arial,sans-serif';ctx.fillText('MealCheck',brandX+logoSize+brandGap+afyllxWidth+wordGap,baseline);
+ ctx.fillStyle='#45647a';ctx.font='700 14px "Segoe UI",Arial,sans-serif';ctx.fillText('AFYLLX',brandX+logoSize+brandGap,brandBottom-28);
+ ctx.fillStyle='#173d59';ctx.font='600 21px "Segoe UI",Arial,sans-serif';ctx.fillText('EdTech MealCheck',brandX+logoSize+brandGap,brandBottom-4);
  const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('PNG failed')),'image/png'));
  const url=URL.createObjectURL(withPrintResolution(await blob.arrayBuffer())),link=document.createElement('a');link.href=url;link.download='The-hoc-sinh-'+card.code.replace(/[^\p{L}\p{N}_-]/gu,'-')+'.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }

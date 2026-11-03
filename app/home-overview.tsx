@@ -6,6 +6,8 @@ import {LABELS, MEALS} from "@/lib/mealcheck.mjs";
 import {readDevicePref, saveDevicePref} from "./offline-store";
 import {TodayExport} from "./daily-attendance";
 import {InstallApp} from "./pwa";
+import {Brand} from './brand';
+import {SUITE_NAME} from '@/lib/branding.mjs';
 
 export type HomeBoard = {date:string; total:number; meals:Record<string,{count:number;missing:number;rate:number}>; byClass:Array<{grade:string;class:string;total:number;[key:string]:any}>};
 const icons:Record<string,typeof Sun> = {sang:Sun,trua:Sunset,toi:Moon};
@@ -25,6 +27,7 @@ export function HomeOverview({board,space,onScan,onMissing}:{board:HomeBoard;spa
   const chosen=board.meals[selected];
   const displayDate=new Date(board.date+"T12:00:00+07:00").toLocaleDateString("vi-VN",{weekday:"long",day:"2-digit",month:"2-digit",timeZone:"Asia/Ho_Chi_Minh"});
   return <div className="home-overview">
+    <div className="home-brand"><Brand/><p>Thuộc <b>{SUITE_NAME}</b><span aria-hidden="true"> · </span>Quản lý suất ăn học đường</p></div>
     <header className="home-heading">
       <div><p className="home-date">{displayDate}</p><h1>Hôm nay</h1><p className="home-roster"><Users size={15} aria-hidden="true"/>{nf.format(board.total)} học sinh<span aria-hidden="true">·</span>{board.byClass.length} lớp</p></div>
       <details className="home-actions"><summary aria-label="Xuất danh sách hôm nay"><Download size={18} aria-hidden="true"/><span>Xuất Excel</span></summary><div className="home-actions-menu"><TodayExport space={space}/></div></details>

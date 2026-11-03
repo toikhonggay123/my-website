@@ -36,7 +36,7 @@ public final class MainActivity extends Activity {
   root.addView(web,new FrameLayout.LayoutParams(-1,-1));
   progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);progress.setMax(100);root.addView(progress,new FrameLayout.LayoutParams(-1,dp(3),Gravity.TOP));
   cover=new LinearLayout(this);cover.setOrientation(LinearLayout.VERTICAL);cover.setGravity(Gravity.CENTER);cover.setPadding(dp(30),dp(30),dp(30),dp(30));cover.setBackgroundColor(Color.rgb(246,248,252));root.addView(cover,new FrameLayout.LayoutParams(-1,-1));
-  showCover("AFYLLX MealCheck","Đang mở hệ thống điểm danh…",false);
+  showCover("EdTech MealCheck","Đang mở hệ thống điểm danh…",false);
   web.addJavascriptInterface(new PrintBridge(),"MealCheckAndroid");
   web.setWebViewClient(new WebViewClient(){
    @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){Uri u=r.getUrl();if(trusted(u))return false;if(r.isForMainFrame()&&"https".equals(u.getScheme()))try{startActivity(new Intent(Intent.ACTION_VIEW,u));}catch(Exception ignored){}return true;}

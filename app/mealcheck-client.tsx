@@ -346,7 +346,7 @@ export default function App() {
         ) : (
           <>
             <LoaderCircle className="spin" />
-            <p>Đang kết nối MealCheck…</p>
+            <p>Đang kết nối EdTech MealCheck…</p>
           </>
         )}
       </div>
