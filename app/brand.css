@@ -29,6 +29,13 @@
 @media print{.brand-support{display:none!important}}
 
 .home-brand .brand .brand-copy>span{font-size:18px}
+.brand-home{display:block;border:0;border-radius:8px;background:transparent;padding:0;color:inherit;text-align:left;cursor:pointer;max-width:100%}
+.brand-home:focus-visible{outline:3px solid #3264e6;outline-offset:5px}
+.brand-home .brand{margin:0}
+.sidebar>.brand-home{margin-bottom:28px}
+.scanner-view .scan-scene .scan-intro>.scan-wordmark{font-size:clamp(40px,5vw,56px);font-weight:800;line-height:1.15;letter-spacing:-1.2px;color:#fff;margin:0}
+.scanner-launch-title{font-size:32px;font-weight:800;letter-spacing:-1px;color:#19283f}
+@media(max-width:760px){.scanner-view .scan-scene .scan-layout{grid-template-rows:calc(64px + env(safe-area-inset-top)) 120px minmax(240px,1fr) auto}}
 .scanner-view .scanner-brand{justify-content:center;gap:12px;margin:0 auto 10px}
 .scanner-view .scanner-brand .brandmark{width:52px;height:52px}
 .scanner-view .scanner-brand .brand-copy{gap:4px;text-align:left}

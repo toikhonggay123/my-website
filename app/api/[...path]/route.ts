@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { MealCheck, AppError, localClock, normalize } from '@/lib/mealcheck.mjs';
+import { MealCheck, AppError, localClock, normalize, SCHOOL } from '@/lib/mealcheck.mjs';
 import { makeXlsx } from '@/lib/files.mjs';
 import { makeDailyXls } from '@/lib/daily-report.mjs';
 import {resetPreview,resetBackups,restoreReset} from '@/lib/reset-backup.mjs';
@@ -44,6 +44,12 @@ async function handle(req:Request,{params}:any){
     if(route==='kiosk/roster'&&req.method==='GET')return json(await app.roster(device.space));
     if(route==='kiosk/request'&&req.method==='POST'){if(typeof body.sessionId!=='string')throw new AppError('Thiếu phiên ăn đang xác nhận.');const r=await app.checkIn(device,body.studentId,body.id,body.sessionId);return json(r);}
     throw new AppError('Không tìm thấy chức năng.',404);
+  }
+  // Read one already-issued card for the Edu portal. Never initialize sessions,
+  // issue a QR or decrypt/reissue a card while rendering a marketing page.
+  if(route==='qr/card-preview'&&req.method==='GET'){
+    const card=await app.one('SELECT s.id,s.code,s.name,s.grade,s.class,q.token FROM students s JOIN student_qr q ON q.student_id=s.id AND q.space=s.space WHERE s.space=? AND s.active=1 ORDER BY s.grade,s.class,s.code LIMIT 1',space);
+    return json({card:card||null,school:SCHOOL});
   }
   // Scanner start prepares today's sessions once; each scan only reads/records that session.
   if(route!=='qr/scan')await app.init(space);

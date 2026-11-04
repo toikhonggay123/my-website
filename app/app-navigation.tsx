@@ -51,6 +51,9 @@ export function AppNavigation({
   const section = sectionForView(current);
   const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
+  const homeDialog = useRef<HTMLDialogElement>(null);
+  const stayButton = useRef<HTMLButtonElement>(null);
+  const [homeOpen,setHomeOpen] = useState(false);
   const sidebarNav = useRef<HTMLElement>(null);
   const mobileNav = useRef<HTMLElement>(null);
   const dialogNav = useRef<HTMLElement>(null);
@@ -66,13 +69,21 @@ export function AppNavigation({
   };
 
   useEffect(() => {
-    if (!open) return;
+    if (!open&&!homeOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previous;
     };
-  }, [open]);
+  }, [open,homeOpen]);
+
+  function askHome(){
+    dialog.current?.close();
+    setOpen(false);
+    homeDialog.current?.showModal();
+    setHomeOpen(true);
+    stayButton.current?.focus();
+  }
 
   function navigate(id: string) {
     dialog.current?.close();
@@ -94,7 +105,7 @@ export function AppNavigation({
   return (
     <>
       <aside className="sidebar">
-        <Brand />
+        <button type="button" className="brand-home" aria-label="Trở lại trang chủ AFYLLX Edu" onClick={askHome}><Brand /></button>
         <div className="school-label">
           <GraduationCap size={19} aria-hidden="true" />
           <span>{SCHOOL}</span>
@@ -105,7 +116,7 @@ export function AppNavigation({
             <ShieldCheck size={18} aria-hidden="true" />
             <b>{publicDemo ? "Bản demo" : "Quản trị nhà trường"}</b>
           </div>
-          <BrandSupport/>
+          <BrandSupport onHomeClick={askHome}/>
         </div>
       </aside>
       <nav ref={mobileNav} className="mobile-navigation liquid-navigation" aria-label="Điều hướng nhanh">
@@ -159,8 +170,13 @@ export function AppNavigation({
             </button>
           </header>
           <nav ref={dialogNav} className="liquid-navigation" aria-label="Tất cả chức năng"><span className="liquid-indicator" aria-hidden="true"/>{links}</nav>
-          <BrandSupport/>
+          <BrandSupport onHomeClick={askHome}/>
         </div>
+      </dialog>
+      <dialog ref={homeDialog} className="reset-dialog edu-home-dialog" aria-labelledby="edu-home-title" aria-describedby="edu-home-description" onClose={()=>{setHomeOpen(false);}} onClick={event=>{if(event.target===event.currentTarget)homeDialog.current?.close();}}>
+        <h2 id="edu-home-title">Trở lại trang chủ AFYLLX Edu?</h2>
+        <p id="edu-home-description">Bạn sẽ rời MealCheck và mở trang chủ tại edu.afyllx.com.</p>
+        <div className="reset-dialog-actions"><button ref={stayButton} className="secondary" onClick={()=>homeDialog.current?.close()}>Ở lại MealCheck</button><button className="primary" onClick={()=>window.location.assign('https://edu.afyllx.com/')}>Đồng ý</button></div>
       </dialog>
     </>
   );

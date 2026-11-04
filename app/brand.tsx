@@ -8,9 +8,9 @@ export function Brand({className=''}:{className?:string}={}){
  </div>;
 }
 
-export function BrandSupport(){
+export function BrandSupport({onHomeClick}:{onHomeClick?:()=>void}={}){
  return <footer className="brand-support" aria-label="Thông tin phần mềm và hỗ trợ">
-  <Brand/>
+  {onHomeClick?<button type="button" className="brand-home" aria-label="Trở lại trang chủ AFYLLX Edu" onClick={onHomeClick}><Brand/></button>:<Brand/>}
   <span className="support-label">Email hỗ trợ</span>
   <a href={'mailto:'+SUPPORT_EMAIL}><Mail size={14} aria-hidden="true"/><strong>{SUPPORT_EMAIL}</strong></a>
  </footer>;
