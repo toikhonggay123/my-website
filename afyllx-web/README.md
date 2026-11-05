@@ -13,6 +13,14 @@ Mở `http://127.0.0.1:4321/`. Server chỉ nghe trên loopback. `pnpm check` ki
 
 Nội dung các lĩnh vực nằm trong `src/data.js`. Ảnh tĩnh trong `public/afyllx-media` được render từ `src/motion/depth-scene.js`. Biểu mẫu liên hệ mở bản nháp trong ứng dụng email của người dùng.
 
+## Kiểm tra 3D
+
+Mở preview rồi chạy `pnpm test:webgl`. Có thể chọn URL bằng biến môi trường `AFYLLX_TEST_URL`. Trên Windows, bài kiểm tra dùng Edge đã cài và GPU thật, không ép SwiftShader. Dùng `pnpm test:webgl --software` để đối chiếu thêm với bộ dựng giả lập. Ảnh kiểm tra được lưu trong `.preview/webgl-hardware` hoặc `.preview/webgl-software`.
+
+Bài kiểm tra đọc framebuffer để phát hiện cảnh rỗng hoặc chỉ vẽ một phần, so sánh hai khung hình để phát hiện animation đứng, rồi kiểm tra mọi chương, cuộn ngược, viewport cao/mobile, mở thẳng chương, đổi tab và các trang riêng.
+
+Không bật MSAA trên render target của EffectComposer: khi kết hợp UnrealBloomPass trên NVIDIA/ANGLE D3D11, bản cũ xuất khung hình rỗng hoặc chỉ còn một dải nhỏ dù không có lỗi WebGL. Đã tái hiện với GPU RTX 3080 Laptop; SwiftShader không tái hiện được nên kiểm tra giả lập riêng từng bỏ sót lỗi. Bộ dựng giữ HDR và bloom, dùng [SMAAPass trước OutputPass](https://threejs.org/docs/pages/SMAAPass.html) để làm mịn cạnh.
+
 ## Cloudflare
 
 Website được triển khai bằng cấu hình `wrangler.jsonc` vào Worker tĩnh `afyllx-web`, không gắn tên miền trực tiếp. Worker `my-website` đang sở hữu `afyllx.com` chuyển các trang thương hiệu và ba tiền tố tài nguyên `afyllx-assets`, `afyllx-brand`, `afyllx-media` sang service binding `AFYLLX_WEB`. Các đường dẫn ứng dụng, API và PWA tiếp tục qua handler hiện có. Cổng `edu.afyllx.com` dùng gateway riêng.

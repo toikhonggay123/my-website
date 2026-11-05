@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "astro dev --host 127.0.0.1 --port 4321",
     "check": "astro check",
+    "test:webgl": "node tests/webgl.mjs",
     "build": "astro build",
     "preview": "astro preview --host 127.0.0.1 --port 4321"
   },
@@ -18,6 +19,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",
+    "@playwright/test": "1.59.1",
     "typescript": "5.9.3"
   }
 }

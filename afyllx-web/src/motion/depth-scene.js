@@ -3,6 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -471,11 +472,16 @@ export function createDepthScene(canvas, { mode = 'journey' } = {}) {
   }
   const atmosphere = createAtmosphere(scene, draw);
   const renderTarget = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType });
-  renderTarget.samples = Math.min(4, renderer.capabilities.maxSamples);
+  // Bloom blends back into the read buffer. Multisampled targets lose their
+  // resolved color on NVIDIA/ANGLE here, producing empty or partially drawn frames.
+  // Keep HDR/bloom and smooth the final geometry with SMAA instead of MSAA.
+  renderTarget.samples = 0;
   const composer = new EffectComposer(renderer, renderTarget);
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.46, 0.66, 0.95);
   composer.addPass(bloom);
+  const antialias = new SMAAPass();
+  composer.addPass(antialias);
   composer.addPass(new OutputPass());
 
   let lastProgress = 0;
@@ -567,6 +573,7 @@ export function createDepthScene(canvas, { mode = 'journey' } = {}) {
     draw.dispose();
     environment.dispose();
     bloom.dispose();
+    antialias.dispose();
     composer.dispose();
     renderer.dispose();
   }
