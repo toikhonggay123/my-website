@@ -1,0 +1,32 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "afyllx-classhub",
+  "account_id": "dbe7e43add9b24b62bed8c25d05b419e",
+  "main": "../src/server/index.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "APP_ORIGIN": "https://edu.afyllx.com",
+    "APP_BASE_PATH": "/classhub",
+    "MEALCHECK_DIRECTORY_ORIGIN": "https://my-website.fyllxestonia.workers.dev",
+    "MEALCHECK_DIRECTORY_ORG_ID": "51740000-0000-4000-8000-000000000002"
+  },
+  "services": [{ "binding": "MEALCHECK_DIRECTORY", "service": "my-website" }],
+  "ratelimits": [
+    { "name": "ACTIVATION_LIMIT", "namespace_id": "517402", "simple": { "limit": 12, "period": 60 } }
+  ],
+  "d1_databases": [
+    {
+      "binding": "CLASSHUB_DB",
+      "database_name": "afyllx-classhub-live",
+      "database_id": "c7ccc14f-6786-4034-b73b-81baf87381de",
+      "migrations_dir": "../migrations"
+    }
+  ]
+}

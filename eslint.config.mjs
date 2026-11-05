@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".tool-state/**",
     ".migration-private/**",
     "android-app/**",
+    "classhub/**",
     "outputs/**",
     "work/**",
   ]),

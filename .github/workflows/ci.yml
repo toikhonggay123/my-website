@@ -28,3 +28,18 @@ jobs:
       - run: pnpm build
       - run: node scripts/local-qa.mjs
       - run: pnpm build:cloud
+  verify-classhub:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: classhub/package.json
+      - run: pnpm --dir classhub install --frozen-lockfile
+      - run: pnpm --dir classhub check
+      - run: pnpm --dir classhub build:cloud
+      - run: node --test edu-gateway/tests/*.test.mjs

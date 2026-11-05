@@ -1,0 +1,12 @@
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env*
+dist/
+playwright-report/
+test-results/
+*.sqlite*
+*.sql.bak
+*.log

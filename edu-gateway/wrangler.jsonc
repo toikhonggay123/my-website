@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "afyllx-edu",
+  "account_id": "dbe7e43add9b24b62bed8c25d05b419e",
+  "main": "worker/index.mjs",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "routes": [{"pattern": "edu.afyllx.com", "custom_domain": true, "zone_id": "7f90bfb41da548c95053b38ceba75a8c"}],
+  "services": [
+    {"binding": "MEALCHECK", "service": "my-website"},
+    {"binding": "CLASSHUB", "service": "afyllx-classhub"}
+  ],
+  "send_email": [{"name": "CONTACT_EMAIL", "destination_address": "contact.afyllx@gmail.com"}],
+  "ratelimits": [{"name": "CONTACT_RATE_LIMIT", "namespace_id": "4086926", "simple": {"limit": 4, "period": 60}}],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "single-page-application"
+  }
+}
