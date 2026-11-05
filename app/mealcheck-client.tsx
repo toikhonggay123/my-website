@@ -81,6 +81,7 @@ export default function App() {
   const [who, SWho] = useState<R | null>(null),
     [board, SB] = useState<(HomeBoard & R) | null>(null),
     [students, SS] = useState<R[]>([]),
+    [directoryClasses, SDirectoryClasses] = useState<R[]>([]),
     [records, SR] = useState<R[]>([]),
     [devices, SD] = useState<R[]>([]),
     [logs, SL] = useState<R[]>([]),
@@ -183,7 +184,9 @@ export default function App() {
   async function rosterLoad() {
     if (navigator.onLine) {
       try {
-        SS(await api("students" + suffix));
+        const shared=await api("students" + suffix + "&directory=1");
+        SS(shared.students);
+        SDirectoryClasses(shared.classes);
       } catch (e) {
         if (e instanceof TypeError)
           window.dispatchEvent(new Event("mealcheck-server-offline"));
@@ -281,15 +284,15 @@ export default function App() {
     };
   }, [user?.id, space, tab, from, to, meal, grade, cl]);
   const grades = useMemo(() => Array.from(
-    new Set(students.filter((s) => s.active).map((s) => s.grade)),
-  ).sort((a, b) => a.localeCompare(b, "vi", { numeric: true })),[students]);
+    new Set([...students.filter((s) => s.active).map((s) => s.grade),...directoryClasses.map(c=>c.grade)]),
+  ).sort((a, b) => a.localeCompare(b, "vi", { numeric: true })),[students,directoryClasses]);
   const classes = useMemo(() => Array.from(
     new Set(
-      students
+      [...students
         .filter((s) => (!grade || s.grade === grade) && s.active)
-        .map((s) => s.class),
+        .map((s) => s.class),...directoryClasses.filter(c=>!grade||c.grade===grade).map(c=>c.name)],
     ),
-  ).sort((a, b) => a.localeCompare(b, "vi", { numeric: true })),[students,grade]);
+  ).sort((a, b) => a.localeCompare(b, "vi", { numeric: true })),[students,grade,directoryClasses]);
   const filtered = useMemo(() => students.filter(
     (s) =>
       (!grade || s.grade === grade) &&
@@ -580,7 +583,7 @@ export default function App() {
                       </>
                     )}
                   </div>
-                  <StudentDirectory students={students} grade={grade} cl={cl} query={query} onQuery={SQ} onGrade={g=>{SG(g);SC("");}} onClass={SC} onCards={(g,c)=>{setCardStart({grade:g,class:c});navigate("qrcards");}} onEdit={SEdit} onToggle={s=>void act(async()=>{await api("students"+suffix,{rows:[{...s,active:s.active?0:1}]});await rosterLoad();await boardLoad();})} busy={busy} editable={canEditRoster} sample={!!who.sampleRoster||space==='demo'}/>
+                  <StudentDirectory directoryClasses={directoryClasses} students={students} grade={grade} cl={cl} query={query} onQuery={SQ} onGrade={g=>{SG(g);SC("");}} onClass={SC} onCards={(g,c)=>{setCardStart({grade:g,class:c});navigate("qrcards");}} onEdit={SEdit} onToggle={s=>void act(async()=>{await api("students"+suffix,{rows:[{...s,active:s.active?0:1}]});await rosterLoad();await boardLoad();})} busy={busy} editable={canEditRoster} sample={!!who.sampleRoster||space==='demo'}/>
                 </>
               )}
               {["attendance", "reports"].includes(tab) && (

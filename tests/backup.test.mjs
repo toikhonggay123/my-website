@@ -11,8 +11,18 @@ function fixture(){
 test('Private restore SQL preserves data, indexes, triggers and migration history',()=>{
   const b=fixture(),result=restoreBackup(b),db=new DatabaseSync(':memory:');db.exec('PRAGMA foreign_keys=ON');db.exec(result.sql);
   assert.equal(db.prepare('SELECT name FROM students').get().name,b.tables.students.rows[0].name);
-  assert.equal(db.prepare('SELECT count(*) n FROM d1_migrations').get().n,4);
+  assert.equal(db.prepare('SELECT count(*) n FROM d1_migrations').get().n,5);
   assert.ok(db.prepare("SELECT count(*) n FROM sqlite_master WHERE type='trigger'").get().n>0);assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);db.close();
+});
+test('Pre-directory checkpoints retain their original schema and four migrations',()=>{
+  const b=fixture();
+  for(const table of ['directory_revisions','directory_classes','directory_operations'])delete b.tables[table];
+  const restored=restoreBackup(b),db=new DatabaseSync(':memory:');
+  try{
+    db.exec(restored.sql);
+    assert.equal(db.prepare('SELECT count(*) n FROM d1_migrations').get().n,4);
+    assert.equal(db.prepare('SELECT code FROM students').get().code,'S1');
+  }finally{db.close();}
 });
 test('Backup validation rejects missing, truncated and corrupt records',()=>{
   const b=fixture();b.complete=false;assert.throws(()=>restoreBackup(b),/incomplete/);b.complete=true;

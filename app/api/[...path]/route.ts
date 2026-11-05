@@ -7,6 +7,7 @@ import {localAdminUser} from '@/lib/access.mjs';
 import {deploymentPolicy,deploymentSpace,allowDemoOperation,deploymentCookies} from '@/lib/deployment.mjs';
 import { studentCards, issuedStudentCards, reissueStudentCard, scanStudentCard } from '@/lib/qr.mjs';
 import { discardRequestBody, readJsonBody } from '@/lib/http-body.mjs';
+import {directoryAccess,directorySnapshot,directoryMutation,directoryRoster} from '@/lib/shared-directory.mjs';
 export const dynamic='force-dynamic';
 const json=(data:any,status=200,headers:any={})=>Response.json(data,{status,headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff',...headers}});
 function cookie(req:Request,name='mc_device'){return req.headers.get('cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(name+'='))?.slice(name.length+1);}
@@ -19,6 +20,12 @@ async function handle(req:Request,{params}:any){
   const policy=deploymentPolicy(url,env),space=deploymentSpace(url,policy);
   allowDemoOperation(policy,route,req.method);
   if(route==='health'&&req.method==='GET')return json({app:'AFYLLX MealCheck',deployment:policy.mode,demoOnly:policy.demoOnly,database:true,disposableTestDatabase:!policy.publicCloud&&env.MEALCHECK_QA_MODE==='true'});
+  if(route==='v1/shared-directory'){
+    await directoryAccess(req,env,policy);
+    if(req.method==='GET')return json(await directorySnapshot(app,space));
+    if(req.method==='POST')return json(await directoryMutation(app,space,await readJsonBody(req)));
+    throw new AppError('Không tìm thấy chức năng.',404);
+  }
   // A new disposable QA database cannot recognize cookies from a previous QA run.
   // This helper never exists on the real local application and does not bypass revocation there.
   if(route==='qa/browser-reset'&&req.method==='GET'){
@@ -74,7 +81,8 @@ async function handle(req:Request,{params}:any){
   if(route==='queue'&&req.method==='GET')return json(await app.queue(space));
   if(route==='decide'&&req.method==='POST'){if(typeof body.approve!=='boolean')throw new AppError('Quyết định không hợp lệ.');const r=await app.decide(space,body.id,body.approve,actor);return json(r);}
   if(route==='records'&&req.method==='GET')return json(await app.records(space,from,to,url.searchParams.get('meal')||'',url.searchParams.get('grade')||'',url.searchParams.get('class')||''));
-  if(route==='students'&&req.method==='GET')return json(await app.roster(space,{includeInactive:true}));
+  if(route==='students'&&req.method==='GET')return json(url.searchParams.get('directory')==='1'
+    ?await directoryRoster(app,space):await app.roster(space,{includeInactive:true}));
   if(route==='export/today'&&policy.publicCloud&&req.method==='GET')return new Response(null,{status:303,headers:{Location:'/xuat-excel','Cache-Control':'no-store'}});
   if(['daily','daily/today','export/today'].includes(route)&&req.method==='GET'){
     const reportDate=route==='daily'?date:localClock().date;

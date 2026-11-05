@@ -34,3 +34,9 @@ Trước build tại máy: dừng localhost. Sau triển khai cloud, chạy buil
 Không chạy HTTP write tests lên bản cloud-live hoặc database local thật. Chỉ đối chiếu danh sách/QR đã nhập và cấu hình theo cách đọc; kiểm tra quét/chống trùng/reset bằng dữ liệu QA riêng. Bài kiểm tra cloud-demo phải từ chối bản live trước mọi ghi.
 
 Không commit roster, SQL nhập riêng, token QR, khóa, `.dev.vars`, database hoặc bản sao riêng. Đồng bộ source không tự chia sẻ tệp riêng. `SucVatHoaThan` có quyền Write source; quyền đó không cấp quyền Cloudflare dashboard hoặc dữ liệu trên máy.
+
+## Danh sách chung với ClassHub
+
+MealCheck web là nguồn chính cho học sinh và lớp sinh hoạt. Migration `0004_shared_directory.sql` bổ sung mã lớp ổn định, phiên bản danh sách và thông tin chống ghi trùng khi gửi lại thao tác. Migration không sửa hồ sơ học sinh, QR hay dữ liệu điểm danh đã lưu.
+
+Trước khi áp dụng riêng migration này, kiểm tra migration đang chờ, sao lưu D1 và thử restore, rồi lưu phiên bản Worker hiện hành. API `/api/v1/shared-directory?space=live` dùng secret riêng `MEALCHECK_DIRECTORY_KEY`; chỉ cấu hình khóa trên hai máy chủ. Kiểm tra đọc danh sách, số lớp và số thẻ sau triển khai; dùng dữ liệu QA riêng cho mọi phép thử ghi. Nếu cần quay lại phiên bản Worker cũ, có thể giữ schema bổ sung trên D1. Cách đó không hoàn tác những sửa đổi danh sách đã lưu, nên tránh phục hồi đè dữ liệu đang chạy.

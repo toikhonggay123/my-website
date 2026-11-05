@@ -10,3 +10,14 @@ export const requests = sqliteTable('requests', { id: text('id').primaryKey(), s
 export const attendance = sqliteTable('attendance', { seq: integer('seq').primaryKey({autoIncrement:true}), request_id: text('request_id').notNull().unique().references(()=>requests.id), space: text('space').notNull(), student_id: text('student_id').notNull().references(()=>students.id), session_id: text('session_id').notNull().references(()=>sessions.id), code: text('code').notNull(), name: text('name').notNull(), grade: text('grade').notNull(), class: text('class').notNull(), confirmed_at: integer('confirmed_at').notNull(), teacher: text('teacher').notNull() },t=>[uniqueIndex('one_meal_per_student').on(t.student_id,t.session_id),index('attendance_session').on(t.space,t.session_id)]);
 export const audit = sqliteTable('audit', { seq: integer('seq').primaryKey({autoIncrement:true}), space: text('space').notNull(), at: integer('at').notNull(), actor: text('actor').notNull(), action: text('action').notNull(), result: text('result').notNull() });
 export const outbox = sqliteTable('outbox', { id: integer('id').primaryKey({autoIncrement:true}), attendance_seq: integer('attendance_seq').notNull().unique().references(()=>attendance.seq), status: text('status').notNull().default('pending'), attempts: integer('attempts').notNull().default(0), next_at: integer('next_at').notNull().default(0), error: text('error') });
+export const directoryRevisions = sqliteTable('directory_revisions', {
+  space: text('space').primaryKey(), revision: integer('revision').notNull().default(0),
+});
+export const directoryClasses = sqliteTable('directory_classes', {
+  id: text('id').primaryKey(), space: text('space').notNull(), grade: text('grade').notNull(), name: text('name').notNull(),
+}, table => [uniqueIndex('directory_class_name').on(table.space,table.grade,table.name)]);
+export const directoryOperations = sqliteTable('directory_operations', {
+  id: text('id').primaryKey(), space: text('space').notNull(), request_hash: text('request_hash').notNull(),
+  nonce: text('nonce').notNull(), entity_id: text('entity_id').notNull(), applied: integer('applied').notNull().default(1),
+  created_at: integer('created_at').notNull(),
+});

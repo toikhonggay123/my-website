@@ -2,24 +2,29 @@ import fs from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
 import {createHash} from 'node:crypto';
 
-export const tableOrder=['students','devices','schedules','meal_sessions','settings','users','requests','attendance','outbox','student_qr','audit'];
+const legacyTables=['students','devices','schedules','meal_sessions','settings','users','requests','attendance','outbox','student_qr','audit'];
+export const tableOrder=[...legacyTables,'directory_revisions','directory_classes','directory_operations'];
 const ident=s=>'"'+s.replaceAll('"','""')+'"';
 const literal=v=>v===null?'NULL':typeof v==='number'&&Number.isSafeInteger(v)?String(v):typeof v==='string'?"'"+v.replaceAll("'","''")+"'":(()=>{throw Error('Unsupported backup value');})();
 export const tableHash=rows=>createHash('sha256').update(JSON.stringify(rows.map(row=>Object.fromEntries(Object.entries(row).sort(([a],[b])=>a.localeCompare(b)))).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))))).digest('hex');
 
 export function restoreBackup(backup,migrationsDir='drizzle'){
   if(!backup.complete)throw Error('Backup is incomplete');
-  if(Object.keys(backup.tables).sort().join()!==[...tableOrder].sort().join())throw Error('Backup table inventory does not match the application schema');
+  const inventory=Object.keys(backup.tables).sort().join();
+  const legacy=inventory===[...legacyTables].sort().join();
+  if(!legacy&&inventory!==[...tableOrder].sort().join())throw Error('Backup table inventory does not match the application schema');
+  const restoreOrder=legacy?legacyTables:tableOrder;
   const db=new DatabaseSync(':memory:');
   try {
     db.exec('PRAGMA foreign_keys=ON');
-    const migrations=fs.readdirSync(migrationsDir).filter(f=>f.endsWith('.sql')).sort();
+    const migrations=fs.readdirSync(migrationsDir).filter(f=>f.endsWith('.sql')&&(!legacy||f<'0004_')).sort();
     for(const name of migrations)db.exec(fs.readFileSync(migrationsDir+'/'+name,'utf8'));
     const schema=db.prepare("SELECT type,name,sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%' ORDER BY type,name").all();
     for(const trigger of schema.filter(s=>s.type==='trigger'))db.exec('DROP TRIGGER '+ident(trigger.name));
     db.exec('BEGIN');
+    for(const table of [...restoreOrder].reverse())db.exec('DELETE FROM '+ident(table));
     const counts={},hashes={};
-    for(const table of tableOrder){
+    for(const table of restoreOrder){
       const data=backup.tables[table];
       if(data.next_offset!==null||data.projections.some(p=>p.truncated||p.omitted_columns||p.omitted_rows||p.truncated_values))throw Error('Lossy backup for table '+table);
       const columns=db.prepare('PRAGMA table_info('+ident(table)+')').all().map(c=>c.name);
@@ -36,7 +41,7 @@ export function restoreBackup(backup,migrationsDir='drizzle'){
     db.exec('COMMIT');
     const output=['PRAGMA defer_foreign_keys=TRUE;'];
     for(const entry of schema.filter(s=>s.type==='table'))output.push(entry.sql+';');
-    for(const table of tableOrder){
+    for(const table of restoreOrder){
       const columns=backup.tables[table].columns;
       for(const row of backup.tables[table].rows)output.push('INSERT INTO '+ident(table)+' ('+columns.map(ident).join(',')+') VALUES ('+columns.map(c=>literal(row[c])).join(',')+');');
     }

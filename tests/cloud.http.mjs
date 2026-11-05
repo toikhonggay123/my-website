@@ -78,6 +78,26 @@ assert.equal((await call('qr/cards/issued?space=demo',{class:original.class})).d
 await call('students?space=demo',{rows:[original]});assert.equal((await call('students?space=demo')).data.length,before.length);
 await call('students?space=demo',{rows:[original,original]},'',400);
 await call('students?space=demo',{rows:[{...original,name:''}]},'',400);
+// Verify the integration route against the actual Worker and its disposable D1.
+const directoryKey=process.env.MEALCHECK_QA_DIRECTORY_KEY;
+if(!directoryKey)throw Error('Missing disposable directory key');
+const directory='v1/shared-directory?space=demo';
+const directoryHeaders={Authorization:'Bearer '+directoryKey};
+await call(directory,undefined,'',403);
+const directoryBefore=(await call(directory,undefined,'',200,directoryHeaders)).data;
+assert.equal(directoryBefore.students.length,1000);
+assert.ok(directoryBefore.students.every(s=>!Object.hasOwn(s,'token')));
+const operation={action:'class.create',name:'9 QA',grade:'9',operationId:crypto.randomUUID(),revision:directoryBefore.revision};
+await call(directory,operation,'',403,{...directoryHeaders,Origin:'https://wrong.example.test'});
+const classCreated=(await call(directory,operation,'',200,directoryHeaders)).data;
+assert.equal((await call(directory,operation,'',200,directoryHeaders)).data.id,classCreated.id);
+const moved=(await call(directory,{
+  action:'student.update',id:original.id,name:original.name,class_id:classCreated.id,active:1,
+  revision:classCreated.snapshot.revision,operationId:crypto.randomUUID(),
+},'',200,directoryHeaders)).data;
+assert.equal(moved.snapshot.students.find(s=>s.id===original.id).class_id,classCreated.id);
+assert.equal((await call('students?space=demo&directory=1')).data.students.find(s=>s.id===original.id).class,'9 QA');
+assert.equal((await call('qr/cards/issued?space=demo',{class:'9 QA'})).data.cards[0].token,cards[2].token);
 await call('board?space=invalid',undefined,'',400);
 await call('records?space=demo&from=2026-02-02&to=2026-01-01',undefined,'',400);
 const filtered=(await call('records?space=demo&meal=sang&grade=6&class=6A1')).data;assert.ok(filtered.length);assert.ok(filtered.every(r=>r.meal==='sang'&&r.class==='6A1'));
@@ -90,4 +110,4 @@ await call('devices/revoke?space=demo',{id:freshScanner.data.scanner.id});
 assert.equal((await call('devices?space=demo')).data.find(d=>d.id===freshScanner.data.scanner.id).active,0);
 await call('qr/scan?space=demo',{token:cards[2].token,id:crypto.randomUUID(),sessionId},freshScanner.cookie,403);
 const audit=(await call('audit?space=demo')).data;assert.ok(audit.some(r=>r.action==='Đặt lại điểm danh hôm nay'));assert.ok(audit.some(r=>r.action==='Khôi phục sau đặt lại'));assert.ok(audit.some(r=>r.action==='Thu hồi thiết bị'));
-console.log(JSON.stringify({localHTTP:'PASS',routing:true,noTeacherLogin:true,identitySpoofingIgnored:true,csrf:true,qr:true,duplicates:true,reissue:true,issuedCards:true,exports:true,resetRestore:true,studentEditing:true,deviceRevocation:true,audit:true,isolatedQA:true}));
+console.log(JSON.stringify({localHTTP:'PASS',routing:true,noTeacherLogin:true,identitySpoofingIgnored:true,csrf:true,qr:true,duplicates:true,reissue:true,issuedCards:true,exports:true,resetRestore:true,studentEditing:true,sharedDirectory:true,deviceRevocation:true,audit:true,isolatedQA:true}));

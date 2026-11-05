@@ -9,7 +9,8 @@ fs.mkdirSync(path.dirname(vars),{recursive:true});
 const run=args=>new Promise((resolve,reject)=>{const child=spawn(process.execPath,args,{stdio:'inherit'});child.once('error',reject);child.once('exit',code=>code===0?resolve():reject(Error('QA command failed')));});
 let server,logs='';
 try{
-  fs.writeFileSync(vars,'MEALCHECK_QA_MODE=true\nMEALCHECK_QR_KEY='+randomBytes(32).toString('base64url')+'\n',{flag:'wx'});
+  const directoryKey=randomBytes(32).toString('base64url');
+  fs.writeFileSync(vars,'MEALCHECK_QA_MODE=true\nMEALCHECK_QR_KEY='+randomBytes(32).toString('base64url')+'\nMEALCHECK_DIRECTORY_KEY='+directoryKey+'\n',{flag:'wx'});
   await run([cli,'wrangler','d1','migrations','apply','DB','--env-file',vars,'--local','--persist-to',state]);
   server=spawn(process.execPath,[cli,'wrangler','dev','--config','dist/server/wrangler.json','--env-file',vars,'--local','--persist-to',state,'--ip','127.0.0.1','--port','5173','--inspector-port','0'],{stdio:['ignore','pipe','pipe']});
   // Keep startup logs bounded; do not emit environment values.
@@ -21,7 +22,13 @@ try{
     await new Promise(r=>setTimeout(r,300));
   }
   if(!ready)throw Error('Local Worker did not become ready');
-  await run(['tests/cloud.http.mjs']);
+  await new Promise((resolve,reject)=>{
+    const test=spawn(process.execPath,['tests/cloud.http.mjs'],{
+      stdio:'inherit',env:{...process.env,MEALCHECK_QA_DIRECTORY_KEY:directoryKey},
+    });
+    test.once('error',reject);
+    test.once('exit',code=>code===0?resolve():reject(Error('HTTP QA failed')));
+  });
   if(process.argv.includes('--preview')){
     console.log('Verified local preview ready: http://127.0.0.1:5173/quan-tri');
     await new Promise(resolve=>{
