@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
     ".migration-private/**",
     "android-app/**",
     "classhub/**",
+    "afyllx-web/**",
     "outputs/**",
     "work/**",
   ]),

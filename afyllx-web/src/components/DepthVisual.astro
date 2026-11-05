@@ -1,0 +1,9 @@
+---
+interface Props { division?: string; }
+const { division = 'hero' } = Astro.props;
+---
+<div class="depth-visual" data-depth-visual={division} aria-hidden="true">
+  <img src={`/afyllx-media/depth-${division}.webp`} width="1280" height="960" alt="" fetchpriority="high" />
+  <canvas></canvas>
+  <div class="visual-vignette"></div>
+</div>

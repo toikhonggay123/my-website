@@ -1,0 +1,8 @@
+---
+import Site from '../layouts/Site.astro';
+import { contactEmail } from '../data.js';
+---
+<Site title="Quyền riêng tư · AFYLLX" description="Cách website giới thiệu AFYLLX xử lý lựa chọn giao diện và nội dung liên hệ.">
+  <section class="simple-hero"><div class="wrap"><span class="kicker"><span></span> WEBSITE AFYLLX</span><h1>Quyền riêng tư.</h1></div></section>
+  <section class="light-section section-pad"><div class="wrap prose"><h2>Lựa chọn chuyển động</h2><p>Website dùng cài đặt giảm chuyển động của thiết bị. Khi bạn đổi lựa chọn bằng nút trên trang chủ, website lưu lựa chọn đó trong trình duyệt để áp dụng cho lần truy cập tiếp theo.</p><h2>Liên hệ qua email</h2><p>Biểu mẫu trên website soạn sẵn nội dung trong ứng dụng email của bạn. AFYLLX nhận nội dung khi bạn gửi email.</p><a class="text-link" href={`mailto:${contactEmail}`}>{contactEmail}</a></div></section>
+</Site>

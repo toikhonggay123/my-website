@@ -40,3 +40,9 @@ Không commit roster, SQL nhập riêng, token QR, khóa, `.dev.vars`, database 
 MealCheck web là nguồn chính cho học sinh và lớp sinh hoạt. Migration `0004_shared_directory.sql` bổ sung mã lớp ổn định, phiên bản danh sách và thông tin chống ghi trùng khi gửi lại thao tác. Migration không sửa hồ sơ học sinh, QR hay dữ liệu điểm danh đã lưu.
 
 Trước khi áp dụng riêng migration này, kiểm tra migration đang chờ, sao lưu D1 và thử restore, rồi lưu phiên bản Worker hiện hành. API `/api/v1/shared-directory?space=live` dùng secret riêng `MEALCHECK_DIRECTORY_KEY`; chỉ cấu hình khóa trên hai máy chủ. Kiểm tra đọc danh sách, số lớp và số thẻ sau triển khai; dùng dữ liệu QA riêng cho mọi phép thử ghi. Nếu cần quay lại phiên bản Worker cũ, có thể giữ schema bổ sung trên D1. Cách đó không hoàn tác những sửa đổi danh sách đã lưu, nên tránh phục hồi đè dữ liệu đang chạy.
+
+## Website thương hiệu tại afyllx.com
+
+Từ bản website tổng ngày 06/11/2026, Worker `my-website` giữ custom domain `afyllx.com` và chuyển các trang thương hiệu sang Worker tĩnh `afyllx-web` qua service binding `AFYLLX_WEB`. Quy tắc nằm trong `lib/brand-routing.mjs`; chỉ áp dụng GET/HEAD trên chính `afyllx.com`. API, quản trị, tài nguyên ứng dụng và PWA giữ handler hiện có. Gateway Edu và origin workers.dev tiếp tục chạy như trước.
+
+Worker tĩnh không có database, secrets hoặc custom domain. Xem `afyllx-web/README.md` để build/deploy giao diện độc lập. Khi rollback lần nối đầu tiên, dùng phiên bản trước đó của `my-website` đã ghi từ `wrangler deployments list`; không rollback dữ liệu. Các bản cập nhật giao diện tiếp theo có thể rollback riêng `afyllx-web`.

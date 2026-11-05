@@ -28,6 +28,23 @@ jobs:
       - run: pnpm build
       - run: node scripts/local-qa.mjs
       - run: pnpm build:cloud
+  verify-afyllx-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: afyllx-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: afyllx-web/package.json
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm build
   verify-classhub:
     runs-on: ubuntu-latest
     timeout-minutes: 15

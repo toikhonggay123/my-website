@@ -1,0 +1,38 @@
+---
+import { divisions } from '../data.js';
+import Brand from './Brand.astro';
+import Icon from './Icon.astro';
+interface Props { current: string; }
+const { current } = Astro.props;
+---
+<a class="skip-link" href="#noi-dung">Đến nội dung chính</a>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <Brand />
+    <nav class="nav-wide" aria-label="Điều hướng chính">
+      {divisions.map((division) => <a href={`/${division.id}`} aria-current={current === `/${division.id}` ? 'page' : undefined}>{division.name}</a>)}
+      <a href="/ve-afyllx" aria-current={current === '/ve-afyllx' ? 'page' : undefined}>Về AFYLLX</a>
+    </nav>
+    <div class="header-actions">
+      <a class="header-button contact-nav" href="/lien-he" aria-current={current === '/lien-he' ? 'page' : undefined}>Liên hệ <Icon name="external" size={15} /></a>
+      <details class="popover mobile-menu" data-popover>
+        <summary class="header-button icon-button" aria-label="Điều hướng"><Icon name="menu" size={21} /></summary>
+        <nav class="popover-panel" aria-label="Điều hướng trên điện thoại">
+          {divisions.map((division) => <a href={`/${division.id}`} aria-current={current === `/${division.id}` ? 'page' : undefined}>{division.fullName}<Icon name="arrow" size={16} /></a>)}
+          <a href="/ve-afyllx" aria-current={current === '/ve-afyllx' ? 'page' : undefined}>Về AFYLLX</a><a href="/lien-he" aria-current={current === '/lien-he' ? 'page' : undefined}>Liên hệ</a>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+<script>
+  const menu = document.querySelector<HTMLDetailsElement>('[data-popover]');
+  document.addEventListener('pointerdown', (event) => {
+    if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) menu.open = false;
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !menu?.open) return;
+    menu.open = false;
+    menu.querySelector('summary')?.focus();
+  });
+</script>

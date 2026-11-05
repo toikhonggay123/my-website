@@ -1,0 +1,13 @@
+---
+import { contactEmail, divisions } from '../data.js';
+import Brand from './Brand.astro';
+import Icon from './Icon.astro';
+---
+<footer class="footer">
+  <div class="wrap footer-main">
+    <div><Brand footer /><p>Phát triển nền tảng số cho giáo dục, kinh doanh trực tuyến và khu vực công.</p></div>
+    <nav aria-label="Các mảng"><span class="mono">HỆ SINH THÁI</span>{divisions.map((division) => <a href={`/${division.id}`}>{division.fullName}</a>)}</nav>
+    <nav aria-label="Thông tin AFYLLX"><span class="mono">AFYLLX</span><a href="/ve-afyllx">Giới thiệu</a><a href="/lien-he">Liên hệ</a><a href={`mailto:${contactEmail}`}>{contactEmail} <Icon name="external" size={14} /></a></nav>
+  </div>
+  <div class="wrap footer-bottom"><span>© 2026 AFYLLX</span><a href="/quyen-rieng-tu">Quyền riêng tư</a></div>
+</footer>

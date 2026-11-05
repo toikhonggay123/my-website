@@ -1,5 +1,6 @@
 declare namespace Cloudflare {
   interface Env {
+    AFYLLX_WEB?: Fetcher;
     DB?: D1Database;
     BUCKET?: R2Bucket;
   }

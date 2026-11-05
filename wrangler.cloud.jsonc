@@ -11,6 +11,7 @@
   ],
   "preview_urls": false,
   "observability": {"enabled": false},
+  "services": [{"binding": "AFYLLX_WEB", "service": "afyllx-web"}],
   "vars": {
     "MEALCHECK_DEPLOYMENT": "cloud-live",
     "MEALCHECK_PUBLIC_HOST": "edu.afyllx.com",

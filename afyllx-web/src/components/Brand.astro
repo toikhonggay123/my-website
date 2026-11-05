@@ -1,0 +1,8 @@
+---
+interface Props { footer?: boolean; }
+const { footer = false } = Astro.props;
+---
+<a class:list={['brand', { 'brand-footer': footer }]} href="/" aria-label="AFYLLX · Trang chủ">
+  <img src="/afyllx-brand/mark.webp" width="35" height="35" alt="" />
+  <span>AFYLLX</span>
+</a>

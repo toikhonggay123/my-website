@@ -1,0 +1,32 @@
+---
+import Site from '../layouts/Site.astro';
+import Icon from '../components/Icon.astro';
+import Status from '../components/Status.astro';
+import DepthVisual from '../components/DepthVisual.astro';
+import { divisions } from '../data.js';
+export function getStaticPaths() {
+  return divisions.map((division) => ({ params: { division: division.id }, props: { division } }));
+}
+const { division } = Astro.props;
+const otherDivisions = divisions.filter((item) => item.id !== division.id);
+---
+<Site title={`${division.fullName} · ${division.category}`} description={division.description} image={`/afyllx-media/depth-${division.id}.webp`}>
+  <section class:list={['branch-hero', `theme-${division.id}`]}>
+    <div class="wrap">
+      <nav class="breadcrumbs" aria-label="Đường dẫn"><a href="/">AFYLLX</a><span aria-hidden="true">/</span><span aria-current="page">{division.name}</span></nav>
+      <div class="branch-grid">
+        <div class="branch-copy">
+          <div class="branch-meta"><span class="kicker"><span></span> {division.fullName}</span><Status id={division.id} status={division.status} /></div>
+          <h1>{division.title}</h1><p>{division.description}</p>
+          <div class="hero-actions"><a class="button button-primary" href={division.destination}>{division.action} <Icon name="external" size={17} /></a><a class="text-link" href="#chi-tiet">Trọng tâm <Icon name="down" size={16} /></a></div>
+        </div>
+        <div class="branch-art"><DepthVisual division={division.id} /></div>
+      </div>
+    </div>
+  </section>
+  <section class="focus-section section-pad" id="chi-tiet"><div class="wrap focus-grid">
+    <div><span class="kicker"><span></span> TRỌNG TÂM</span><h2>{division.focusTitle}</h2><p>{division.focus}</p></div>
+    <dl class="focus-facts"><div><dt>Phục vụ ai</dt><dd>{division.audience}</dd></div><div><dt>Bước tiếp theo</dt><dd>{division.next}</dd></div></dl>
+  </div></section>
+  <section class="other-sectors"><div class="wrap"><span class="kicker"><span></span> CÁC LĨNH VỰC KHÁC</span><div class="other-links">{otherDivisions.map((item) => <a href={`/${item.id}`}><span class="mono">{item.number}</span>{item.fullName}<Icon name="external" size={20} /></a>)}</div></div></section>
+</Site>
