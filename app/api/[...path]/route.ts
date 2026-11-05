@@ -60,9 +60,9 @@ async function handle(req:Request,{params}:any){
   if(route==='qr/scanner/start'&&req.method==='POST'){
     const raw=cookie(req,cookies.scanner),scanner=await app.device(raw);
     if(raw&&!scanner)throw new AppError('Thiết bị quét đã bị thu hồi. Vui lòng liên hệ quản trị.',403);
-    if(scanner?.space===space)return json({scanner,date:localClock().date});
+    if(scanner?.space===space)return json({scanner,date:localClock().date,serverNow:app.now()});
     const enrolled=await app.enrollDevice(space,'Máy quét QR · '+crypto.randomUUID().slice(0,6),actor);
-    return json({scanner:await app.device(enrolled.token),date:localClock().date},200,{'Set-Cookie':`${cookies.scanner}=${enrolled.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${url.protocol==='https:'?'; Secure':''}`});
+    return json({scanner:await app.device(enrolled.token),date:localClock().date,serverNow:app.now()},200,{'Set-Cookie':`${cookies.scanner}=${enrolled.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${url.protocol==='https:'?'; Secure':''}`});
   }
   if(route==='qr/scan'&&req.method==='POST'){
     const scanner=await app.device(cookie(req,cookies.scanner));

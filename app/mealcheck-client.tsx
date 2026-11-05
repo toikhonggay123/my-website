@@ -112,6 +112,19 @@ export default function App() {
     SN(s);
     setTimeout(() => SN(""), 4500);
   };
+  const serverToday=useRef(date);
+  function acceptServerDate(next:string){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(next))return;
+    const previous=serverToday.current;serverToday.current=next;SDate(next);
+    // Follow today across midnight/device clock corrections, preserving an
+    // explicitly selected historical date range.
+    SF(value=>value===previous?next:value);STo(value=>value===previous?next:value);
+  }
+  useEffect(()=>{
+    const ack=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.space===space&&['recorded','already'].includes(detail.result?.status))acceptServerDate(detail.result.date);};
+    window.addEventListener('mealcheck-scan-ack',ack);
+    return()=>window.removeEventListener('mealcheck-scan-ack',ack);
+  },[space]);
   async function act(fn: () => Promise<any>, message = "") {
     if (busy) return;
     SBu(true);
@@ -231,7 +244,7 @@ export default function App() {
         if (gone || document.hidden) return;
         SB(b);
         window.dispatchEvent(new Event("mealcheck-server-online"));
-        SDate(b.date);
+        acceptServerDate(b.date);
         setRevision((n) => n + 1);
         if (["attendance", "reports"].includes(tab)) {
           const rows = await fetch(
@@ -256,12 +269,15 @@ export default function App() {
     };
     void refresh();
     const interval = setInterval(() => void refresh(), 10000);
+    const confirmed=(event:Event)=>{if((event as CustomEvent).detail?.space===space)void refresh();};
     document.addEventListener("visibilitychange", visible);
+    window.addEventListener('mealcheck-scan-ack',confirmed);
     return () => {
       gone = true;
       controller.abort();
       clearInterval(interval);
       document.removeEventListener("visibilitychange", visible);
+      window.removeEventListener('mealcheck-scan-ack',confirmed);
     };
   }, [user?.id, space, tab, from, to, meal, grade, cl]);
   const grades = useMemo(() => Array.from(

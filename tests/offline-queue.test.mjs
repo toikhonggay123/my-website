@@ -43,3 +43,11 @@ test('temporary HTTP failures remain pending and retry with the original id',asy
   assert.equal(ack,1);assert.equal((await store.all()).length,0);
  }
 });
+
+test('a rejected QR reports its exact error and cannot masquerade as newly queued on rescanning',async()=>{
+ const store=fixture();await enqueueScan(store,scan);const failures=[];
+ await syncScans(store,async()=>({ok:false,status:409,data:{error:'Phiên đã sang ngày mới'}}),()=>assert.fail('must not confirm'),()=>true,(row,error)=>failures.push({id:row.id,error}));
+ assert.equal(failures.length,1);assert.equal(failures[0].error,'Phiên đã sang ngày mới');
+ await assert.rejects(enqueueScan(store,scan),/Phiên đã sang ngày mới/);
+ assert.equal((await store.all()).length,1,'failed scan is retained for review');
+});

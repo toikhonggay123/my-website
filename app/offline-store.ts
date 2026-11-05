@@ -43,6 +43,6 @@ export const flushScans=coalescedTask(()=>syncScans(scanStore,async(row:any)=>{
    let data:any;try{data=await response.json();}catch{return {ok:false,status:503,data:null};}
    return {ok:response.ok,status:response.status,data};
   }finally{clearTimeout(timeout);}
- },(row:any,result:any)=>window.dispatchEvent(new CustomEvent('mealcheck-scan-ack',{detail:{space:row.space,requestId:row.id,capturedAt:row.createdAt,result}})),()=>navigator.onLine).finally(queueChanged));
+ },(row:any,result:any)=>window.dispatchEvent(new CustomEvent('mealcheck-scan-ack',{detail:{space:row.space,requestId:row.id,capturedAt:row.createdAt,result}})),()=>navigator.onLine,(row:any,error:string)=>window.dispatchEvent(new CustomEvent('mealcheck-scan-failed',{detail:{space:row.space,requestId:row.id,sessionId:row.sessionId,error}}))).finally(queueChanged));
 export function readDevicePref(key:string,fallback:any){try{return JSON.parse(localStorage.getItem('mealcheck:'+key)||'null')??fallback;}catch{return fallback;}}
 export function saveDevicePref(key:string,value:any){try{localStorage.setItem('mealcheck:'+key,JSON.stringify(value));}catch{}}

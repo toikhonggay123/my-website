@@ -24,7 +24,7 @@ test('receipt flight can accelerate into its tray once and does not animate layo
   const flight=flyReceiptIntoTray(node,target,()=>lands++);flight.finishSoon();
   for(const call of calls)for(const frame of call.frames)assert.ok(Object.keys(frame).every(key=>['opacity','transform','offset','easing'].includes(key)));
   calls[1].finish();await Promise.resolve();await Promise.resolve();assert.equal(lands,1);flight.cancel();assert.equal(lands,1);
-  const reduced=flyReceiptIntoTray(node,target,()=>lands++,true);assert.equal(lands,2);reduced.cancel();
+  const reduced=flyReceiptIntoTray(node,target,()=>lands++,true);assert.equal(lands,1,'reduced motion still shows confirmation instead of immediately hiding it');reduced.finishSoon();assert.equal(lands,2);reduced.cancel();
  }finally{globalThis.getComputedStyle=previous;}
 });
 test('many sync triggers share one active task and coalesce into one following pass',async()=>{
@@ -36,4 +36,15 @@ test('many sync triggers share one active task and coalesce into one following p
 test('a failed sync task releases its lock so the next connection can retry',async()=>{
  let attempts=0;const task=coalescedTask(()=>{if(++attempts===1)throw Error('offline');return 'retried';});
  await assert.rejects(task(),/offline/);assert.equal(await task(),'retried');assert.equal(attempts,2);
+});
+
+test('confirmation remains visible for three seconds without WAAPI and resets reused popup opacity',()=>{
+ const oldSet=globalThis.setTimeout,oldClear=globalThis.clearTimeout;let scheduled;
+ globalThis.setTimeout=(fn,ms)=>{scheduled={fn,ms};return 1;};globalThis.clearTimeout=()=>{};
+ try{
+  let landed=0;const node={style:{opacity:'0'}};
+  const flight=flyReceiptIntoTray(node,null,()=>landed++,true);
+  assert.equal(node.style.opacity,'1');assert.equal(landed,0);assert.equal(scheduled.ms,3000);
+  scheduled.fn();assert.equal(landed,1);flight.finishSoon();assert.equal(landed,1);
+ }finally{globalThis.setTimeout=oldSet;globalThis.clearTimeout=oldClear;}
 });

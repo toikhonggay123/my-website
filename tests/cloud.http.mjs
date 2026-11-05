@@ -36,6 +36,10 @@ assert.equal((await call('qr/cards/issued?space=demo',{class:'9B'})).data.cards.
 await call('qr/cards/issued?space=demo',{},'',403,{Origin:'https://wrong.example.test'});
 await fs.mkdir('.tool-state',{recursive:true});await QRCode.toFile('.tool-state/demo-qr.png',cards[1].token,{width:600,margin:4});
 const scanner=await call('qr/scanner/start?space=demo',{}),card=cards[0],sessionId=`demo:${board.date}:sang`;
+assert.equal(scanner.data.date,board.date);assert.ok(Math.abs(scanner.data.serverNow-Date.now())<60000,'scanner receives the server clock');
+const yesterday=new Date(Date.parse(board.date+'T12:00:00+07:00')-86400000).toISOString().slice(0,10);
+await call('qr/scan?space=demo',{token:card.token,id:crypto.randomUUID(),sessionId:`demo:${yesterday}:sang`},scanner.cookie,409);
+assert.equal((await call('records?space=demo')).data.length,0,'previous-day session must not create an attendance row');
 const result=(await call('qr/scan?space=demo',{token:card.token,id:crypto.randomUUID(),sessionId},scanner.cookie)).data;
 assert.ok(['recorded','already'].includes(result.status));assert.equal(result.student.id,card.id);
 assert.equal((await call('qr/scan?space=demo',{token:cards[1].token,id:crypto.randomUUID(),sessionId},scanner.cookie)).data.status,'recorded');

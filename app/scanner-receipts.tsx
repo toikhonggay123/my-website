@@ -12,12 +12,13 @@ type Flight={cancel:()=>void;finishSoon:()=>void};
 const time=new Intl.DateTimeFormat('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Ho_Chi_Minh'});
 const reduce=()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function ScannerReceipts({space,meal,target,onOpenChange}:{space:string;meal:string;target:RefObject<HTMLDivElement|null>;onOpenChange:(open:boolean)=>void}){
+export function ScannerReceipts({space,meal,date='',target,onOpenChange}:{space:string;meal:string;date?:string;target:RefObject<HTMLDivElement|null>;onOpenChange:(open:boolean)=>void}){
  const [rows,setRows]=useState<Receipt[]>([]),[active,setActive]=useState<Receipt|null>(null),[landed,setLanded]=useState<Receipt|null>(null),[open,setOpen]=useState(false),[limit,setLimit]=useState(50);
  const trigger=useRef<HTMLButtonElement>(null),popup=useRef<HTMLDivElement>(null),dialog=useRef<HTMLDialogElement>(null);
  const current=useRef<Receipt|null>(null),next=useRef<Receipt|null>(null),sequence=useRef(0),flight=useRef<Flight|null>(null),sheetAnimation=useRef<Animation|null>(null);
+ const [confirmedDate,setConfirmedDate]=useState('');
  const context=useRef({meal,open,onOpenChange});context.current={meal,open,onOpenChange};
- const today=localClock().date,filtered=rows.filter(row=>row.date===today&&(!meal||row.meal===meal));
+ const today=confirmedDate||date||localClock().date,filtered=rows.filter(row=>row.date===today&&(!meal||row.meal===meal));
  const latest=landed?.date===today&&(!meal||landed.meal===meal)?landed:filtered[0];
 
  useEffect(()=>{
@@ -26,14 +27,16 @@ export function ScannerReceipts({space,meal,target,onOpenChange}:{space:string;m
    if(detail?.space!==space)return;
    const receipt=scanReceipt(detail.result,++sequence.current,Number.isFinite(detail.capturedAt)?detail.capturedAt:Date.now());
    if(!receipt)return;
+   setConfirmedDate(receipt.date);
    setRows(old=>addReceipt(old,receipt));
-   if(context.current.open||receipt.date!==localClock().date||receipt.meal!==context.current.meal){setLanded(receipt);return;}
+   if(context.current.open||receipt.meal!==context.current.meal){setLanded(receipt);return;}
    if(current.current){next.current=receipt;flight.current?.finishSoon();}
    else{current.current=receipt;setActive(receipt);}
   };
   window.addEventListener('mealcheck-scan-ack',ack);
   return()=>window.removeEventListener('mealcheck-scan-ack',ack);
  },[space]);
+ useEffect(()=>{if(date)setConfirmedDate(date);},[date]);
 
  useLayoutEffect(()=>{
   if(!active||!popup.current||!trigger.current)return;
