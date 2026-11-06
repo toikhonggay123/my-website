@@ -271,7 +271,6 @@ function bookObject(resources) {
   const squareGeometry = k.extrude(triangle, .03, .008, 1);
   squareGeometry.translate(-.42, -.28, 0);
   k.mesh(square, squareGeometry, glass);
-  lineTube(k, [[0, 0], [1.25, 0], [0, .85]].map(([x, y]) => new THREE.Vector3(x - .42, y - .28, .04)), .008, glow.blue, square, true);
   tools.add(square);
 
   const pen = new THREE.Group();
