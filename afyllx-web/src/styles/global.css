@@ -272,21 +272,6 @@ html[data-motion='reduced'] *, html[data-motion='reduced'] *::before, html[data-
 .cover-glow { position: absolute; inset: 20%; border-radius: 50%; background: radial-gradient(circle, #3d6cff 0%, #3d6cff00 68%); filter: blur(30px); opacity: .75; }
 .cover-stage img { position: relative; width: 62%; height: auto; filter: drop-shadow(0 30px 45px #1e46dc99) saturate(1.15); animation: cover-float 7s ease-in-out infinite; }
 @keyframes cover-float { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-3%) rotate(2deg); } }
-.cover-chapters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 40px; }
-.cover-chapter { display: grid; gap: 12px; align-content: start; padding: 24px 26px; border: 1px solid #ffffff1a; border-radius: 18px; background: #ffffff0d; backdrop-filter: blur(8px); transition: border-color 200ms, background 200ms; }
-.cover-chapter:hover { border-color: #82a5ff99; }
-.cover-chapter.is-active { background: #5078ff29; border-color: #82a5ff73; }
-.cover-chapter strong { font-size: 26px; font-weight: 600; line-height: 1.2; color: #eaf0ff; }
-.cover-desc { font-size: 15px; line-height: 1.5; color: #a3b2d8; }
-.cover-tag { justify-self: start; padding: 8px 12px; border-radius: 999px; background: #ffffff14; color: #93a2c8; font-size: 13px; font-weight: 700; line-height: 1; }
-.cover-tag.live { background: #7ea4ff33; color: #b9ceff; }
-.cover-progress { height: 4px; border-radius: 9px; background: #ffffff1f; overflow: hidden; }
-.cover-progress i { display: block; width: 62%; height: 100%; background: #7fa4ff; }
-
-@media (max-width: 1100px) {
-  .cover-chapter { padding: 20px; }
-  .cover-chapter strong { font-size: 22px; }
-}
 @media (max-width: 760px) {
   .site-header { padding-top: 10px; }
   .header-inner { min-height: 62px; padding: 0 8px 0 18px; gap: 10px; }
@@ -299,7 +284,6 @@ html[data-motion='reduced'] *, html[data-motion='reduced'] *::before, html[data-
   .cover-actions { gap: 10px; margin-top: 26px; }
   .pill { min-height: 50px; padding: 0 22px; font-size: 15px; }
   .cover-stage { width: min(88vw, 400px); }
-  .cover-chapters { grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
 }
 
 /* ---------- Lower sections and inner pages follow the cover ---------- */

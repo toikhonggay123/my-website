@@ -8,11 +8,6 @@ const stories = [
   { ...divisions[1], headline: ['Từ ý tưởng kinh doanh.', 'Đến một website.'], body: 'Định hướng nền tảng kinh doanh website trực tuyến, kết nối nhu cầu với một không gian số có thể đưa vào sử dụng.', cues: ['Ý tưởng', 'Website', 'Kinh doanh'] },
   { ...divisions[2], headline: ['Hiểu quy trình.', 'Kiến tạo', 'giải pháp số.'], body: 'Định hướng giải pháp chuyển đổi số chính phủ, bắt đầu từ thực tế của từng cơ quan và đơn vị.', cues: ['Quy trình', 'Kết nối', 'Chuyển đổi số'] },
 ];
-const coverText: Record<string, string> = {
-  edu: 'Công nghệ cho vận hành nhà trường.',
-  digital: 'Nền tảng kinh doanh website.',
-  gov: 'Chuyển đổi số khu vực công.',
-};
 const approach = [
   { title: 'Hiểu nhu cầu.', text: 'Bắt đầu với người thực hiện và công việc họ cần hoàn thành.' },
   { title: 'Xác định phạm vi.', text: 'Chọn bài toán, kết quả cần đạt và phần việc nên làm trước.' },
@@ -36,17 +31,6 @@ const approach = [
         <span class="ring ring-outer"></span><span class="ring ring-inner"></span><span class="cover-glow"></span>
         <img src="/afyllx-brand/afyllx-logo.png" width="640" height="640" alt="" fetchpriority="high" />
       </div>
-    </div>
-    <div class="wrap cover-chapters">
-      {divisions.map((division, index) => (
-        <a class:list={['cover-chapter', { 'is-active': index === 0 }]} href={`#chuong-${division.id}`}>
-          <span class="cover-eyebrow">Chương {index + 1} / 3</span>
-          <strong>{division.name}</strong>
-          <span class="cover-desc">{coverText[division.id]}</span>
-          <span class:list={['cover-tag', { live: division.status === 'Đã triển khai' }]}>{division.status}</span>
-          {index === 0 && <span class="cover-progress"><i></i></span>}
-        </a>
-      ))}
     </div>
   </section>
 

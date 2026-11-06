@@ -35,7 +35,7 @@ Khi thay đổi quy tắc định tuyến hoặc binding lần đầu, cần ki�
 
 ## Cảnh 3D và ảnh dự phòng
 
-Màn hình đầu trang chủ là HTML/CSS tĩnh: logo AFYLLX, hai vòng sáng và ba thẻ chương. Bên dưới là một sân khấu ghim cố định (`.stage`): chữ của chương ở bên trái, một vật thể 3D ở bên phải (trên điện thoại: vật thể ở trên, chữ ở dưới) và thanh ba chương có vạch tiến độ ở đáy.
+Màn hình đầu trang chủ là HTML/CSS tĩnh: logo AFYLLX và hai vòng sáng; kéo xuống là tới ngay phần giới thiệu "Khả năng bắt đầu từ nhu cầu". Bên dưới là một sân khấu ghim cố định (`.stage`): chữ của chương ở bên trái, một vật thể 3D ở bên phải (trên điện thoại: vật thể ở trên, chữ ở dưới) và thanh ba chương có vạch tiến độ ở đáy.
 
 - `src/motion/stage-objects.js`: ba vật thể. Edu là quyển sách bìa cứng mở ra, lật ba trang có độ cong như giấy rồi đưa lên thước kẻ, ê-ke và bút. Digital là cửa sổ website tự lắp nội dung theo thứ tự đọc, kèm bảng mã, điện thoại và con trỏ bấm nút. Gov là ngôi sao năm cánh nhiều mặt cắt có lõi pha lê, ba nguồn sáng màu bay quanh để vệt sáng lướt trên các mặt, các cạnh sáng dần và tia sáng phía sau.
 - `src/motion/stage-scene.js`: ánh sáng, camera, vị trí đặt vật thể và chuyển giao giữa các chương. Chế độ `journey` dùng cho trang chủ, `detail` cho trang lĩnh vực, `lineup` cho trang Về AFYLLX và ảnh chia sẻ.
