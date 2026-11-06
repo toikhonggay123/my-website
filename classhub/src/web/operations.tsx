@@ -376,6 +376,26 @@ export function Students({ api, base, workspace }: WorkspaceProps) {
     </Panel>
   </>
 }
+// A one-time link (24 hours) for a member who forgot their password. A new link revokes the previous one.
+function ResetLink({ api, member }: { api: string; member: StaffRow }) {
+  const [link, setLink] = useState('')
+  const [copied, setCopied] = useState(false)
+  return <div className="reset-link">
+    <ActionForm grid={false} label={link ? 'Tạo link khác' : 'Tạo link đặt lại mật khẩu'} action={async () => {
+      confirmOrCancel('Tạo link đặt lại mật khẩu cho ' + member.name + '? Link cũ chưa dùng sẽ hết hiệu lực.')
+      const { code } = await send<{ code: string }>(api + '/staff/' + member.user_id + '/password-reset', {})
+      setCopied(false)
+      setLink(location.origin + basePath + '/gv/dat-lai-mat-khau#' + code)
+    }}>
+      <p className="muted">Dùng khi {member.name} quên mật khẩu. Link dùng một lần trong 24 giờ, gửi riêng cho người này.</p>
+    </ActionForm>
+    {link && <div className="invite" role="status">
+      <Field label="Link đặt lại mật khẩu"><input readOnly value={link} onFocus={event => event.target.select()} /></Field>
+      <button type="button" onClick={() => navigator.clipboard?.writeText(link).then(() => setCopied(true), () => undefined)}>
+        {copied ? 'Đã sao chép' : 'Sao chép'}</button>
+    </div>}
+  </div>
+}
 export function Staff({ api, workspace, local }: WorkspaceProps & { local: boolean }) {
   const [code, setCode] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -429,6 +449,7 @@ export function Staff({ api, workspace, local }: WorkspaceProps & { local: boole
           }} onSaved={() => { setFeedback(local ? 'Đã cập nhật hồ sơ giáo viên.' : 'Đã cập nhật quyền truy cập.'); list.load.refresh() }}>
           <p>Lịch sử giảng dạy và điểm danh của thành viên được lưu giữ.</p>
         </ActionForm> : <p>{roles[row.role]}</p>}
+        {owner && !local && row.role !== 'owner' && <ResetLink api={api} member={row} />}
       </details>)}</div>} />
     </Panel>
   </>

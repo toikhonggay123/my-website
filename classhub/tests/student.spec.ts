@@ -90,10 +90,13 @@ test('students read the published school timetable, closures and cancelled shift
 
     const pupil = await student.newPage()
     await pupil.goto(link)
-    await expect(pupil.getByText('THCS Ánh Dương (hư cấu)')).toBeVisible()
+    await expect(pupil.getByRole('heading', { name: 'Em học lớp nào?' })).toBeVisible()
+    await expect(pupil.getByText('THCS Ánh Dương (hư cấu)').first()).toBeVisible()
     await pupil.getByRole('button', { name: 'Lớp 8A' }).click()
     await expect(pupil).toHaveURL(/\/hs\?truong=anh-duong-qa&lop=8a$/)
-    await pupil.getByRole('button', { name: 'Tuần sau' }).click()
+    await expect(pupil.getByRole('button', { name: 'Đổi lớp' })).toBeVisible()
+    // ?ngay= opens a given day; without it the page opens on today or, after school, the next school day.
+    await pupil.goto(link + '&lop=8a&ngay=' + nextMonday)
     await pupil.getByRole('button', { name: /^Thứ Hai / }).click()
     await expect(pupil.getByText(/Thứ Hai, .* · 2 tiết/)).toBeVisible()
     await expect(pupil.getByText('07:50–08:35', { exact: true })).toBeVisible()
@@ -107,7 +110,6 @@ test('students read the published school timetable, closures and cancelled shift
     await call(owner, scope + '/school/sessions/sync', { data: { from: date, to: plus(date, 13) } })
     expect((await call(owner, scope + '/sessions/' + tuesday.id)).data.status).toBe('cancelled')
     await pupil.reload()
-    await pupil.getByRole('button', { name: 'Tuần sau' }).click()
     const notices = pupil.getByRole('list', { name: 'Thông báo' })
     await expect(notices).toContainText('nghỉ học · Hội thao QA')
     await expect(notices).toContainText('Buổi chiều Thứ Ba')

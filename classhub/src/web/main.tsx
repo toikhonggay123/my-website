@@ -22,6 +22,7 @@ import { Attendance, Calendar } from './scheduling'
 import { ReportsPage } from './reports'
 import { Dashboard } from './dashboard'
 import { SchoolTimetable } from './school'
+import { Landing } from './landing'
 
 type User = { name: string; email: string }
 type Identity = { user: User; workspaces: Workspace[]; local: boolean }
@@ -50,34 +51,6 @@ function Gate({ children }: { children: React.ReactNode }) {
   </div><span className="gate-foot">AFYLLX Edu / ClassHub</span></div><main className="gate-main">{children}</main></div>
 }
 
-function Login({ onLogin }: { onLogin: (identity: Identity, code: string) => void }) {
-  const [activate, setActivate] = useState(false)
-  return <Gate><div className="gate-form">
-    <p className="eyebrow">Cổng truy cập</p><h2>{activate ? 'Kích hoạt tài khoản' : 'Đăng nhập'}</h2>
-    <p className="muted">{activate ? 'Dùng mã mời và email đã được cấp.' : 'Mở không gian làm việc của bạn.'}</p>
-    <ActionForm key={String(activate)} label={activate ? 'Kích hoạt và đăng nhập' : 'Đăng nhập'} grid={false}
-      action={async data => {
-        const email = value(data, 'email').trim().toLowerCase()
-        const password = value(data, 'password')
-        const code = value(data, 'code').trim()
-        if (activate) await send('/api/v1/activate', { code, email, password, name: value(data, 'name') })
-        await request('/api/auth/sign-in/email', 'POST', { email, password, rememberMe: false })
-        const response = await request<{ data: Identity }>('/api/v1/me')
-        onLogin(response.data, code)
-      }}>
-      {activate && <Field label="Họ và tên"><input name="name" autoComplete="name" maxLength={100} required /></Field>}
-      <Field label="Email"><input type="email" name="email" autoComplete="username" maxLength={254} required /></Field>
-      <Field label="Mật khẩu"><input type="password" name="password" autoComplete={activate ? 'new-password' : 'current-password'}
-        minLength={activate ? 12 : undefined} maxLength={128} required /></Field>
-      {activate && <Field label="Mã mời"><input name="code" autoComplete="off" pattern="[0-9a-f]{64}" required /></Field>}
-    </ActionForm>
-    <button className="text-button" onClick={() => setActivate(!activate)}>
-      {activate ? 'Quay lại đăng nhập' : 'Tôi có mã mời và cần tạo tài khoản'}
-    </button>
-    {basePath && <p><Link to="/thu">Về bản dùng thử</Link></p>}
-  </div></Gate>
-}
-
 function WorkspacePicker({ identity, code, refresh, logout }: {
   identity: Identity; code: string; refresh: () => Promise<Identity>; logout: () => Promise<void>
 }) {
@@ -86,6 +59,10 @@ function WorkspacePicker({ identity, code, refresh, logout }: {
   const [exitError, setExitError] = useState('')
   if (identity.local && identity.workspaces.length === 1) {
     return <Navigate to={'/w/' + identity.workspaces[0].id} replace />
+  }
+  // Teachers belong on the teacher page; administrators keep the workspace list.
+  if (!identity.local && !code && identity.workspaces.length && identity.workspaces.every(item => item.role === 'teacher')) {
+    return <Navigate to="/gv" replace />
   }
   return <Gate><div className="gate-form">
     <p className="eyebrow">Không gian làm việc</p><h2>Chào {identity.user.name}</h2>
@@ -240,14 +217,18 @@ function App() {
   if (identity === undefined) return <main className="boot" role="status">Đang mở ClassHub…</main>
   if (error) return <BootError error={error} />
   if (!identity) {
-    const path = location.pathname.slice(basePath.length).replace(/\/+$/, '')
-    if (basePath && path !== '/truy-cap' && !path.startsWith('/w/')) return <Navigate to="/thu" replace />
-    return <Login onLogin={(next, invite) => {
+    // Guests see the front door. The administration sign-in opens over it at /quan-tri (or the older
+    // /truy-cap, or any /w/... deep link) and closes back to /.
+    const path = location.pathname.slice(basePath.length).replace(/\/+$/, '') || '/'
+    return <Landing admin={path !== '/'} openAdmin={() => navigate('/quan-tri')} closeAdmin={() => navigate('/')}
+      onLogin={(next, invite) => {
         setError('')
-        setIdentity(next)
+        setIdentity(next as Identity)
         setCode(invite)
+        const deepLink = location.pathname.startsWith(basePath + '/w/')
         if (invite || !next.workspaces[0]) navigate('/')
-        else if (!location.pathname.startsWith(basePath + '/w/')) navigate('/w/' + next.workspaces[0].id)
+        else if (!deepLink && next.workspaces.every(item => item.role === 'teacher')) navigate('/gv')
+        else if (!deepLink) navigate('/w/' + next.workspaces[0].id)
       }} />
   }
   async function logout() {

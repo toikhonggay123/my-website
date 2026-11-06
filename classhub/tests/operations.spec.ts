@@ -41,6 +41,7 @@ test('owner and teacher complete the ClassCheck workflow across isolated workspa
     { email: string; code: string }[]
   const current = viDate()
   await page.goto('/')
+  await page.getByRole('button', { name: 'Đăng nhập quản trị' }).click()
   await expect(page.getByRole('heading', { name: 'Đăng nhập', exact: true })).toBeVisible()
   await call(page.request, '/api/v1/me', { status: 401 })
   await call(page.request, '/api/auth/sign-up/email', { data: { name: 'Tài khoản ngoài', email: 'blocked@example.test', password }, status: 404 })

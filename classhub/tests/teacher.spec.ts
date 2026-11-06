@@ -8,6 +8,10 @@ const password = 'Local-QA-Only-2026!'
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())
 const plus = (date: string, days: number) => new Date(Date.parse(date) + days * 86_400_000).toISOString().slice(0, 10)
 const weekdayOf = (date: string) => new Date(date + 'T00:00:00Z').getUTCDay() || 7
+const newPassword = 'Local-QA-Reset-2026!'
+// Sign-ins are rate limited per client IP; this scenario uses its own documentation address (see reports.spec.ts).
+const client = { 'CF-Connecting-IP': '198.51.100.31' }
+test.use({ extraHTTPHeaders: client })
 
 async function call<T = any>(client: APIRequestContext, path: string, options: { data?: unknown; method?: string; status?: number } = {}) {
   const method = options.method ?? (options.data === undefined ? 'GET' : 'POST')
@@ -52,9 +56,9 @@ test('teachers activate by link, mark a school session by tapping and correct it
   const link = await page.getByLabel('Link kích hoạt vừa tạo').inputValue()
   expect(link).toContain('/gv/kich-hoat#')
 
-  const phone = await browser.newContext({ baseURL: origin, viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true })
-  const subject = await request.newContext({ baseURL: origin })
-  const outsider = await request.newContext({ baseURL: origin })
+  const phone = await browser.newContext({ baseURL: origin, viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true, extraHTTPHeaders: client })
+  const subject = await request.newContext({ baseURL: origin, extraHTTPHeaders: client })
+  const outsider = await request.newContext({ baseURL: origin, extraHTTPHeaders: client })
   try {
     const teacher = await phone.newPage()
     await teacher.goto(link)
@@ -91,8 +95,8 @@ test('teachers activate by link, mark a school session by tapping and correct it
 
     // The homeroom teacher sees today's session, taps two exceptions and finalizes in the app's own dialog.
     await teacher.reload()
-    const card = teacher.getByRole('link', { name: /7A/ }).first()
-    await expect(card).toContainText('Cần điểm danh')
+    const card = teacher.getByRole('link', { name: /Cần làm ngay/ })
+    await expect(card).toContainText('Điểm danh 7A')
     await expect(teacher.getByText('7A · Ngữ văn')).toBeVisible()
     await card.click()
     await expect(teacher.getByText('Cả lớp đang là', { exact: false })).toBeVisible()
@@ -147,6 +151,34 @@ test('teachers activate by link, mark a school session by tapping and correct it
     const stats = (await call(subject, scope + '/teacher/classes/' + classId)).data
     expect(stats.students.find((row: { name: string }) => row.name === 'Chi Học sinh')).toMatchObject({ late: 1, absent: 0 })
     await call(outsider, scope + '/teacher/classes/' + classId, { status: 404 })
+
+    // The front door routes by role: a teacher at / lands on the teacher page, an owner at /gv on administration.
+    await teacher.goto('/')
+    await expect(teacher).toHaveURL(/\/gv$/)
+    await page.goto('/gv')
+    await expect(page).toHaveURL(origin + '/')
+
+    // Forgotten password: the owner creates a one-time link that sets a new password and signs out old sessions.
+    await page.goto('/w/' + org + '/nhan-su')
+    const member = page.locator('details').filter({ has: page.getByText('Thầy Bộ Môn QA', { exact: true }) })
+    await member.locator('summary').click()
+    page.once('dialog', dialog => dialog.accept())
+    await member.getByRole('button', { name: 'Tạo link đặt lại mật khẩu' }).click()
+    const resetLink = await member.getByLabel('Link đặt lại mật khẩu').inputValue()
+    expect(resetLink).toContain('/gv/dat-lai-mat-khau#')
+    const fresh = await browser.newContext({ baseURL: origin, viewport: { width: 375, height: 812 }, isMobile: true, extraHTTPHeaders: client })
+    try {
+      const resetPage = await fresh.newPage()
+      await resetPage.goto(resetLink)
+      await expect(resetPage).toHaveURL(/\/gv\/dat-lai-mat-khau$/)
+      await resetPage.getByLabel('Mật khẩu mới', { exact: true }).fill(newPassword)
+      await resetPage.getByLabel('Nhập lại mật khẩu mới').fill(newPassword)
+      await resetPage.getByRole('button', { name: 'Lưu và đăng nhập' }).click()
+      await expect(resetPage.getByRole('heading', { name: 'Hôm nay' })).toBeVisible()
+    } finally { await fresh.close() }
+    await call(subject, '/api/v1/me', { status: 401 })
+    await call(subject, '/api/auth/sign-in/email', { data: { email: 'gvbm@example.test', password }, status: 401 })
+    await call(subject, '/api/v1/password-reset', { data: { code: resetLink.split('#')[1], password: newPassword }, status: 404 })
   } finally {
     await Promise.all([phone.close(), subject.dispose(), outsider.dispose()])
   }

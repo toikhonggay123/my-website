@@ -1,0 +1,48 @@
+@layer components {
+  .landing { position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .landing-blobs i { position: absolute; z-index: 0; border-radius: 50%; pointer-events: none; filter: blur(2px); opacity: .75; }
+  .landing-blobs i:nth-child(1) { width: 340px; height: 340px; left: -120px; top: 80px; background: radial-gradient(circle at 30% 30%, #b9d0ff, transparent 70%); }
+  .landing-blobs i:nth-child(2) { width: 300px; height: 300px; right: -110px; top: 260px; background: radial-gradient(circle at 60% 40%, #dcc8ff, transparent 70%); }
+  .landing-blobs i:nth-child(3) { width: 380px; height: 380px; left: 30%; bottom: -200px; background: radial-gradient(circle, #bff0de, transparent 70%); --dx: 20px; --dy: -30px; }
+  .landing-top { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 14px max(16px, calc((100% - 560px) / 2)); }
+  .landing-brand { display: flex; align-items: center; gap: 10px; line-height: 1.15; }
+  .landing-brand strong { display: block; font-size: 1.05rem; }
+  .landing-brand small { color: var(--edu-muted); }
+  .landing-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: #fff; box-shadow: 0 6px 16px -10px rgb(40 60 140 / 0.6); }
+  .landing-lock { width: 44px; height: 44px; padding: 0; border-radius: 14px; color: var(--edu-muted);
+    background: rgb(255 255 255 / 0.7); border: 1px solid #fff; box-shadow: 0 6px 16px -12px rgb(40 60 140 / 0.6); }
+  .landing-lock:hover:not(:disabled) { color: var(--edu-blue); background: #fff; border-color: #fff; }
+  .landing-main { position: relative; z-index: 1; flex: 1; width: min(100%, 560px); margin: 0 auto; padding: clamp(20px, 9vh, 96px) 16px 28px;
+    display: grid; gap: 22px; align-content: start; }
+  .landing-hero h1 { font-size: clamp(1.9rem, 7vw, 2.6rem); letter-spacing: -.045em; line-height: 1.1; margin: 8px 0 8px; }
+  .landing-hero .edu-eyebrow { display: inline-flex; align-items: center; gap: 6px; }
+  .landing-hero p:last-child { font-size: 1.05rem; }
+  .landing-doors { display: grid; gap: 14px; }
+  .landing-door { display: flex; align-items: center; gap: 16px; min-height: 104px; padding: 18px; color: var(--edu-ink); text-decoration: none; }
+  .landing-door:hover { box-shadow: 0 1px 0 rgb(255 255 255 / 0.8) inset, 0 18px 36px -20px rgb(40 60 140 / 0.45); }
+  .landing-door:hover .landing-arrow { transform: translateX(4px); color: var(--edu-blue); }
+  .landing-door-text { flex: 1; display: grid; gap: 3px; min-width: 0; }
+  .landing-door-text strong { font-size: 1.22rem; letter-spacing: -.02em; }
+  .landing-door-text small { color: var(--edu-muted); font-size: .92rem; }
+  .landing-arrow { color: #9aa6bf; transition: transform 200ms var(--edu-ease), color 200ms ease; }
+  .landing-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; color: var(--edu-muted); font-size: .86rem; padding-top: 4px; }
+  .landing-foot a { color: var(--edu-blue); font-weight: 700; }
+  .landing-sheet-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .landing-sheet-head h2 { font-size: 1.35rem; }
+  .landing-sheet-head > div { flex: 1; }
+  .landing-lock-badge { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; color: #fff; background: var(--edu-grad-primary); }
+  .landing-close { width: 40px; min-height: 40px; padding: 0; border: 0; color: var(--edu-muted); background: #f1f4fb; border-radius: 12px; }
+  .landing-form { display: grid; gap: 12px; margin: 14px 0 6px; }
+  .landing-form label { display: grid; gap: 5px; font-weight: 700; font-size: .9rem; }
+  .landing-form input { min-height: 48px; font-size: 1rem; }
+  .landing-form button { min-height: 50px; font-size: 1rem; }
+  .landing-error { color: #8b2130; background: #fff0f0; border-radius: 12px; padding: 10px 12px; }
+}
+@layer responsive {
+  @media (prefers-reduced-motion: no-preference) {
+    .landing-blobs i { animation: edu-drift 16s ease-in-out infinite; }
+    .landing-blobs i:nth-child(2) { animation-duration: 19s; animation-delay: -6s; }
+    .landing-blobs i:nth-child(3) { animation-duration: 22s; animation-delay: -11s; }
+  }
+}

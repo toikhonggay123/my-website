@@ -1,0 +1,106 @@
+/* Shared look for the public and teacher surfaces (landing, /hs, /gv): bright gradients, soft glass cards
+   and short, purposeful motion. Everything animates transform/opacity only and stops for reduced motion. */
+@layer components {
+  .edu {
+    --edu-ink: #14213d;
+    --edu-muted: #56637b;
+    --edu-line: #dde5f3;
+    --edu-card: rgb(255 255 255 / 0.86);
+    --edu-card-solid: #ffffff;
+    --edu-blue: #3563f0;
+    --edu-violet: #7357f6;
+    --edu-teal: #0fa592;
+    --edu-green: #138a57;
+    --edu-amber: #b96a00;
+    --edu-red: #c2343f;
+    --edu-grad-primary: linear-gradient(135deg, #3d6bff 0%, #7a5cff 100%);
+    --edu-grad-teal: linear-gradient(135deg, #10b5a0 0%, #3a8bff 100%);
+    --edu-grad-sun: linear-gradient(135deg, #ffcb6b 0%, #ff8f7a 100%);
+    --edu-grad-done: linear-gradient(135deg, #2fc77f 0%, #14a6a0 100%);
+    --edu-ease: cubic-bezier(.2, .8, .2, 1);
+    --edu-spring: cubic-bezier(.34, 1.56, .64, 1);
+    position: relative;
+    isolation: isolate;
+    min-height: 100vh;
+    color: var(--edu-ink);
+    background: #f7f9ff;
+  }
+  /* The gradient sits on a fixed layer so long pages scroll over it without seams (also on iOS). */
+  .edu::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(900px 520px at 0% -10%, #dce8ff 0%, transparent 62%),
+      radial-gradient(760px 520px at 105% 0%, #efe3ff 0%, transparent 58%),
+      radial-gradient(820px 600px at 50% 115%, #d8f5ea 0%, transparent 62%),
+      #f7f9ff;
+  }
+  .edu-card {
+    background: var(--edu-card);
+    border: 1px solid rgb(255 255 255 / 0.9);
+    border-radius: 20px;
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.8) inset, 0 10px 30px -18px rgb(40 60 140 / 0.35), 0 2px 6px -2px rgb(40 60 140 / 0.08);
+    backdrop-filter: saturate(140%) blur(10px);
+  }
+  .edu-glass-bar {
+    background: rgb(255 255 255 / 0.72);
+    backdrop-filter: saturate(160%) blur(14px);
+    border-bottom: 1px solid rgb(255 255 255 / 0.9);
+    box-shadow: 0 1px 0 var(--edu-line);
+  }
+  .edu-primary, .edu .primary {
+    background: var(--edu-grad-primary); border: 0; color: #fff;
+    box-shadow: 0 8px 18px -8px rgb(70 90 230 / 0.7);
+  }
+  .edu .primary:hover:not(:disabled) { background: var(--edu-grad-primary); filter: brightness(1.05); }
+  .edu button, .edu .button { border-radius: 14px; }
+  .edu input:not([type=checkbox]), .edu select { border-radius: 14px; border-color: #c9d4ea; background: rgb(255 255 255 / 0.9); }
+  .edu-press { transition: transform 160ms var(--edu-ease), box-shadow 160ms var(--edu-ease), filter 160ms ease; }
+  .edu-press:active { transform: scale(.97); }
+  .edu-eyebrow { font-size: .74rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--edu-violet); }
+  .edu-muted { color: var(--edu-muted); }
+  .edu-icon-tile { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; color: #fff; flex: 0 0 auto; }
+  .edu-icon-tile.is-primary { background: var(--edu-grad-primary); box-shadow: 0 10px 20px -10px rgb(80 80 240 / 0.8); }
+  .edu-icon-tile.is-teal { background: var(--edu-grad-teal); box-shadow: 0 10px 20px -10px rgb(20 150 170 / 0.8); }
+  .edu-skeleton { border-radius: 16px; background: linear-gradient(90deg, #eef2fb 25%, #f8faff 50%, #eef2fb 75%); background-size: 200% 100%; }
+
+  /* Bottom sheet / dialog */
+  .edu-backdrop { position: fixed; inset: 0; z-index: 40; display: grid; align-items: end; justify-items: center; background: rgb(20 30 70 / 0.32); }
+  .edu-sheet {
+    width: min(100%, 460px); max-height: 92vh; overflow: auto; padding: 20px 20px calc(22px + env(safe-area-inset-bottom));
+    border-radius: 26px 26px 0 0; background: #fff; box-shadow: 0 -20px 50px -20px rgb(20 30 80 / 0.45);
+  }
+  .edu-sheet-grip { width: 42px; height: 5px; border-radius: 99px; background: #d9e0ee; margin: -6px auto 12px; }
+  @media (min-width: 720px) {
+    .edu-backdrop { align-items: center; }
+    .edu-sheet { border-radius: 26px; }
+    .edu-sheet-grip { display: none; }
+  }
+}
+
+@layer responsive {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes edu-rise { from { opacity: 0; transform: translateY(16px) scale(.985); } }
+    @keyframes edu-fade { from { opacity: 0; } }
+    @keyframes edu-pop { 0% { transform: scale(.82); } 60% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes edu-bump { 0% { transform: translateY(5px); opacity: .2; } 100% { transform: none; opacity: 1; } }
+    @keyframes edu-sheet-in { from { transform: translateY(100%); } }
+    @keyframes edu-dialog-in { from { opacity: 0; transform: translateY(18px) scale(.96); } }
+    @keyframes edu-drift { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(var(--dx, 30px), var(--dy, -24px), 0) scale(1.08); } }
+    @keyframes edu-shimmer { to { background-position: -200% 0; } }
+    @keyframes edu-glow { 0%, 100% { box-shadow: 0 0 0 0 rgb(255 170 60 / 0.45); } 50% { box-shadow: 0 0 0 10px rgb(255 170 60 / 0); } }
+    @keyframes edu-draw { from { stroke-dashoffset: 30; } }
+    @keyframes edu-live { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.75); } }
+    /* backwards (not both) so press feedback and hover transforms work once the entrance has played. */
+    .edu-rise { animation: edu-rise 520ms var(--edu-ease) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+    .edu-page { animation: edu-rise 380ms var(--edu-ease) backwards; }
+    .edu-pop { animation: edu-pop 360ms var(--edu-spring); }
+    .edu-bump { display: inline-block; animation: edu-bump 280ms var(--edu-ease); }
+    .edu-backdrop { animation: edu-fade 220ms ease backwards; }
+    .edu-sheet { animation: edu-sheet-in 360ms var(--edu-ease) backwards; }
+    .edu-glow { animation: edu-glow 2.4s ease-in-out infinite; }
+    .edu-skeleton { animation: edu-shimmer 1.4s linear infinite; }
+    .edu-live-dot { animation: edu-live 1.6s ease-in-out infinite; }
+    .edu-check path { stroke-dasharray: 30; animation: edu-draw 520ms var(--edu-ease) both; }
+    @media (min-width: 720px) { .edu-sheet { animation-name: edu-dialog-in; } }
+  }
+}

@@ -110,6 +110,23 @@ export const operations = router()
     }
     return result(c, { active })
   })
+  // A one-time link for a member who forgot their password. Creating a new link revokes older unused ones.
+  .post('/staff/:userId/password-reset', async c => {
+    if (staffProfilesOnly(c)) throw missing()
+    const { orgId, userId } = requireRole(c, 'owner')
+    const memberId = validated(z.string().regex(/^[a-zA-Z0-9_-]{16,64}$/), c.req.param('userId'))
+    const member = await one(c, `SELECT m.user_id FROM memberships m JOIN account a ON a.userId=m.user_id AND a.providerId='credential'
+      WHERE m.org_id=? AND m.user_id=? AND m.role<>'owner'`, orgId, memberId)
+    if (!member) throw missing()
+    const id = newId(), code = token(), timestamp = now(), expiresAt = timestamp + 86_400_000
+    await db(c).batch([
+      query(c, 'UPDATE password_resets SET used_at=? WHERE user_id=? AND used_at IS NULL', timestamp, memberId),
+      query(c, `INSERT INTO password_resets(id,org_id,user_id,token_hash,created_by,created_at,expires_at) VALUES (?,?,?,?,?,?,?)`,
+        id, orgId, memberId, await tokenHash(code), userId, timestamp, expiresAt),
+      audit(c, 'membership.password_reset_link_created', memberId),
+    ])
+    return result(c, { code, expiresAt }, 201)
+  })
   .post('/invitations', async c => {
     if (staffProfilesOnly(c)) throw missing()
     const { orgId } = requireRole(c, 'owner')

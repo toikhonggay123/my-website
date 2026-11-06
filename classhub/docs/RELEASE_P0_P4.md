@@ -24,6 +24,15 @@ Runbook cho bản gồm: sửa lỗi quản trị (P0), chế độ trường h�
 - Kiểm tra chỉ đọc: `/classhub/api/health` trả 200. API công khai trả `enabled: false` vì chưa có trường nào công bố. `/api/v1/me` khi chưa đăng nhập trả 401. `/hs`, `/thoi-khoa-bieu` (lịch mẫu), `/gv` (màn đăng nhập giáo viên) và Báo cáo trong bản dùng thử đều mở được. `/mealcheck` vẫn trả 200.
 - Console trình duyệt báo script Cloudflare Web Analytics bị chặn bởi CSP `script-src 'self'`. Lỗi này do Cloudflare tự chèn script ở cấp zone, không phát sinh từ bản này.
 
+## Bản màn chào, giao diện mới và đặt lại mật khẩu (06/11/2026)
+
+- Nội dung: màn chào `/classhub` (Cán bộ, giáo viên · Học sinh, quản trị sau ổ khóa, `/quan-tri`), trang học sinh và trang giáo viên làm lại theo tông gradient sáng có chuyển động, link đặt lại mật khẩu do chủ đơn vị tạo.
+- Sao lưu trước khi đổi: `.migration-private/classhub-backups/20261106-before-front-door/`. Có bản xuất SQL, mã băm và mốc time-travel của live (`0000001f-…-dcc6239fc9ffe901e1ecc01585a67048`) và demo (`00000074-…-906f8adf40b28123af946a095bbb5b87`).
+- Diễn tập `0007_password_resets.sql` trên bản sao của cả hai database: integrity ok, 0 lỗi khóa ngoại, 29 bảng cũ giữ nguyên số dòng.
+- Đã áp 0007 cho demo rồi live, không còn migration chờ. Live giữ nguyên 1 đơn vị, 8 lớp, 275 học sinh. Demo thay đổi do lệnh dọn không gian dùng thử chạy định kỳ.
+- Worker version mới `9486831f-6408-49ee-a398-44925aac45ae`. Quay lui về `9b3da8b2-3860-4501-bb16-6c933e229fc4`; code đó chạy được với bảng mới.
+- Kiểm tra chỉ đọc: health 200; `/`, `/quan-tri`, `/hs`, `/gv`, `/gv/dat-lai-mat-khau`, `/thu` trả 200; `/api/v1/me` khi chưa đăng nhập trả 401; mã đặt lại giả trả 404; `/mealcheck` trả 200. Màn chào hiện đủ hai lối vào và ổ khóa.
+
 ## Các bước triển khai
 
 Chạy trong thư mục `mealcheck-cloud/classhub`. Ví dụ dưới đây dùng `wrangler` của dự án: `node node_modules/wrangler/bin/wrangler.js`. Không cần dừng MealCheck local vì ClassHub build vào thư mục riêng.

@@ -1,10 +1,30 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
-test('students find a class and exact periods without a ClassHub session', async ({ page, context }) => {
+test('the front door offers staff and student entrances and keeps administration behind the lock', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/classhub')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Cán bộ, giáo viên/ })).toHaveAttribute('href', '/classhub/gv')
+  await expect(page.getByRole('link', { name: /Học sinh/ })).toHaveAttribute('href', '/classhub/hs')
+  await expect(page.getByLabel('Mật khẩu')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Đăng nhập quản trị' }).click()
+  await expect(page).toHaveURL(/\/classhub\/quan-tri$/)
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Đăng nhập' })).toBeVisible()
+  await expect(page.getByLabel('Email')).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(page).toHaveURL(/\/classhub$/)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+  await page.getByRole('link', { name: /Cán bộ, giáo viên/ }).click()
+  await expect(page.getByRole('heading', { name: 'Đăng nhập' })).toBeVisible()
+  await expect(page.getByText('Quên mật khẩu?', { exact: false })).toBeVisible()
+})
+
+test('students pick a class once and then open straight on its timetable', async ({ page, context }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/classhub/thoi-khoa-bieu')
-  await expect(page.getByRole('heading', { name: 'Thời khóa biểu' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Em học lớp nào?' })).toBeVisible()
   await page.getByRole('button', { name: 'Khối 9' }).click()
   await expect(page.getByRole('button', { name: 'Lớp 9B' })).toBeVisible()
   await page.getByRole('searchbox', { name: 'Tìm lớp' }).fill('Lớp 8 a')
@@ -14,10 +34,16 @@ test('students find a class and exact periods without a ClassHub session', async
   await expect(page.getByText(/Thứ Hai, .* · 7 tiết/)).toBeVisible()
   await expect(page.getByText('Tiết 1', { exact: true })).toBeVisible()
   await expect(page.getByText('07:00–07:45', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Theo tuần' }).click()
+  await page.getByRole('button', { name: 'Cả tuần' }).click()
   await expect(page.getByText('33 tiết trong tuần')).toBeVisible()
-  await page.reload()
-  await expect(page.getByRole('heading', { name: 'Lịch lớp 8A' })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+  await page.goto('/classhub/hs')
+  await expect(page.getByRole('heading', { name: 'Lịch lớp 8A' })).toBeAttached()
+  await expect(page.getByRole('button', { name: 'Đổi lớp' })).toBeVisible()
+  await page.getByRole('button', { name: 'Đổi lớp' }).click()
+  await expect(page.getByRole('heading', { name: 'Em học lớp nào?' })).toBeVisible()
+  await page.goto('/classhub')
+  await expect(page.getByRole('link', { name: /Mở thời khóa biểu lớp 8A/ })).toBeVisible()
   expect((await context.cookies()).some(cookie => cookie.name.startsWith('afyllx-classhub'))).toBe(false)
 })
 
@@ -26,6 +52,8 @@ test('ClassHub opens directly in an editable guest workspace isolated by browser
   const demo = app + '/api/v1/demo'
   const origin = 'http://127.0.0.1:5178'
   await page.goto(app)
+  await page.getByRole('link', { name: 'Xem bản dùng thử' }).click()
+  await expect(page).toHaveURL(new RegExp(app + '/thu$'))
   await expect(page.getByRole('heading', { name: 'Hôm nay', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Buổi học theo ngày' })).toBeVisible()
   await expect(page.getByText('88,2%', { exact: true })).toBeVisible()

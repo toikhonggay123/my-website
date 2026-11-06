@@ -4,6 +4,7 @@
 | --- | --- | --- | --- |
 | Workspace settings | Workspace | Read own workspace | Read own workspace |
 | Create invitations and manage member access | Workspace | | |
+| Create password reset links for members | Workspace | | |
 | Course and student directory | Workspace | | |
 | Class detail and roster | Workspace | Assigned branch | Assigned class |
 | Class and enrollment management | Workspace | Assigned branch | |

@@ -8,7 +8,8 @@ The workspace route and every resource ID are untrusted inputs. The backend reso
 
 | Scope | Routes |
 | --- | --- |
-| Identity | POST /api/auth/sign-in/email, POST /api/auth/sign-out, GET /api/v1/me, POST /api/v1/activate, POST /api/v1/accept-invitation |
+| Identity | POST /api/auth/sign-in/email, POST /api/auth/sign-out, GET /api/v1/me, POST /api/v1/activate, POST /api/v1/accept-invitation, POST /api/v1/password-reset (one-time code from an owner, rate limited, signs out all sessions) |
+| Staff access | POST /staff/:userId/password-reset (owner, web only; returns a 24-hour one-time code and revokes older ones) |
 | Workspace | GET and PATCH /settings, GET and POST /branches, GET /staff, POST /staff in loopback mode, PATCH /staff/:userId, POST /invitations in authenticated mode, GET /dashboard |
 | Course and student | GET and POST /courses and /students, PATCH /courses/:id and /students/:id, GET /students/:id/enrollments |
 | Class | GET and POST /classes, GET and PATCH /classes/:classId |

@@ -97,6 +97,29 @@ export const identityRoutes = router()
     }
     return result(c, { activated: true }, 201)
   })
+  // Completes a one-time reset link from an owner: sets a new password, signs the member out everywhere and
+  // returns the email so the page can sign in again. The link stops working after use or after 24 hours.
+  .post('/password-reset', async c => {
+    if (localAdmin(c)) throw missing()
+    const allowed = await c.env.ACTIVATION_LIMIT.limit({ key: 'reset:' + (c.req.header('CF-Connecting-IP') ?? 'loopback') })
+    if (!allowed.success) throw new Failure(429, 'rate_limited', 'Vui lòng thử lại sau ít phút.')
+    const input = await body(c, z.object({ code: inviteCode, password: z.string().min(12).max(128) }))
+    const reset = await one<{ id: string; user_id: string; email: string }>(c, `SELECT r.id,r.user_id,u.email FROM password_resets r
+      JOIN "user" u ON u.id=r.user_id JOIN account a ON a.userId=r.user_id AND a.providerId='credential'
+      WHERE r.token_hash=? AND r.used_at IS NULL AND r.expires_at>?`, await tokenHash(input.code), now())
+    if (!reset) throw new Failure(404, 'reset_invalid', 'Link đặt lại mật khẩu đã dùng hoặc hết hạn. Hãy nhờ quản trị tạo link mới.')
+    const context = await auth(c).$context
+    const hash = await context.password.hash(input.password)
+    const timestamp = now()
+    const writes = await db(c).batch([
+      query(c, 'UPDATE password_resets SET used_at=? WHERE id=? AND used_at IS NULL', timestamp, reset.id),
+      query(c, `UPDATE account SET password=? WHERE userId=? AND providerId='credential' AND changes()=1`, hash, reset.user_id),
+      query(c, 'DELETE FROM session WHERE userId=? AND EXISTS (SELECT 1 FROM password_resets WHERE id=? AND used_at=?)',
+        reset.user_id, reset.id, timestamp),
+    ])
+    if (!writes[0].meta.changes || !writes[1].meta.changes) throw conflict('Link vừa được dùng. Hãy đăng nhập bằng mật khẩu mới.')
+    return result(c, { email: reset.email })
+  })
   .post('/accept-invitation', async c => {
     if (localAdmin(c)) throw missing()
     const user = await identity(c)

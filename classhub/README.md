@@ -41,6 +41,12 @@ Mục **Báo cáo** có ba phần. Chỉ tính buổi đã chốt.
 
 Học sinh cần chú ý là em có từ 3 buổi vắng không phép, 5 buổi vắng tính cả có phép, hoặc 5 lần đi muộn trong khoảng đang xem. Trang **Hôm nay** của quản trị hiện tối đa 8 em chạm ngưỡng này trong 30 ngày qua. File CSV có BOM UTF-8 để Excel mở đúng tiếng Việt. Mỗi lần xuất được ghi vào nhật ký.
 
+### Màn chào trên bản web
+
+`/classhub` mở màn chào với hai lối vào lớn: **Cán bộ, giáo viên** (`/gv`) và **Học sinh** (`/hs`, nếu máy đã nhớ lớp thì mở thẳng lớp đó). Đăng nhập quản trị nằm sau biểu tượng ổ khóa ở góc trên bên phải, hoặc mở thẳng bằng `/classhub/quan-tri` (đường dẫn cũ `/truy-cap` vẫn dùng được). Đăng nhập ở lối nào cũng tự đưa đúng chỗ: tài khoản chỉ là giáo viên vào `/gv`, quản trị vào trang quản trị. Bản dùng thử vẫn ở `/classhub/thu` và có link nhỏ cuối màn chào. Ổ khóa chỉ làm gọn giao diện; quản trị vẫn được bảo vệ bằng mật khẩu và giới hạn số lần đăng nhập. ClassHub chạy trên máy vẫn vào thẳng trang quản trị.
+
+Các trang công khai và trang giáo viên dùng tông gradient sáng, thẻ kính mờ và hiệu ứng ngắn (xuất hiện lần lượt, nhấn nảy, bảng trượt lên, trạng thái điểm danh nảy khi đổi). Hiệu ứng tự tắt khi thiết bị bật giảm chuyển động.
+
 ### Trang giáo viên
 
 `/classhub/gv` là trang gọn cho điện thoại, gồm **Hôm nay**, **Tuần** và **Lớp**. Trong **Nhân sự**, mời giáo viên sẽ tạo một link kích hoạt dùng một lần trong 24 giờ. Mã nằm sau dấu `#` nên không đi vào log máy chủ. Giáo viên mở link, đặt mật khẩu rồi vào thẳng trang. Đăng nhập ở trang giáo viên được nhớ 30 ngày và tự gia hạn khi dùng. Đăng nhập ở trang quản trị vẫn chỉ kéo dài một ngày trong phiên trình duyệt.
@@ -49,6 +55,10 @@ Học sinh cần chú ý là em có từ 3 buổi vắng không phép, 5 buổi 
 - Buổi điểm danh của trường do giáo viên chủ nhiệm phụ trách. Giáo viên có tiết với lớp trong buổi đó cũng mở và điểm danh được. Người đã chốt có 30 phút để tự mở lại và sửa; sau đó cần quản trị mở lại. Buổi của khóa học giữ quy tắc cũ: chỉ giáo viên phụ trách buổi.
 - Lớp: sĩ số và số lần vắng, đi muộn, có phép của từng học sinh trong 30 ngày, đánh dấu em từ 2 lần trở lên.
 - Buổi điểm danh 14 ngày tới được chuẩn bị tự động khi quản trị hoặc giáo viên mở ClassHub lần đầu trong ngày.
+
+- Hôm nay: thẻ **Cần làm ngay** trên cùng chỉ việc gấp nhất (buổi đã bắt đầu chưa chốt, rồi buổi cũ chưa chốt), bên dưới là một dòng thời gian gộp tiết dạy và buổi điểm danh. Xong hết thì thẻ chuyển sang "Đã điểm danh xong hôm nay".
+- Chốt xong hiện màn "Đã chốt điểm danh" kèm nút **Về Hôm nay** và **Sửa lại** trong 30 phút. Lớp đông có nút lọc chỉ em vắng, muộn, có phép.
+- **Quên mật khẩu:** chủ đơn vị mở **Nhân sự**, chọn người đó và bấm **Tạo link đặt lại mật khẩu**. Link `/gv/dat-lai-mat-khau#…` dùng một lần trong 24 giờ; tạo link mới làm link cũ hết hiệu lực. Đặt mật khẩu mới sẽ đăng xuất mọi thiết bị cũ. Database chỉ lưu mã băm của link (migration `0007_password_resets.sql`).
 
 ClassHub chạy trên máy không có tài khoản giáo viên nên trang này chỉ dùng trên bản web.
 

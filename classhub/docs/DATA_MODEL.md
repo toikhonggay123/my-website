@@ -10,4 +10,6 @@ School mode (migration 0005) adds school terms, subjects, bell periods per shift
 
 Migration 0006 adds `organizations.public_slug`, the owner's opt-in for the public student timetable, and `class_sessions.pinned`, set when an administrator cancels or reschedules a session by hand so that reconciliation leaves it unchanged.
 
+Migration 0007 adds `password_resets`: one-time, 24-hour links an owner creates for a member, stored as a SHA-256 of the code with creator, expiry and use time.
+
 Entitlement policies, academic periods, guardian links, assignment targets, notifications and external mappings are planned as their workflows come online.
