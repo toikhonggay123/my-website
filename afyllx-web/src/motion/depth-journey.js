@@ -7,6 +7,7 @@ gsap.ticker.lagSmoothing(0);
 const journey = document.querySelector('[data-journey]');
 const canvas = journey?.querySelector('[data-depth-canvas]');
 const poster = journey?.querySelector('[data-journey-poster]');
+const mobilePoster = journey?.querySelector('[data-journey-poster-mobile]');
 const film = journey?.querySelector('[data-hero-film]');
 const sections = [...(journey?.querySelectorAll('[data-scene]') ?? [])];
 const nav = journey?.querySelector('[data-journey-nav]');
@@ -69,6 +70,7 @@ function setChapter() {
     else link.removeAttribute('aria-current');
   }
   if (poster) poster.src = `/afyllx-media/depth-${name === 'intro' ? 'hero' : name}.webp`;
+  if (mobilePoster) mobilePoster.srcset = `/afyllx-media/depth-${name === 'intro' ? 'hero' : name}-mobile.webp`;
   if (count) count.textContent = `0${Math.max(1, sections.indexOf(section) + 1)} / 05`;
 }
 

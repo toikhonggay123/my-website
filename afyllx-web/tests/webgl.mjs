@@ -47,7 +47,9 @@ try {
     assert.equal(first.opacity, '1', name + ': canvas visibility');
     assert.ok(first.width > 100 && first.height > 100, name + ': canvas size');
     assert.ok(first.opaque > first.total * .995, name + ': incomplete/empty framebuffer ' + JSON.stringify(first));
-    assert.ok(first.bright > first.total * .003, name + ': missing illuminated geometry ' + JSON.stringify(first));
+    // Ink glass has narrow illuminated bevels rather than large bright faces.
+    // Full alpha coverage above still catches the original empty/partial MSAA frames.
+    assert.ok(first.bright > Math.max(100, first.total * .00025), name + ': missing illuminated geometry ' + JSON.stringify(first));
     if (animated) {
       // Small idle motions can stay on the same pixel grid for a few frames.
       let second = first;

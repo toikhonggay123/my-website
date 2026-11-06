@@ -18,9 +18,12 @@ const approach = [
 <Site title="AFYLLX · Kiến tạo những khả năng số" description="AFYLLX phát triển nền tảng cho giáo dục, kinh doanh website trực tuyến và chuyển đổi số chính phủ.">
   <div class="journey" data-journey data-current="hero">
     <div class="journey-viewport" aria-hidden="true">
-      <img class="journey-poster" data-journey-poster src="/afyllx-media/depth-hero.webp" width="1600" height="1000" fetchpriority="high" alt="" />
+      <picture>
+        <source data-journey-poster-mobile media="(max-width: 760px)" srcset="/afyllx-media/depth-hero-mobile.webp" />
+        <img class="journey-poster" data-journey-poster src="/afyllx-media/depth-hero.webp" width="1600" height="1000" fetchpriority="high" alt="" />
+      </picture>
       <canvas data-depth-canvas></canvas>
-      <div class="hero-film" data-hero-film><img src="/afyllx-media/cinematic-hero.webp" width="1672" height="941" fetchpriority="high" alt="" /><span class="hero-radiance"></span></div>
+      <div class="hero-film" data-hero-film><span class="hero-radiance"></span></div>
       <div class="scene-shade"></div><div class="scene-vignette"></div><span class="scene-grain"></span>
     </div>
 
@@ -72,7 +75,7 @@ const approach = [
       <div class="section-heading" data-reveal><span class="eyebrow"><span class="glow-dot"></span> HỆ SINH THÁI AFYLLX</span><h2 id="ecosystem-title">Ba lĩnh vực.<br /><em>Cùng mở ra phía trước.</em></h2><p>Mỗi lĩnh vực có trọng tâm riêng, cùng hướng đến những giải pháp số có thể sử dụng trong thực tế.</p></div>
       <div class="ecosystem-grid">
         {divisions.map((division) => <a class:list={['ecosystem-card', `theme-${division.id}`]} href={`/${division.id}`} data-light-card>
-          <div class="ecosystem-art"><img src={`/afyllx-media/depth-${division.id}.webp`} width="960" height="720" alt="" loading="lazy" /><span class="ecosystem-number" aria-hidden="true">{division.number}</span></div>
+          <div class="ecosystem-art"><img src={`/afyllx-media/sculpture-${division.id}.webp`} width="960" height="720" alt="" loading="lazy" /><span class="ecosystem-number" aria-hidden="true">{division.number}</span></div>
           <div class="ecosystem-copy"><Status id={division.id} status={division.status} /><h3>AFYLLX {division.name}<Icon name="external" size={21} /></h3><p>{division.description}</p></div>
         </a>)}
       </div>

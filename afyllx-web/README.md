@@ -33,10 +33,22 @@ node scripts/cli.mjs wrangler deploy --config afyllx-web/wrangler.jsonc
 
 Khi thay đổi quy tắc định tuyến hoặc binding lần đầu, cần kiểm tra và triển khai Worker cha bằng `pnpm build:cloud` và `pnpm deploy:cloud`. Các lần sửa giao diện sau chỉ cần triển khai Worker tĩnh. Không chạy migration hoặc thay secrets cho website thương hiệu.
 
-## Hình nền mở đầu
+## Cảnh 3D và ảnh dự phòng
 
-`public/afyllx-media/cinematic-hero.webp` được tạo bằng công cụ ImageGen tích hợp, sau đó chuyển từ PNG sang WebP để dùng trong website. File này là nền điện ảnh của cảnh mở đầu, kết hợp chuyển động ánh sáng và góc nhìn. Các chương tiếp theo dùng cảnh Three.js.
+Các khối AFYLLX được dựng trực tiếp bằng Three.js: ba hình điêu khắc trong `src/motion/sculpture-models.js`, vật liệu, ánh sáng, mặt phản chiếu và camera trong `src/motion/depth-scene.js`. Hero và các chương dùng cùng cảnh chuyển động; các trang riêng dùng góc máy `detail`. Ảnh dự phòng được render từ chính bộ dựng này để giữ cùng hình dáng và bố cục khi giảm chuyển động hoặc WebGL không hoạt động.
 
-Prompt đã sử dụng
+Sau khi ổn định hình khối và ánh sáng, mở Astro dev server rồi chạy:
 
-> Use case: stylized-concept. Asset type: production hero environment background for AFYLLX technology brand website, not a mockup, no UI. Create one ultra-premium cinematic 16:9 wide 3D render with a huge pure blue-black negative-space upper 55% for white typography overlaid later. Lower 45% holds an extraordinary abstract architectural landscape of THREE broad curving smoked sapphire glass planes, each a graceful tall folded ribbon with precisely machined blue-black titanium edges. They are staggered at three depths, arranged as a flowing continuous landscape from lower left to lower right, with one in the middle at a slightly larger scale. Not upright phones or rectangular screen frames. Rounded sweeping architectural sculptures, sumptuous deep optical glass, thick refracted cobalt edges, brilliant very thin cold blue light strips tracing curved edges, dimensional blue liquid light caustics on dark polished black floor. A wide vivid cobalt-blue halo and two very broad soft shafts of volumetric blue light behind the sculptures illuminate fine atmospheric haze. Camera is a low architectural 40mm lens, shallow angle, elegant asymmetrical horizon, hyperreal luxury technology launch photography, Octane-quality ray-traced reflections and complex glass optics, immaculate material craft, rich tonal gradients, cinematic film lighting, sophisticated monumental design. Palette 85% near-black navy (#01030a #03091b), deep saturated royal blue accents, small icy blue-white rim highlights. Top half is clean quiet black-blue with barely visible soft atmosphere, no objects in top 50%. Floor ungridded and seamless, smooth subtle mirror reflections. This should feel like an exceptionally art-directed high end Apple product campaign crossed with abstract architectural installation, mesmerizing polished physically plausible surfaces. No text, no logo, no letters, no words, no people, no icons, no panels with interfaces, no computers, no futuristic machinery, no server racks, no grids, no stars, no planets, no HUD, no watermark. Full bleed wide composition.
+```sh
+pnpm render:posters
+```
+
+Lệnh dùng URL `http://127.0.0.1:4321` mặc định. Có thể chọn dev server khác bằng biến `AFYLLX_TEST_URL`; bản `pnpm preview` không cung cấp module nguồn cần để render. Trên Windows, lệnh dùng Edge đã cài và GPU mặc định, không ép bộ dựng giả lập.
+
+`scripts/render-posters.mjs` chờ ảnh tra cứu SMAA tải xong, dựng cảnh tại thời điểm cố định, kiểm tra framebuffer phủ kín hơn 99% rồi mã hóa WebP chất lượng 95% bằng trình duyệt. Ảnh được ghi vào `public/afyllx-media`:
+
+- `depth-{hero,edu,digital,gov,panorama}.webp`: cảnh ngang, 2400 × 1500 px.
+- `depth-{hero,edu,digital,gov,panorama}-mobile.webp`: cảnh dọc, 810 × 1752 px.
+- `sculpture-{hero,edu,digital,gov}.webp`: góc máy riêng cho trang lĩnh vực và thẻ giới thiệu, 1920 × 1440 px.
+
+Các ảnh dùng mật độ điểm ảnh 1,5× và được tái tạo khi thay mô hình hoặc ánh sáng. Lệnh giải phóng tài nguyên của từng cảnh và đóng trình duyệt sau khi hoàn tất.

@@ -82,7 +82,6 @@ main:focus { outline: 0; }
 .journey.is-rendered .journey-viewport canvas { opacity: 1; }
 .journey.is-rendered .journey-poster { opacity: 0; }
 .hero-film { position: absolute; inset: 0; z-index: 2; transform-origin: 50% 70%; }
-.hero-film img { width: 100%; height: 100%; object-fit: cover; }
 .hero-radiance { position: absolute; inset: 20% -10% -15%; opacity: .3; mix-blend-mode: screen; background: radial-gradient(ellipse at 20% 65%, #1d5bfb 0%, transparent 42%), radial-gradient(ellipse at 85% 90%, #2a77ff 0%, transparent 40%); filter: blur(36px); animation: film-light 8s ease-in-out infinite alternate; }
 @keyframes film-light { from { opacity: .1; transform: translateX(-2%) scale(.95); } to { opacity: .3; transform: translateX(2%) scale(1.04); } }
 .journey:not(.is-rendered) .hero-film { opacity: 0; }
@@ -359,4 +358,9 @@ main:focus { outline: 0; }
 .journey:not(.is-rendered) .chapter-edu::before { background-image: linear-gradient(90deg, #01030ac4, transparent 75%), url('/afyllx-media/depth-edu.webp'); }
 .journey:not(.is-rendered) .chapter-digital::before { background-image: linear-gradient(#01030ab8, transparent 77%), url('/afyllx-media/depth-digital.webp'); }
 .journey:not(.is-rendered) .chapter-gov::before { background-image: linear-gradient(270deg, #01030acc, transparent 75%), url('/afyllx-media/depth-gov.webp'); }
+@media (max-width: 760px) {
+  .journey:not(.is-rendered) .chapter-edu::before { background-image: linear-gradient(#01030acc, transparent 62%), url('/afyllx-media/depth-edu-mobile.webp'); }
+  .journey:not(.is-rendered) .chapter-digital::before { background-image: linear-gradient(#01030acc, transparent 62%), url('/afyllx-media/depth-digital-mobile.webp'); }
+  .journey:not(.is-rendered) .chapter-gov::before { background-image: linear-gradient(#01030acc, transparent 62%), url('/afyllx-media/depth-gov-mobile.webp'); }
+}
 html[data-motion='reduced'] *, html[data-motion='reduced'] *::before, html[data-motion='reduced'] *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
