@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
+import '../src/web/student-timetable-data.ts'
 
 const previewConfig = '.wrangler/deploy/config.json'
 const localConfig = existsSync(previewConfig) ? readFileSync(previewConfig) : null

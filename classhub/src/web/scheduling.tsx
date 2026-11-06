@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useBlocker, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, CalendarDays, CheckCheck, Download } from 'lucide-react'
+import { ArrowLeft, CalendarDays, CheckCheck, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import {
-  ActionForm, Badge, Empty, Field, Header, LoadView, Notice, Pager, Panel, addDays, basePath,
-  errorText, formatClock, formatDay, localDay, send, statuses, useLoad, value, type Page,
+  ActionForm, Badge, confirmOrCancel, Empty, Field, Header, LoadView, Notice, Pager, Panel, addDays, basePath,
+  errorText, formatClock, formatDay, localDay, request, send, statuses, useLoad, value, type Page,
 } from './ui'
 import { RemoteSelect, type Assignment, type ClassRow, type WorkspaceProps } from './operations'
 
@@ -18,6 +18,7 @@ type Rule = {
 }
 const weekdays = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ nhật']
 type Mode = 'day' | 'week' | 'month' | 'list'
+const gridLimit = 400 // Matches calendarGridLimit on the server.
 const modes: Record<Mode, string> = { day: 'Ngày', week: 'Tuần', month: 'Tháng', list: 'Danh sách' }
 const option = (row: Assignment) => row.ended_at ? null : { id: row.user_id, name: row.name }
 const asClock = (data: FormData) => ({
@@ -31,6 +32,61 @@ function LessonFields({ classApi, room = '', lesson }: { classApi: string; room?
     <Field label="Giờ bắt đầu"><input type="time" name="starts_at" defaultValue={lesson ? formatClock(lesson.starts_at) : '18:00'} required /></Field>
     <Field label="Giờ kết thúc"><input type="time" name="ends_at" defaultValue={lesson ? formatClock(lesson.ends_at) : '19:30'} required /></Field>
     <Field label="Phòng học"><input name="room" maxLength={80} defaultValue={lesson?.room ?? room} /></Field>
+  </>
+}
+
+type Occurrence = { date: string; status: 'existing' | 'conflict' | 'ready'; issues: string[] }
+function GenerateSessions({ endpoint, from, to, onSaved }: {
+  endpoint: string; from: string; to: string; onSaved: (created: number) => void
+}) {
+  const [preview, setPreview] = useState<{ from: string; to: string; data: Occurrence[] }>()
+  const [selected, setSelected] = useState<string[]>([])
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  async function generate() {
+    if (!preview || !selected.length) return
+    setBusy(true)
+    setError('')
+    try {
+      const { created } = await send<{ created: number }>(endpoint + '/generate', {
+        from: preview.from, to: preview.to, selectedDates: selected,
+      })
+      setPreview(undefined)
+      setSelected([])
+      onSaved(created)
+    } catch (failure) { setError(errorText(failure)) }
+    finally { setBusy(false) }
+  }
+  return <>
+    <ActionForm label="Xem trước các buổi" reset={false} action={async data => {
+      setPreview(undefined)
+      setError('')
+      const range = { from: value(data, 'from'), to: value(data, 'to') }
+      const result = await request<{ data: Occurrence[] }>(endpoint + '/preview?' + new URLSearchParams(range))
+      setSelected(result.data.filter(row => row.status === 'ready').map(row => row.date))
+      setPreview({ ...range, data: result.data })
+    }}>
+      <Field label="Tạo từ ngày"><input name="from" type="date" defaultValue={from} required onChange={() => setPreview(undefined)} /></Field>
+      <Field label="Tạo đến ngày"><input name="to" type="date" defaultValue={to} required onChange={() => setPreview(undefined)} /></Field>
+    </ActionForm>
+    {preview && <div className="schedule-preview">
+      <p className="muted">{formatDay(preview.from)} – {formatDay(preview.to)} · {selected.length} buổi được chọn</p>
+      {!preview.data.length && <Empty>Không có buổi nào theo quy tắc trong khoảng này.</Empty>}
+      {preview.data.map(row => <div className="schedule-occurrence" key={row.date}>
+        {row.status === 'ready' ? <label className="check">
+          <input type="checkbox" checked={selected.includes(row.date)} disabled={busy} onChange={event => {
+            const checked = event.currentTarget.checked
+            setSelected(old => checked ? [...old, row.date] : old.filter(day => day !== row.date))
+          }} /> {formatDay(row.date)}
+        </label> : <strong>{formatDay(row.date)}</strong>}
+        <span>{row.status === 'ready' ? 'Sẵn sàng' : row.status === 'existing' ? 'Đã có buổi' : row.issues.join(' · ')}</span>
+      </div>)}
+      {preview.data.some(row => row.status === 'conflict') && <p className="muted">Có thể dùng “Thêm buổi học riêng” để xếp lại những ngày bị trùng.</p>}
+      <Notice error>{error}</Notice>
+      <button type="button" className="primary" disabled={busy || !selected.length} onClick={generate}>
+        {busy ? 'Đang tạo…' : 'Tạo các buổi học đã chọn'}
+      </button>
+    </div>}
   </>
 }
 
@@ -70,15 +126,11 @@ export function Timetable({ item, classApi }: WorkspaceProps & { item: ClassRow;
         {data.map(row => <details className="detail-row" key={row.id}>
           <summary><strong>{weekdays[row.weekday - 1]} · {row.starts_at}–{row.ends_at}</strong><span>{row.teacher_name} · Mỗi {row.every_weeks} tuần</span></summary>
           <p className="muted">Hiệu lực {formatDay(row.starts_on)} – {formatDay(row.ends_on)}. Mỗi lượt tạo tối đa 90 ngày.</p>
-          <ActionForm label="Tạo các buổi học" action={async data => {
-            const response = await send<{ created: number }>(classApi + '/timetable/' + row.id + '/generate',
-              { from: value(data, 'from'), to: value(data, 'to') })
-            setFeedback('Đã tạo ' + response.created + ' buổi mới trong khoảng đã chọn.')
+          <GenerateSessions endpoint={classApi + '/timetable/' + row.id}
+            from={row.starts_on > from ? row.starts_on : from} to={row.ends_on < generatedEnd ? row.ends_on : generatedEnd} onSaved={created => {
+            setFeedback('Đã tạo ' + created + ' buổi mới trong khoảng đã chọn.')
             window.dispatchEvent(new Event('classhub:schedule'))
-          }}>
-            <Field label="Tạo từ ngày"><input name="from" type="date" defaultValue={row.starts_on > from ? row.starts_on : from} required /></Field>
-            <Field label="Tạo đến ngày"><input name="to" type="date" defaultValue={row.ends_on < generatedEnd ? row.ends_on : generatedEnd} required /></Field>
-          </ActionForm>
+          }} />
         </details>)}
         <Pager {...pagination} change={setPage} />
       </>}</LoadView>
@@ -100,40 +152,77 @@ function calendarRange(date: string, mode: Mode) {
   }
   return { from: date, to: addDays(date, 30) }
 }
+export function lessonStatus(lesson: Pick<Lesson, 'status' | 'starts_at' | 'ends_at' | 'attendance_state'>) {
+  if (lesson.status === 'cancelled') return 'cancelled'
+  if (lesson.attendance_state === 'finalized') return 'finalized'
+  const now = Date.now()
+  if (lesson.starts_at > now) return 'upcoming'
+  if (lesson.attendance_state === 'unmarked') return 'needs_attendance'
+  return lesson.ends_at <= now ? 'needs_review' : 'recording'
+}
 function LessonLink({ lesson, base, compact = false }: { lesson: Lesson; base: string; compact?: boolean }) {
   return <Link to={base + '/buoi/' + lesson.id} className={compact ? 'calendar-event' : 'row-link'}>
     <div><strong>{lesson.class_name}</strong>
       <small>{compact ? '' : formatDay(lesson.lesson_date) + ' · '}{formatClock(lesson.starts_at)}–{formatClock(lesson.ends_at)}</small>
       {!compact && <small>{lesson.teacher_name}{lesson.room ? ' · ' + lesson.room : ''}</small>}</div>
-    <Badge status={lesson.status === 'cancelled' ? 'cancelled' : lesson.attendance_state} />
+    <Badge status={lessonStatus(lesson)} />
   </Link>
 }
-export function Calendar({ api, base, classId }: WorkspaceProps & { classId?: string }) {
+export function Calendar({ api, base, workspace, classId }: WorkspaceProps & { classId?: string }) {
   const [mode, setMode] = useState<Mode>('list')
   const [date, setDate] = useState(localDay)
   const [page, setPage] = useState(1)
+  const [selection, setSelection] = useState('')
+  const [teacher, setTeacher] = useState('')
+  const [room, setRoom] = useState('')
   const { from, to } = calendarRange(date, mode)
-  const params = new URLSearchParams({ from, to, page: String(page) })
-  if (classId) params.set('class_id', classId)
+  const grid = mode === 'week' || mode === 'month'
+  // A grid draws the whole range at once, so it loads every session instead of one 25-row page.
+  const params = new URLSearchParams(grid ? { from, to, page: '1', limit: String(gridLimit) } : { from, to, page: String(page) })
+  if (classId || selection) params.set('class_id', classId ?? selection)
+  if (teacher) params.set('teacher_id', teacher)
+  if (room) params.set('room', room)
   const load = useLoad<Page<Lesson>>(api + '/sessions?' + params)
   useEffect(() => {
     const reload = () => load.refresh()
     window.addEventListener('classhub:schedule', reload)
     return () => window.removeEventListener('classhub:schedule', reload)
   }, [])
-  const grid = mode === 'week' || mode === 'month'
   const days = Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000) + 1
   const shift = (new Date(from).getUTCDay() + 6) % 7
+  const showDate = (next: string) => { setDate(next); setPage(1) }
+  const jump = (direction: number) => {
+    const offset = mode === 'week' ? 7 : mode === 'month' ? days : mode === 'list' ? 31 : 1
+    showDate(mode === 'month' && direction < 0 ? addDays(from, -1) : addDays(mode === 'month' ? from : date, offset * direction))
+  }
   return <>
     {!classId && <Header kicker="Không gian giảng dạy" title="Lịch học" description="Buổi học theo giờ Việt Nam. Chọn buổi để mở ClassCheck." />}
     <Panel title={classId ? 'Lịch buổi học của lớp' : 'Lịch buổi học'}>
       <div className="toolbar">
-        <Field label="Ngày xem"><input type="date" value={date} min="2000-01-01" max="2099-11-30"
-          onChange={event => { if (event.target.value && event.target.validity.valid) { setDate(event.target.value); setPage(1) } }} /></Field>
+        <div className="calendar-date-nav">
+          <button type="button" aria-label="Khoảng trước" onClick={() => jump(-1)}><ChevronLeft size={18} aria-hidden="true" /></button>
+          <button type="button" onClick={() => showDate(localDay())}>Hôm nay</button>
+          <button type="button" aria-label="Khoảng sau" onClick={() => jump(1)}><ChevronRight size={18} aria-hidden="true" /></button>
+        </div>
         <div className="segmented" aria-label="Chế độ lịch">{Object.entries(modes).map(([id, label]) =>
           <button key={id} aria-pressed={mode === id} onClick={() => { setMode(id as Mode); setPage(1) }}>{label}</button>)}</div>
       </div>
       <p className="range"><CalendarDays size={17} aria-hidden="true" /> {formatDay(from)}{to !== from ? ' – ' + formatDay(to) : ''}</p>
+      <details className="advanced-filters"><summary>Chọn ngày và bộ lọc</summary>
+        <ActionForm label="Áp dụng" reset={false} action={async data => {
+          showDate(value(data, 'date'))
+          setSelection(value(data, 'class_id'))
+          setTeacher(value(data, 'teacher_id'))
+          setRoom(value(data, 'room').trim())
+        }}>
+          <Field label="Ngày xem"><input key={date} type="date" name="date" defaultValue={date} min="2000-01-01" max="2099-11-30" required /></Field>
+          {!classId && <RemoteSelect<{id: string; name: string}> label="Lớp" name="class_id" url={api + '/classes'}
+            required={false} searchable toOption={row => row} />}
+          {workspace.role !== 'teacher' && <RemoteSelect<{user_id: string; name: string; role: string}> label="Giáo viên" name="teacher_id"
+            url={api + '/staff'} required={false} searchable toOption={row => row.role === 'teacher' ? {id: row.user_id, name: row.name} : null} />}
+          <Field label="Phòng học"><input name="room" maxLength={80} /></Field>
+        </ActionForm>
+      </details>
       <LoadView load={load}>{({ data, pagination }) => <>
         {grid ? <div className="calendar-grid">
           {weekdays.map(day => <strong className="calendar-label" key={day}>{day}</strong>)}
@@ -148,7 +237,9 @@ export function Calendar({ api, base, classId }: WorkspaceProps & { classId?: st
           })}
         </div> : <div className="list">{data.map(lesson => <LessonLink key={lesson.id} lesson={lesson} base={base} />)}</div>}
         {!data.length && <Empty>Không có buổi học trong khoảng này.</Empty>}
-        <Pager {...pagination} change={setPage} />
+        {grid ? pagination.hasMore && <p className="muted" role="status">
+          Đang hiển thị {gridLimit} buổi đầu tiên. Lọc theo lớp hoặc giáo viên, hoặc xem theo tuần để thấy đủ.
+        </p> : <Pager {...pagination} change={setPage} />}
       </>}</LoadView>
     </Panel>
   </>
@@ -189,6 +280,8 @@ function SheetEditor({ sheet, endpoint, api, admin, reload, saved }: {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [history, setHistory] = useState(false)
+  const [onlyUnmarked, setOnlyUnmarked] = useState(false)
+  const [editingNotes, setEditingNotes] = useState<string[]>([])
   const dirty = entries.some((entry, index) => entry.note !== roster[index].note || entry.status !== roster[index].status)
   const blocker = useBlocker(dirty)
   useEffect(() => {
@@ -220,11 +313,13 @@ function SheetEditor({ sheet, endpoint, api, admin, reload, saved }: {
   }
   return <>
     <div className="attendance-bar panel">
-      <div><strong>{entries.length} học viên</strong><small>{unmarked} chưa đánh dấu{dirty ? ' · Có thay đổi chưa lưu' : ''}</small></div>
-      {canEdit && entries.length > 0 && <button disabled={busy || unmarked === 0} onClick={() =>
+      <div role="status"><strong>{entries.length} học viên</strong><small>{unmarked} chưa đánh dấu{dirty ? ' · Có thay đổi chưa lưu' : ''}</small></div>
+      {canEdit && entries.length > 0 && <div className="attendance-filters">
+        <button type="button" aria-pressed={onlyUnmarked} onClick={() => setOnlyUnmarked(value => !value)}>Chưa điểm danh</button>
+        <button disabled={busy || unmarked === 0} onClick={() =>
         setEntries(items => items.map(row => row.status === 'unmarked' ? { ...row, status: 'present' } : row))}>
         <CheckCheck size={18} aria-hidden="true" /> Đánh dấu còn lại có mặt
-      </button>}
+      </button></div>}
     </div>
     {session.status === 'cancelled' && <p className="panel">Buổi học đã hủy.</p>}
     {!canEdit && session.status === 'scheduled' && <p className="panel muted">Điểm danh mở khi buổi học bắt đầu.</p>}
@@ -232,7 +327,8 @@ function SheetEditor({ sheet, endpoint, api, admin, reload, saved }: {
     {session.status !== 'cancelled' && <Panel title="Danh sách điểm danh">
       {!entries.length && <Empty>Chưa có học viên đủ điều kiện cho buổi này.</Empty>}
       <fieldset disabled={busy} className="attendance-grid">
-        {entries.map(row => <div key={row.enrollment_id} className="attendance-row">
+        {onlyUnmarked && !unmarked && <Empty>Đã đánh dấu đủ học viên.</Empty>}
+        {entries.filter(row => !onlyUnmarked || row.status === 'unmarked').map(row => <div key={row.enrollment_id} className="attendance-row">
           <div><strong>{row.name}</strong><small>{row.code}</small></div>
           {canEdit ? <>
             <label className="field"><span className="sr-only">Trạng thái của {row.name}</span>
@@ -240,14 +336,18 @@ function SheetEditor({ sheet, endpoint, api, admin, reload, saved }: {
                 {attendanceStatuses.map(id => <option value={id} key={id}>{statuses[id]}</option>)}
               </select>
             </label>
-            <label className="field"><span className="sr-only">Ghi chú cho {row.name}</span><input maxLength={400} value={row.note}
-              placeholder="Ghi chú (tùy chọn)" onChange={event => change(row.enrollment_id, { note: event.target.value })} /></label>
+            {row.note || editingNotes.includes(row.enrollment_id) ? <label className="field"><span className="sr-only">Ghi chú cho {row.name}</span><input maxLength={400} value={row.note}
+              placeholder="Ghi chú (tùy chọn)" onChange={event => change(row.enrollment_id, { note: event.target.value })} /></label> :
+              <button type="button" className="attendance-note" aria-label={'Thêm ghi chú cho ' + row.name}
+                onClick={() => setEditingNotes(old => [...old, row.enrollment_id])}>+ Ghi chú</button>}
           </> : <><Badge status={row.status} /><span className="muted">{row.note}</span></>}
         </div>)}
       </fieldset>
       {canEdit && entries.length > 0 && <div className="attendance-actions">
         <button disabled={busy} onClick={() => persist(false)}>{busy ? 'Đang lưu…' : 'Lưu nháp'}</button>
-        <button className="primary" disabled={busy || unmarked > 0} onClick={() => persist(true)}>Chốt điểm danh</button>
+        <button className="primary" disabled={busy || unmarked > 0} aria-describedby={unmarked ? 'finalize-help' : undefined}
+          onClick={() => persist(true)}>Chốt điểm danh</button>
+        {unmarked > 0 && <small id="finalize-help">Còn {unmarked} học viên chưa được đánh dấu.</small>}
       </div>}
       {error && <button onClick={() => {
         if (!dirty || window.confirm('Tải lại và bỏ các thay đổi chưa lưu?')) reload()
@@ -267,10 +367,10 @@ function SheetEditor({ sheet, endpoint, api, admin, reload, saved }: {
         <Field label="Ngày học"><input name="lesson_date" type="date" defaultValue={session.lesson_date} required /></Field>
         <LessonFields classApi={api + '/classes/' + session.class_id} lesson={session} />
       </ActionForm>
-      <ActionForm label="Hủy buổi học" onSaved={() => saved('Đã hủy buổi học.')} action={() =>
-        window.confirm('Hủy buổi học này?')
-          ? send(api + '/sessions/' + session.id, { version: session.version, action: 'cancel' }, 'PATCH')
-          : Promise.reject(new Error('Đã giữ buổi học.'))}><p className="muted">Lịch vẫn hiển thị buổi đã hủy để đối chiếu.</p></ActionForm>
+      <ActionForm label="Hủy buổi học" onSaved={() => saved('Đã hủy buổi học.')} action={() => {
+        confirmOrCancel('Hủy buổi học này?')
+        return send(api + '/sessions/' + session.id, { version: session.version, action: 'cancel' }, 'PATCH')
+      }}><p className="muted">Lịch vẫn hiển thị buổi đã hủy để đối chiếu.</p></ActionForm>
     </details>}
     {admin && <details className="panel new-record" onToggle={event => setHistory(event.currentTarget.open)}>
       <summary>Lịch sử điểm danh</summary>
@@ -291,7 +391,7 @@ export function Attendance({ api, base, workspace }: WorkspaceProps) {
       <Header kicker="ClassCheck · Điểm danh" title={data.session.class_name} description={
         formatDay(data.session.lesson_date) + ' · ' + formatClock(data.session.starts_at) + '–' + formatClock(data.session.ends_at) +
         ' · ' + data.session.teacher_name + (data.session.room ? ' · ' + data.session.room : '')}>
-        <Badge status={data.session.status === 'cancelled' ? 'cancelled' : data.session.attendance_state} />
+        <Badge status={lessonStatus(data.session)} />
       </Header>
       <SheetEditor key={data.session.id + ':' + data.session.version} sheet={data} endpoint={endpoint} api={api}
         admin={workspace.role !== 'teacher'} reload={load.refresh} saved={saved} />
@@ -299,13 +399,16 @@ export function Attendance({ api, base, workspace }: WorkspaceProps) {
   </>
 }
 
-type ReportRow = { lesson_date: string; class_name: string; student_code: string; student_name: string; status: Status }
+type ReportRow = { session_id: string; lesson_date: string; class_name: string; student_code: string; student_name: string; status: Status }
 type Summary = Record<Status | 'total', number>
-type Report = Page<ReportRow> & { summary: Summary }
+type Report = Page<ReportRow> & {
+  summary: Summary; coverage: { sessions: number; finalized: number }
+  review: { id: string; name: string; code: string; absent: number; late: number }[]; reviewHasMore: boolean
+}
 type FilterOption = { id: string; name: string }
 type ReportStaff = { user_id: string; name: string; role: string }
 
-export function Reports({ api, workspace }: WorkspaceProps) {
+export function Reports({ api, base, workspace }: WorkspaceProps) {
   const [params, setParams] = useSearchParams()
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -359,27 +462,42 @@ export function Reports({ api, workspace }: WorkspaceProps) {
         </details>
       </ActionForm>
     </Panel>
-    <LoadView load={load}>{({ data, summary, pagination }) => {
+    <LoadView load={load}>{({ data, summary, coverage, review, reviewHasMore, pagination }) => {
       const denominator = summary.present + summary.late + summary.absent
       const rate = denominator ? new Intl.NumberFormat('vi-VN', { style: 'percent', maximumFractionDigits: 1 })
         .format((summary.present + summary.late) / denominator) : '—'
-      return <Panel title="Kết quả đã chốt">
-        <div className="report-summary">
+      return <>
+      {!filters.has('student_id') && review.length > 0 && <Panel title="Học sinh cần rà soát">
+        <p className="muted">Vắng hoặc đi muộn từ 2 lần trong các buổi đã chốt thuộc bộ lọc.</p>
+        <div className="list">{review.map(row => {
+          const student = new URLSearchParams(filters)
+          student.set('student_id', row.id)
+          student.delete('page')
+          return <Link className="row-link" key={row.id} to={base + '/bao-cao?' + student}>
+            <div><strong>{row.name}</strong><small>{row.code}</small></div>
+            <span>{row.absent} vắng · {row.late} đi muộn</span><ChevronRight size={17} aria-hidden="true" />
+          </Link>
+        })}</div>
+        {reviewHasMore && <p className="muted">Đang hiển thị 25 hồ sơ đầu. Thu hẹp bộ lọc để rà từng lớp.</p>}
+      </Panel>}
+      <Panel title="Kết quả đã chốt">
+        <p className="muted">{coverage.finalized}/{coverage.sessions} buổi đã diễn ra có điểm danh đã chốt.</p>
+        {summary.total > 0 && <><div className="report-summary">
           <div><strong>{rate}</strong><span>Tỷ lệ chuyên cần</span></div>
           {attendanceStatuses.map(status => <div key={status}><strong>{summary[status]}</strong><span>{statuses[status]}</span></div>)}
         </div>
-        <p className="muted">Tỷ lệ = (Có mặt + Đi muộn) / (Có mặt + Đi muộn + Vắng).</p>
-        <button onClick={download} disabled={busy}><Download size={17} aria-hidden="true" /> {busy ? 'Đang xuất…' : 'Xuất CSV theo bộ lọc'}</button>
+        <p className="muted">Tỷ lệ = (Có mặt + Đi muộn) / (Có mặt + Đi muộn + Vắng).</p></>}
+        <button onClick={download} disabled={busy || summary.total === 0}><Download size={17} aria-hidden="true" /> {busy ? 'Đang xuất…' : 'Xuất CSV theo bộ lọc'}</button>
         {data.length ? <div className="table-scroll" tabIndex={0} role="region" aria-label="Chi tiết chuyên cần"><table>
           <thead><tr><th scope="col">Ngày</th><th scope="col">Lớp</th><th scope="col">Mã</th><th scope="col">Học viên</th><th scope="col">Trạng thái</th></tr></thead>
-          <tbody>{data.map((row, index) => <tr key={index}><td>{formatDay(row.lesson_date)}</td><td>{row.class_name}</td>
+          <tbody>{data.map((row, index) => <tr key={index}><td><Link to={base + '/buoi/' + row.session_id}>{formatDay(row.lesson_date)}</Link></td><td>{row.class_name}</td>
             <td>{row.student_code}</td><td>{row.student_name}</td><td><Badge status={row.status} /></td></tr>)}</tbody>
         </table></div> : <Empty>Chưa có điểm danh đã chốt trong bộ lọc.</Empty>}
         <Pager {...pagination} change={page => {
           filters.set('page', String(page))
           setParams(filters)
         }} />
-      </Panel>
+      </Panel></>
     }}</LoadView>
   </>
 }

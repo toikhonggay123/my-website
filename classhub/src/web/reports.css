@@ -1,0 +1,40 @@
+@layer components {
+  .report-presets { margin-bottom: 12px; }
+  .report-table { width: 100%; border-collapse: collapse; }
+  .report-table th, .report-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  .report-table th:first-child, .report-table thead th { text-align: left; }
+  .report-table thead th { font-size: .82rem; color: var(--muted); }
+  .report-warn { background: #fff4dc; color: #6b4206; font-weight: 700; }
+
+  .register-heading { margin-bottom: 12px; }
+  .register-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: start; }
+  .register-scroll { max-height: 75vh; overflow: auto; border: 1px solid var(--line); border-radius: 10px; }
+  .register { border-collapse: separate; border-spacing: 0; font-size: .82rem; font-variant-numeric: tabular-nums; }
+  .register th, .register td { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 4px 5px; text-align: center; min-width: 26px; }
+  .register thead th { position: sticky; top: 0; z-index: 2; background: #f3f7fd; font-weight: 750; }
+  .register thead tr + tr th { top: 27px; color: var(--muted); font-weight: 600; }
+  .register .register-index { position: sticky; left: 0; z-index: 1; background: #fff; min-width: 34px; color: var(--muted); }
+  .register .register-name { position: sticky; left: 34px; z-index: 1; background: #fff; text-align: left; white-space: nowrap; min-width: 160px; font-weight: 600; }
+  .register thead .register-index, .register thead .register-name { z-index: 3; background: #f3f7fd; }
+  .register .register-name svg { margin-left: 4px; color: #a3202d; vertical-align: -2px; }
+  .register-open { color: #94a3b8; }
+  .register-late { background: #fff1d6; color: #7a4a05; font-weight: 800; }
+  .register-excused { background: #e5eeff; color: #1f4d9c; font-weight: 800; }
+  .register-absent { background: #fde8ea; color: #a3202d; font-weight: 800; }
+  .register-flagged .register-name, .register-flagged .register-index { background: #fff6f6; }
+  .register-legend { margin-top: 10px; }
+  .attention-panel .row-link small { color: var(--muted); }
+}
+
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  .sidebar, .topbar, .mobile-nav, .no-print, .skip, .demo-note, .register-panel ~ *, .content > .panel:not(.register-panel),
+  .content > .page-heading p { display: none !important; }
+  .shell { display: block; }
+  .content { padding: 0; max-width: none; }
+  .register-panel { border: 0; box-shadow: none; padding: 0; }
+  .register-scroll { max-height: none; overflow: visible; border: 0; }
+  .register { font-size: 9pt; }
+  .register thead th, .register .register-index, .register .register-name { position: static; }
+  .register th, .register td { border-color: #999; }
+}

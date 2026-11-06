@@ -1,11 +1,13 @@
 import { z } from 'zod'
 import {
-  type Ctx, audit, bad, body, classScope, conflict, db, email, isoDate, localAdmin, missing, newId, now, one,
+  type Ctx, audit, bad, body, classScope, conflict, db, email, isoDate, staffProfilesOnly, missing, newId, now, one,
   optionalText, pageResult, pagination, param, query, requireRole, result, router, rows, scopedClass,
   text, today, token, tokenHash, uuid, validated,
 } from './core'
 import { organizationProfile } from './identity'
 import { directoryStudentInput, directoryWrite, guardSharedClass, sharedEnabled } from './shared-directory'
+import { dashboardAnalytics } from './dashboard'
+import { ensurePrepared } from './school'
 
 const courseInput = z.object({ code: text(30), name: text(120), subject: text(80), description: optionalText(1000) })
 const classStatus = z.enum(['draft', 'scheduled', 'active', 'completed', 'archived', 'cancelled'])
@@ -13,7 +15,17 @@ const classInput = z.object({
   code: text(30), name: text(150), starts_on: isoDate, ends_on: isoDate,
   capacity: z.number().int().min(1).max(100), room: optionalText(80), notes: optionalText(1000),
 })
-const classCreate = classInput.extend({ course_id: uuid, branch_id: uuid })
+// School workspaces create homeroom classes without choosing a course; they share one internal course.
+const classCreate = classInput.extend({ course_id: uuid.optional(), branch_id: uuid })
+async function homeroomCourse(c: Ctx, orgId: string) {
+  const org = await one<{ type: string }>(c, 'SELECT type FROM organizations WHERE id=?', orgId)
+  if (org?.type !== 'school') throw bad('Hãy chọn khóa học cho lớp.')
+  const timestamp = now()
+  await query(c, `INSERT INTO courses(org_id,id,code,name,subject,created_at,updated_at)
+    VALUES (?,?,'LOP-SH','Lớp sinh hoạt','Sinh hoạt lớp',?,?) ON CONFLICT(org_id,code) DO NOTHING`,
+  orgId, newId(), timestamp, timestamp).run()
+  return (await one<{ id: string }>(c, "SELECT id FROM courses WHERE org_id=? AND code='LOP-SH'", orgId))!.id
+}
 const transitions: Record<string, string[]> = {
   draft: ['scheduled', 'active', 'cancelled'], scheduled: ['active', 'cancelled'],
   active: ['completed', 'cancelled'], completed: ['archived'], cancelled: ['archived'], archived: [],
@@ -67,7 +79,7 @@ export const operations = router()
     return pageResult(c, list, page)
   })
   .post('/staff', async c => {
-    if (!localAdmin(c)) throw missing()
+    if (!staffProfilesOnly(c)) throw missing()
     const { orgId } = requireRole(c, 'owner')
     const { name } = await body(c, z.object({ name: text(100) }))
     const id = newId()
@@ -99,7 +111,7 @@ export const operations = router()
     return result(c, { active })
   })
   .post('/invitations', async c => {
-    if (localAdmin(c)) throw missing()
+    if (staffProfilesOnly(c)) throw missing()
     const { orgId } = requireRole(c, 'owner')
     const input = await body(c, z.object({
       email, role: z.enum(['teacher', 'branch_admin']), branch_id: uuid.nullable().default(null),
@@ -165,13 +177,16 @@ export const operations = router()
     const input = await body(c, classCreate)
     classDates(input)
     if (scope.role === 'branch_admin' && scope.branchId !== input.branch_id) throw missing()
+    const courseId = input.course_id ?? await homeroomCourse(c, scope.orgId)
     const id = newId(), timestamp = now()
     const writes = await db(c).batch([
-      query(c, `INSERT INTO classes(org_id,id,code,name,course_id,branch_id,starts_on,ends_on,capacity,room,notes,created_at,updated_at)
-        SELECT ?,?,?,?,?,?,?,?,?,?,?,?,? FROM courses co JOIN branches b ON b.org_id=co.org_id
+      // Homeroom classes are in session for the whole school year, so they start active.
+      query(c, `INSERT INTO classes(org_id,id,code,name,course_id,branch_id,starts_on,ends_on,capacity,room,notes,status,created_at,updated_at)
+        SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM courses co JOIN branches b ON b.org_id=co.org_id
         WHERE co.org_id=? AND co.id=? AND co.archived=0 AND b.id=?`,
-      scope.orgId, id, input.code, input.name, input.course_id, input.branch_id, input.starts_on, input.ends_on,
-      input.capacity, input.room, input.notes, timestamp, timestamp, scope.orgId, input.course_id, input.branch_id),
+      scope.orgId, id, input.code, input.name, courseId, input.branch_id, input.starts_on, input.ends_on,
+      input.capacity, input.room, input.notes, input.course_id ? 'draft' : 'active', timestamp, timestamp,
+      scope.orgId, courseId, input.branch_id),
       query(c, `INSERT INTO audit_events(org_id,id,actor_id,event,target_id,occurred_at)
         SELECT org_id,?,?,'class.created',id,? FROM classes WHERE org_id=? AND id=?`, newId(), scope.userId, timestamp, scope.orgId, id),
     ])
@@ -180,7 +195,19 @@ export const operations = router()
   })
   .get('/classes/:classId', async c => {
     const item = await scopedClass(c)
-    return result(c, item)
+    const { orgId, role, userId } = c.get('scope')
+    const [enrolled, teacher, next] = await Promise.all([
+      one<{ count: number }>(c, `SELECT COUNT(*) AS count FROM enrollments
+        WHERE org_id=? AND class_id=? AND enrolled_on<=? AND (withdrawn_on IS NULL OR withdrawn_on>?)`,
+      orgId, item.id, today(), today()),
+      one<{ name: string }>(c, `SELECT u.name FROM teacher_assignments a JOIN "user" u ON u.id=a.user_id
+        JOIN memberships m ON m.org_id=a.org_id AND m.user_id=a.user_id AND m.active=1
+        WHERE a.org_id=? AND a.class_id=? AND a.ended_at IS NULL ORDER BY a.duty='primary' DESC,u.name LIMIT 1`, orgId, item.id),
+      one<{ id: string; lesson_date: string; starts_at: number; room: string }>(c, `SELECT id,lesson_date,starts_at,room
+        FROM class_sessions WHERE org_id=? AND class_id=? AND status='scheduled' AND starts_at>=?
+        AND (?<>'teacher' OR teacher_id=?) ORDER BY starts_at,id LIMIT 1`, orgId, item.id, now(), role, userId),
+    ])
+    return result(c, { ...item, enrolled: enrolled?.count ?? 0, teacher: teacher?.name ?? null, next })
   })
   .patch('/classes/:classId', async c => {
     const { orgId } = requireRole(c, ...admins)
@@ -223,6 +250,25 @@ export const operations = router()
     await query(c, 'INSERT INTO students(org_id,id,code,name,created_at,updated_at) VALUES (?,?,?,?,?,?)',
       orgId, id, input.code, input.name, timestamp, timestamp).run()
     return result(c, { id }, 201)
+  })
+  .post('/students/import', async c => {
+    const { orgId } = requireRole(c, 'owner')
+    if (sharedEnabled(c)) throw conflict('Hãy cập nhật danh sách chung từ nguồn MealCheck.')
+    const input = await body(c, z.object({ preview: z.boolean(), students: z.array(studentInput).min(1).max(100) }))
+    const keys = input.students.map(row => row.code.toLowerCase())
+    if (new Set(keys).size !== keys.length) throw bad('Có mã học viên lặp trong danh sách vừa dán.')
+    const records = JSON.stringify(input.students.map(row => ({ ...row, id: newId() })))
+    if (input.preview) {
+      const matches = await rows<{ code: string }>(c, `SELECT s.code FROM students s
+        WHERE s.org_id=? AND EXISTS (SELECT 1 FROM json_each(?) j WHERE s.code=j.value->>'code')`, orgId, records)
+      return result(c, { existing: matches.map(row => row.code.toLowerCase()) })
+    }
+    const timestamp = now()
+    const write = await query(c, `INSERT INTO students(org_id,id,code,name,created_at,updated_at)
+      SELECT ?,j.value->>'id',j.value->>'code',j.value->>'name',?,? FROM json_each(?) j WHERE 1
+      ON CONFLICT(org_id,code) DO NOTHING`, orgId, timestamp, timestamp, records).run()
+    const created = write.meta.changes ?? 0
+    return result(c, { created, skipped: input.students.length - created }, 201)
   })
   .patch('/students/:id', async c => {
     const { orgId } = requireRole(c, 'owner')
@@ -372,11 +418,15 @@ export const operations = router()
     if (!writes[0].meta.changes) throw conflict('Phân công đã kết thúc hoặc giáo viên vẫn phụ trách buổi học chưa hoàn tất.')
     return result(c, { id: target })
   })
+  .get('/dashboard/analytics', dashboardAnalytics)
   .get('/dashboard', async c => {
     const scope = c.get('scope')
+    await ensurePrepared(c)
     const [rule, ...args] = classScope(scope)
     const date = today()
-    const [stats, sessions, unassigned] = await Promise.all([
+    const timestamp = now()
+    const pendingPage = validated(z.coerce.number().int().min(1).max(10_000), c.req.query('pending_page') ?? 1)
+    const [stats, sessions, unassigned, pendingSessions, todaySessions] = await Promise.all([
       one(c, `WITH visible AS (SELECT cl.* FROM classes cl WHERE cl.org_id=? AND ${rule})
         SELECT (SELECT COUNT(*) FROM visible WHERE status='active') AS active_classes,
         (SELECT COUNT(DISTINCT e.student_id) FROM enrollments e JOIN visible v ON v.org_id=e.org_id AND v.id=e.class_id
@@ -387,7 +437,7 @@ export const operations = router()
           WHERE s.lesson_date=? AND s.status<>'cancelled' AND (?<>'teacher' OR s.teacher_id=?)) AS today_sessions,
         (SELECT COUNT(*) FROM class_sessions s JOIN visible v ON v.org_id=s.org_id AND v.id=s.class_id
           WHERE s.ends_at<=? AND s.status='scheduled' AND (?<>'teacher' OR s.teacher_id=?)) AS pending`,
-      scope.orgId, ...args, date, scope.role, scope.userId, now(), scope.role, scope.userId),
+      scope.orgId, ...args, date, scope.role, scope.userId, timestamp, scope.role, scope.userId),
       rows(c, `SELECT s.id,s.starts_at,s.ends_at,s.lesson_date,s.attendance_state,s.room,cl.name AS class_name
         FROM class_sessions s JOIN classes cl ON cl.org_id=s.org_id AND cl.id=s.class_id
         WHERE s.org_id=? AND ${rule} AND (?<>'teacher' OR s.teacher_id=?) AND s.lesson_date>=? AND s.status='scheduled'
@@ -396,6 +446,15 @@ export const operations = router()
         AND NOT EXISTS (SELECT 1 FROM teacher_assignments a JOIN memberships m ON m.org_id=a.org_id AND m.user_id=a.user_id
           WHERE a.org_id=cl.org_id AND a.class_id=cl.id AND a.ended_at IS NULL AND m.active=1)
         ORDER BY cl.name,cl.id LIMIT 8`, scope.orgId, ...args),
+      rows(c, `SELECT s.id,s.starts_at,s.ends_at,s.lesson_date,s.attendance_state,s.status,s.room,cl.name AS class_name
+        FROM class_sessions s JOIN classes cl ON cl.org_id=s.org_id AND cl.id=s.class_id
+        WHERE s.org_id=? AND ${rule} AND (?<>'teacher' OR s.teacher_id=?) AND s.ends_at<=? AND s.status='scheduled'
+        ORDER BY s.ends_at DESC,s.id LIMIT 9 OFFSET ?`, scope.orgId, ...args, scope.role, scope.userId, timestamp, (pendingPage - 1) * 8),
+      rows(c, `SELECT s.id,s.starts_at,s.ends_at,s.lesson_date,s.attendance_state,s.status,s.room,cl.name AS class_name
+        FROM class_sessions s JOIN classes cl ON cl.org_id=s.org_id AND cl.id=s.class_id
+        WHERE s.org_id=? AND ${rule} AND (?<>'teacher' OR s.teacher_id=?) AND s.lesson_date=? AND s.status<>'cancelled'
+        ORDER BY s.starts_at,s.id LIMIT 10`, scope.orgId, ...args, scope.role, scope.userId, date),
     ])
-    return result(c, { stats, sessions, unassigned, date })
+    return result(c, { stats, sessions, unassigned, date, pendingPage, pendingSessions: pendingSessions.slice(0, 8),
+      pendingHasMore: pendingSessions.length > 8, todaySessions })
   })

@@ -55,7 +55,7 @@ test('owner and teacher complete the ClassCheck workflow across isolated workspa
   await page.getByLabel('Mã mời tạo đơn vị mới').check()
   await page.getByLabel('Tên đơn vị').fill('Trung tâm Minh Học (hư cấu)')
   await page.getByRole('button', { name: 'Tạo không gian' }).click()
-  await expect(page.getByRole('heading', { name: 'Tổng quan' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Hôm nay', exact: true })).toBeVisible()
   const org = new URL(page.url()).pathname.split('/')[2]
   const scope = api(org)
   const owner = page.request
@@ -150,9 +150,12 @@ test('owner and teacher complete the ClassCheck workflow across isolated workspa
       ...starts, weekday: new Date(current).getUTCDay() || 7, every_weeks: 1,
       starts_on: current, ends_on: plus(current, 14),
     }, status: 201 })).data.id
+    const preview = () => call(owner, firstClass + '/timetable/' + rule + '/preview?' + new URLSearchParams({ from: current, to: plus(current, 14) }))
+    expect((await preview()).data.map((row: {status: string}) => row.status)).toEqual(['ready', 'ready', 'ready'])
     const generate = () => call(owner, firstClass + '/timetable/' + rule + '/generate', { data: { from: current, to: plus(current, 14) } })
     expect((await generate()).data).toEqual({ created: 3, occurrences: 3 })
     expect((await generate()).data.created).toBe(0)
+    expect((await preview()).data.map((row: {status: string}) => row.status)).toEqual(['existing', 'existing', 'existing'])
     await call(owner, scope + '/classes/' + second + '/sessions', { data: { ...starts, lesson_date: current, room: 'QA-P2' }, status: 409 })
     const secondLesson = (await call(owner, scope + '/classes/' + second + '/sessions', {
       data: { ...starts, lesson_date: current, starts_at: '00:20', ends_at: '00:40' }, status: 201,
@@ -196,6 +199,12 @@ test('owner and teacher complete the ClassCheck workflow across isolated workspa
     const reportPath = scope + '/reports/attendance?from=' + current + '&to=' + current + '&class_id=' + first
     const summary = (await call(owner, reportPath)).summary
     expect(summary).toMatchObject({ present: 29, absent: 1, excused: 0, unmarked: 0, total: 30 })
+    const analytics = (await call(teacherPage.request, scope + '/dashboard/analytics?days=14')).data
+    expect(analytics.daily).toHaveLength(14)
+    expect(analytics.daily.at(-1)).toMatchObject({ date: current, done: 1 })
+    expect(analytics.attendance).toEqual({ present: 29, late: 0, absent: 1, excused: 0 })
+    expect(analytics.classes.find((row: { id: string }) => row.id === first)).toMatchObject({ done: 1, absent: 1 })
+    await call(other, scope + '/dashboard/analytics', { status: 404 })
     const csv = await owner.get(reportPath.replace('/attendance?', '/attendance.csv?'))
     expect(csv.status()).toBe(200)
     expect((await csv.text()).split('\r\n')).toHaveLength(31)

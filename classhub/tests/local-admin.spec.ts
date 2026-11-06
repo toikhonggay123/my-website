@@ -18,7 +18,7 @@ test('loopback opens administration directly and keeps teachers usable without c
     headers: { Origin: 'https://untrusted.example.test' }, data: { name: 'QA' },
   })).status()).toBe(403)
   await page.goto(origin)
-  await expect(page.getByRole('heading', { name: 'Tổng quan' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Hôm nay', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Đăng nhập', exact: true })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Đăng xuất', exact: true })).toHaveCount(0)
   await page.getByRole('link', { name: 'Nhân sự' }).click()

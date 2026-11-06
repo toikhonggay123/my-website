@@ -23,7 +23,7 @@ export const directoryStudentInput = z.object({
   revision: z.number().int().nonnegative(), operation_id: uuid,
 })
 export function sharedEnabled(c: Ctx, orgId = c.get('scope').orgId) {
-  return new URL(c.req.url).origin === c.env.APP_ORIGIN && c.env.MEALCHECK_DIRECTORY_ORG_ID === orgId
+  return !c.get('demoDb') && new URL(c.req.url).origin === c.env.APP_ORIGIN && c.env.MEALCHECK_DIRECTORY_ORG_ID === orgId
     && Boolean(c.env.MEALCHECK_DIRECTORY_ORIGIN && c.env.MEALCHECK_DIRECTORY_KEY)
 }
 async function stableId(value: string) {
@@ -160,15 +160,25 @@ export async function applyDirectory(c: Ctx, snapshot: Snapshot) {
   }
 }
 
-export async function refreshDirectory(c: Ctx) {
+// Best-effort throttle per Worker isolate. Each check downloads the whole roster (up to 1,000 students),
+// so ordinary reads reuse a check made in the last few seconds. Roster screens pass force=true.
+export const directoryRecheckMs = 15_000
+const lastChecked = new Map<string, number>()
+export async function refreshDirectory(c: Ctx, { force = true } = {}) {
   if (!sharedEnabled(c)) return
+  const { orgId } = c.get('scope')
+  const checkedAt = lastChecked.get(orgId)
+  if (!force && checkedAt !== undefined && now() - checkedAt < directoryRecheckMs) return
   await applyDirectory(c, (await upstream(c)).snapshot)
+  lastChecked.set(orgId, now())
 }
 export async function directoryWrite(c: Ctx, mutation: object) {
   const response = await upstream(c, mutation)
   try { await applyDirectory(c, response.snapshot) } catch {
+    lastChecked.delete(c.get('scope').orgId)
     throw new Failure(503, 'directory_saved', 'Đã lưu vào danh sách chung. ClassHub chưa cập nhật được. Hãy tải lại để kiểm tra kết quả.')
   }
+  lastChecked.set(c.get('scope').orgId, now())
   return response.externalId
 }
 export async function guardSharedClass(c: Ctx, classId: string) {

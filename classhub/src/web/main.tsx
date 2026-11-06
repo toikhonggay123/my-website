@@ -2,27 +2,38 @@ import { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, Link, Navigate, NavLink, Route, RouterProvider, Routes, useNavigate, useParams } from 'react-router-dom'
 import {
-  BookOpen, CalendarDays, ChartNoAxesColumn, ChevronRight, ClipboardCheck, GraduationCap, House,
-  Layers3, LogOut, Settings, UsersRound,
+  BookOpen, CalendarDays, ChartNoAxesColumn, ChevronRight, GraduationCap, Grid3x3, House,
+  Layers3, LogOut, Menu, Settings, UsersRound,
 } from 'lucide-react'
-import '@fontsource-variable/plus-jakarta-sans'
+// Three weights cover the UI: CSS 500 renders with 400, 600–650 with 700, 740–820 with 800.
+import '@fontsource/be-vietnam-pro/latin-400.css'
+import '@fontsource/be-vietnam-pro/latin-700.css'
+import '@fontsource/be-vietnam-pro/latin-800.css'
+import '@fontsource/be-vietnam-pro/vietnamese-400.css'
+import '@fontsource/be-vietnam-pro/vietnamese-700.css'
+import '@fontsource/be-vietnam-pro/vietnamese-800.css'
 import './styles.css'
 import {
-  ActionForm, Badge, Empty, Field, Header, LoadView, Notice, Panel, basePath, errorText, formatClock, formatDay,
-  request, roles, send, useLoad, value, type Workspace,
+  ActionForm, Field, Header, Notice, basePath, errorText, legacyStudentTimetablePath, request, roles, send, studentTimetablePath, value,
+  type Workspace,
 } from './ui'
 import { Classes, ClassWorkspace, Courses, Staff, Students, TypeField, WorkspaceSettings } from './operations'
-import { Attendance, Calendar, Reports, type Lesson } from './scheduling'
+import { Attendance, Calendar } from './scheduling'
+import { ReportsPage } from './reports'
+import { Dashboard } from './dashboard'
+import { SchoolTimetable } from './school'
 
 type User = { name: string; email: string }
 type Identity = { user: User; workspaces: Workspace[]; local: boolean }
+// mode: shown only for school workspaces ('school') or only for course-based ones ('course').
 const navigation = [
-  { path: '', label: 'Tổng quan', icon: House, role: 'all' },
+  { path: '', label: 'Hôm nay', icon: House, role: 'all' },
+  { path: '/lich', label: 'Lịch học', icon: CalendarDays, role: 'all' },
   { path: '/lop', label: 'Lớp học', icon: Layers3, role: 'all' },
-  { path: '/khoa-hoc', label: 'Khóa học', icon: BookOpen, role: 'admin' },
+  { path: '/tkb', label: 'Thời khóa biểu', icon: Grid3x3, role: 'owner', mode: 'school' },
+  { path: '/khoa-hoc', label: 'Khóa học', icon: BookOpen, role: 'admin', mode: 'course' },
   { path: '/hoc-vien', label: 'Học viên', icon: GraduationCap, role: 'owner' },
   { path: '/nhan-su', label: 'Nhân sự', icon: UsersRound, role: 'admin' },
-  { path: '/lich', label: 'Lịch học', icon: CalendarDays, role: 'all' },
   { path: '/bao-cao', label: 'Báo cáo', icon: ChartNoAxesColumn, role: 'admin' },
   { path: '/thiet-lap', label: 'Thiết lập', icon: Settings, role: 'owner' },
 ]
@@ -63,6 +74,7 @@ function Login({ onLogin }: { onLogin: (identity: Identity, code: string) => voi
     <button className="text-button" onClick={() => setActivate(!activate)}>
       {activate ? 'Quay lại đăng nhập' : 'Tôi có mã mời và cần tạo tài khoản'}
     </button>
+    {basePath && <p><Link to="/thu">Về bản dùng thử</Link></p>}
   </div></Gate>
 }
 
@@ -104,53 +116,6 @@ function WorkspacePicker({ identity, code, refresh, logout }: {
   </div></Gate>
 }
 
-function Dashboard({ workspace, api, base }: { workspace: Workspace; api: string; base: string }) {
-  type Data = {
-    stats: Record<string, number>; sessions: Lesson[]; unassigned: { id: string; name: string }[]; date: string
-  }
-  const load = useLoad<{ data: Data }>(api + '/dashboard')
-  return <>
-    <Header kicker="Không gian vận hành" title="Tổng quan" description={workspace.name} />
-    <LoadView load={load}>{({ data }) => <>
-      <div className="dashboard-band">
-        <div><p className="eyebrow">Nhịp vận hành · {formatDay(data.date)}</p>
-          <h2>{workspace.role === 'teacher' ? 'Lịch dạy của bạn' : 'Hoạt động hôm nay'}</h2>
-          <p>{data.stats.today_sessions} buổi hôm nay · {data.stats.pending} buổi đã qua giờ và chờ chốt</p></div>
-        <Link className="button light" to={base + '/lich'}>Mở lịch học <ChevronRight size={16} aria-hidden="true" /></Link>
-      </div>
-      <div className="stats">
-        {[
-          { key: 'active_classes', label: 'Lớp đang học', Icon: Layers3 },
-          { key: 'enrolled_students', label: 'Học viên đang ghi danh', Icon: GraduationCap },
-          { key: workspace.role === 'teacher' ? 'today_sessions' : 'teachers',
-            label: workspace.role === 'teacher' ? 'Buổi dạy hôm nay' : 'Giáo viên được phân công', Icon: UsersRound },
-          { key: 'pending', label: 'Buổi cần chốt điểm danh', Icon: ClipboardCheck },
-        ].map(({ key, label, Icon }) => <div className="stat panel" key={key}>
-          <Icon size={20} aria-hidden="true" /><strong>{data.stats[key]}</strong><span>{label}</span>
-        </div>)}
-      </div>
-      <div className="dashboard-grid">
-        <Panel title={workspace.role === 'teacher' ? 'Buổi dạy sắp tới' : 'Buổi học sắp tới'}>
-          {data.sessions.length ? <div className="list">{data.sessions.map(lesson =>
-            <Link className="row-link" to={base + '/buoi/' + lesson.id} key={lesson.id}>
-              <div><strong>{lesson.class_name}</strong><small>{formatDay(lesson.lesson_date)} · {formatClock(lesson.starts_at)}</small></div>
-              <Badge status={lesson.attendance_state} /><ChevronRight size={18} aria-hidden="true" />
-            </Link>)}</div> : <Empty>Chưa có buổi học sắp tới.</Empty>}
-        </Panel>
-        <Panel title="Thao tác nhanh">
-          <div className="list">
-            <Link className="row-link" to={base + '/lop'}><Layers3 size={18} aria-hidden="true" /> {workspace.role === 'teacher' ? 'Lớp được phân công' : 'Quản lý lớp'} <ChevronRight size={18} aria-hidden="true" /></Link>
-            <Link className="row-link" to={base + '/lich'}><CalendarDays size={18} aria-hidden="true" /> Xem lịch <ChevronRight size={18} aria-hidden="true" /></Link>
-            {workspace.role !== 'teacher' && <Link className="row-link" to={base + '/bao-cao'}><ChartNoAxesColumn size={18} aria-hidden="true" /> Báo cáo chuyên cần <ChevronRight size={18} aria-hidden="true" /></Link>}
-          </div>
-          {data.unassigned.map(item => <Link className="warning-link" key={item.id} to={base + '/lop/' + item.id}>
-            {item.name} cần phân công giáo viên
-          </Link>)}
-        </Panel>
-      </div>
-    </>}</LoadView>
-  </>
-}
 function WorkspaceView({ identity, logout, refresh }: { identity: Identity; logout: () => Promise<void>; refresh: () => Promise<Identity> }) {
   const { id } = useParams()
   const workspace = identity.workspaces.find(item => item.id === id)
@@ -158,50 +123,102 @@ function WorkspaceView({ identity, logout, refresh }: { identity: Identity; logo
   return <Shell key={workspace.id} workspace={workspace} identity={identity} logout={logout} refresh={refresh} />
 }
 
-function Shell({ workspace, identity, logout, refresh }: {
-  workspace: Workspace; identity: Identity; logout: () => Promise<void>; refresh: () => Promise<Identity>
+function Shell({ workspace, identity, logout, refresh, demo = false }: {
+  workspace: Workspace; identity: Identity; logout?: () => Promise<void>; refresh: () => Promise<Identity>; demo?: boolean
 }) {
-  const base = '/w/' + workspace.id
-  const api = '/api/v1/orgs/' + workspace.id
+  const base = demo ? '/thu' : '/w/' + workspace.id
+  const api = '/api/v1' + (demo ? '/demo' : '') + '/orgs/' + workspace.id
   const owner = workspace.role === 'owner'
   const admin = workspace.role !== 'teacher'
   const props = { workspace, base, api }
   const [error, setError] = useState('')
+  const [more, setMore] = useState(false)
+  const school = workspace.type === 'school'
+  const menu = navigation
+    .filter(item => item.role === 'all' || (item.role === 'owner' ? owner : admin))
+    .filter(item => !item.mode || item.mode === (school ? 'school' : 'course'))
+    .map(item => school && item.path === '/hoc-vien' ? { ...item, label: 'Học sinh' } : item)
+  const workspaceLink = demo ? '/truy-cap' : (!identity.local || identity.workspaces.length > 1) ? '/' : ''
+  const workspaceLinkLabel = demo ? 'Không gian riêng' : 'Đổi đơn vị'
+  const links = (items: typeof navigation, short = false) => items.map(({ path, label, icon: Icon }) =>
+    <NavLink key={path} to={base + path} end={!path} onClick={() => setMore(false)}>
+      <Icon size={19} aria-hidden="true" />{short && path === '/lop' ? 'Lớp' : short && path === '/lich' ? 'Lịch' : label}
+    </NavLink>)
   return <div className="shell">
     <a className="skip" href="#main">Đến nội dung</a>
     <aside className="sidebar">
       <Brand />
       <div className="workspace-label"><small>KHÔNG GIAN</small><strong>{workspace.name}</strong></div>
       <nav aria-label="Menu chính">
-        {navigation.filter(item => item.role === 'all' || (item.role === 'owner' ? owner : admin)).map(({ path, label, icon: Icon }) =>
-          <NavLink key={path} to={base + path} end={!path}><Icon size={19} aria-hidden="true" />{label}</NavLink>)}
+        <small className="nav-group">Hằng ngày</small>{links(menu.filter(item => item.role === 'all'))}
+        {admin && <><small className="nav-group">Hồ sơ & theo dõi</small>{links(menu.filter(item => ['/tkb', '/khoa-hoc', '/hoc-vien', '/bao-cao'].includes(item.path)))}
+          <small className="nav-group">Quản trị</small>{links(menu.filter(item => ['/nhan-su', '/thiet-lap'].includes(item.path)))}</>}
       </nav>
-      {(!identity.local || identity.workspaces.length > 1) && <Link className="switch" to="/">Đổi đơn vị <ChevronRight size={16} aria-hidden="true" /></Link>}
+      {workspaceLink && <Link className="switch" to={workspaceLink}>{workspaceLinkLabel} <ChevronRight size={16} aria-hidden="true" /></Link>}
     </aside>
     <div className="shell-body">
-      <div className="topbar"><Link className="crumb" to={base}>ClassHub</Link><span className="user">
+      <div className="topbar"><Link className="crumb" to={base}>ClassHub</Link>
+        <Link className="topbar-student" to={studentTimetablePath}><CalendarDays size={16} aria-hidden="true" /> Lịch học sinh</Link>
+        <span className="user">
         <span className="avatar" aria-hidden="true">{identity.user.name[0]?.toUpperCase()}</span>
-        <span className="identity"><strong>{identity.user.name}</strong><small>{identity.local ? 'Trên máy này' : roles[workspace.role]}</small></span>
-        {!identity.local && <button aria-label="Đăng xuất" title="Đăng xuất" onClick={() => logout().catch(error => setError(errorText(error)))}><LogOut size={18} aria-hidden="true" /></button>}
+        <span className="identity"><strong>{identity.user.name}</strong><small>{demo ? 'Bản dùng thử' : identity.local ? 'Trên máy này' : roles[workspace.role]}</small></span>
+        {!identity.local && logout && <button aria-label="Đăng xuất" title="Đăng xuất" onClick={() => logout().catch(error => setError(errorText(error)))}><LogOut size={18} aria-hidden="true" /></button>}
       </span></div>
       <main id="main" className="content">
+        {demo && <p className="demo-note">Dữ liệu mẫu · Thay đổi chỉ lưu trong không gian thử của trình duyệt này trong 24 giờ.</p>}
         <Notice error>{error}</Notice>
         <Routes>
           <Route index element={<Dashboard {...props} />} />
           <Route path="lop" element={<Classes {...props} />} />
           <Route path="lop/:classId/*" element={<ClassWorkspace {...props} />} />
           {admin && <Route path="khoa-hoc" element={<Courses {...props} />} />}
+          {owner && school && <Route path="tkb" element={<SchoolTimetable {...props} />} />}
           {owner && <Route path="hoc-vien" element={<Students {...props} />} />}
-          {admin && <Route path="nhan-su" element={<Staff {...props} local={identity.local} />} />}
+          {admin && <Route path="nhan-su" element={<Staff {...props} local={demo || identity.local} />} />}
           <Route path="lich" element={<Calendar {...props} />} />
           <Route path="buoi/:sessionId" element={<Attendance {...props} />} />
-          {admin && <Route path="bao-cao" element={<Reports {...props} />} />}
+          {admin && <Route path="bao-cao" element={<ReportsPage {...props} />} />}
           {owner && <Route path="thiet-lap" element={<WorkspaceSettings {...props} refresh={refresh} />} />}
           <Route path="*" element={<><Header kicker="ClassHub" title="Không tìm thấy trang" /><Link to={base}>Về tổng quan</Link></>} />
         </Routes>
       </main>
     </div>
+    <nav className="mobile-nav" aria-label="Điều hướng trên điện thoại">
+      {links(menu.filter(item => item.role === 'all'), true)}
+      <button type="button" aria-expanded={more} aria-controls="mobile-more" onClick={() => setMore(open => !open)}>
+        <Menu size={19} aria-hidden="true" /> Thêm
+      </button>
+      <div id="mobile-more" className="mobile-more" hidden={!more}>
+        {links(menu.filter(item => item.role !== 'all'))}
+        <Link to={studentTimetablePath}>Lịch học sinh</Link>
+        {workspaceLink && <Link to={workspaceLink} onClick={() => setMore(false)}>{workspaceLinkLabel}</Link>}
+      </div>
+    </nav>
   </div>
+}
+
+function BootError({ error }: { error: string }) {
+  return <main className="boot">
+    <Notice error>{error}</Notice>
+    <button onClick={() => location.reload()}>Thử lại</button>
+  </main>
+}
+
+function DemoWorkspace() {
+  const [identity, setIdentity] = useState<Identity>()
+  const [error, setError] = useState('')
+  async function refresh() {
+    const open = () => send<Identity>('/api/v1/demo/session', {})
+    const next = await (navigator.locks ? navigator.locks.request('afyllx-classhub-demo', open) : open())
+    setIdentity(next)
+    return next
+  }
+  useEffect(() => {
+    refresh().catch(error => setError(errorText(error)))
+  }, [])
+  if (error) return <BootError error={error} />
+  if (!identity) return <main className="boot" role="status">Đang mở ClassHub…</main>
+  return <Shell key={identity.workspaces[0].id} workspace={identity.workspaces[0]} identity={identity} refresh={refresh} demo />
 }
 
 function App() {
@@ -221,17 +238,18 @@ function App() {
     })
   }, [])
   if (identity === undefined) return <main className="boot" role="status">Đang mở ClassHub…</main>
-  if (error) return <main className="boot">
-    <Notice error>{error}</Notice>
-    <button onClick={() => location.reload()}>Thử lại</button>
-  </main>
-  if (!identity) return <Login onLogin={(next, invite) => {
-      setError('')
-      setIdentity(next)
-      setCode(invite)
-      if (invite || !next.workspaces[0]) navigate('/')
-      else if (!location.pathname.startsWith(basePath + '/w/')) navigate('/w/' + next.workspaces[0].id)
-    }} />
+  if (error) return <BootError error={error} />
+  if (!identity) {
+    const path = location.pathname.slice(basePath.length).replace(/\/+$/, '')
+    if (basePath && path !== '/truy-cap' && !path.startsWith('/w/')) return <Navigate to="/thu" replace />
+    return <Login onLogin={(next, invite) => {
+        setError('')
+        setIdentity(next)
+        setCode(invite)
+        if (invite || !next.workspaces[0]) navigate('/')
+        else if (!location.pathname.startsWith(basePath + '/w/')) navigate('/w/' + next.workspaces[0].id)
+      }} />
+  }
   async function logout() {
     await request('/api/auth/sign-out', 'POST')
     setIdentity(null)
@@ -244,5 +262,11 @@ function App() {
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 }
-const router = createBrowserRouter([{ path: '*', element: <App /> }], { basename: basePath || '/' })
+const router = createBrowserRouter([
+  ...[studentTimetablePath, legacyStudentTimetablePath].map(path =>
+    ({ path, lazy: async () => ({ Component: (await import('./student-timetable')).StudentTimetable }) })),
+  { path: '/gv/*', lazy: async () => ({ Component: (await import('./teacher')).TeacherApp }) },
+  ...(basePath ? [{ path: '/thu/*', element: <DemoWorkspace /> }] : []),
+  { path: '*', element: <App /> },
+], { basename: basePath || '/' })
 createRoot(document.getElementById('root')!).render(<RouterProvider router={router} />)

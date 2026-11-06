@@ -8,9 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@fontsource-variable/plus-jakarta-sans':
-        specifier: 5.2.8
-        version: 5.2.8
+      '@fontsource/be-vietnam-pro':
+        specifier: 5.3.0
+        version: 5.3.0
       better-auth:
         specifier: 1.7.17
         version: 1.7.17(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -369,8 +369,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fontsource-variable/plus-jakarta-sans@5.2.8':
-    resolution: {integrity: sha512-iQecBizIdZxezODNHzOn4SvvRMrZL/S8k4MEXGDynCmUrImVW0VmX+tIAMqnADwH4haXlHSXqMgU6+kcfBQJdw==}
+  '@fontsource/be-vietnam-pro@5.3.0':
+    resolution: {integrity: sha512-xhAQBGHDxP5BF8IJxedy5MoWUmc1DlPCcZbMLhvnPkf8TaYCbbUVs3LjpuJ4BYdTrdiCLaewNaY8z+owq/FqFw==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -1302,7 +1302,7 @@ snapshots:
   '@esbuild/win32-x64@0.27.3':
     optional: true
 
-  '@fontsource-variable/plus-jakarta-sans@5.2.8': {}
+  '@fontsource/be-vietnam-pro@5.3.0': {}
 
   '@img/colour@1.1.0': {}
 

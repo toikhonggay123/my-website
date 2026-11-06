@@ -2,11 +2,12 @@ import { useState, type ReactNode } from 'react'
 import { Link, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ChevronRight, UsersRound } from 'lucide-react'
 import {
-  ActionForm, Badge, Disclosure, Empty, Field, Header, LoadView, Notice, PageSearch, Pager, Panel,
-  addDays, formatDay, localDay, roles, send, useLoad, value, type Page, type Workspace,
+  ActionForm, Badge, confirmOrCancel, Disclosure, Empty, Field, Header, LoadView, Notice, PageSearch, Pager, Panel,
+  addDays, basePath, errorText, formatClock, formatDay, localDay, roles, send, useLoad, value, type Page, type Workspace,
 } from './ui'
 import { Calendar, Timetable } from './scheduling'
 import { DirectoryBanner, DirectorySettings, DirectoryStudentFields, directoryForm, type Directory } from './shared-directory'
+import { SchoolSettings } from './school'
 
 export type WorkspaceProps = { workspace: Workspace; api: string; base: string }
 type Item = { id: string; name: string }
@@ -108,13 +109,18 @@ export function Courses({ api, workspace }: WorkspaceProps) {
     </Panel>
   </>
 }
-function ClassFields({ item }: { item?: ClassRow }) {
+function schoolYearEnd(day: string) {
+  const year = Number(day.slice(0, 4)) + (Number(day.slice(5, 7)) >= 8 ? 1 : 0)
+  return year + '-07-31'
+}
+function ClassFields({ item, school = false }: { item?: ClassRow; school?: boolean }) {
   return <>
     <TextField label="Mã" name="code" maxLength={30} initial={item?.code} required />
     <TextField label="Tên lớp" name="name" maxLength={150} initial={item?.name} required readOnly={Boolean(item?.shared)} />
     <Field label="Ngày bắt đầu"><input type="date" name="starts_on" defaultValue={item?.starts_on ?? localDay()} required /></Field>
-    <Field label="Ngày kết thúc"><input type="date" name="ends_on" defaultValue={item?.ends_on ?? addDays(localDay(), 90)} required /></Field>
-    <Field label="Sĩ số tối đa"><input type="number" name="capacity" min={1} max={100} defaultValue={item?.capacity ?? 30} required /></Field>
+    <Field label="Ngày kết thúc"><input type="date" name="ends_on" required
+      defaultValue={item?.ends_on ?? (school ? schoolYearEnd(localDay()) : addDays(localDay(), 90))} /></Field>
+    <Field label="Sĩ số tối đa"><input type="number" name="capacity" min={1} max={100} defaultValue={item?.capacity ?? (school ? 45 : 30)} required /></Field>
     <TextField label="Phòng học mặc định" name="room" maxLength={80} initial={item?.room} />
     <TextField label="Ghi chú vận hành" name="notes" maxLength={1000} initial={item?.notes} />
   </>
@@ -132,12 +138,13 @@ export function Classes({ api, base, workspace }: WorkspaceProps) {
     {workspace.role !== 'teacher' && <details className="panel new-record"><summary>Tạo lớp học</summary>
       <ActionForm label="Tạo lớp" action={async data => {
         const item = await send<{ id: string }>(api + '/classes', {
-          ...classForm(data), course_id: value(data, 'course_id'), branch_id: value(data, 'branch_id'),
+          ...classForm(data), course_id: value(data, 'course_id') || undefined, branch_id: value(data, 'branch_id'),
         })
         navigate(base + '/lop/' + item.id)
       }}>
-        <ClassFields />
-        <RemoteSelect<Course> url={api + '/courses'} name="course_id" label="Khóa học" searchable toOption={item => item.archived ? null : item} />
+        <ClassFields school={workspace.type === 'school'} />
+        {workspace.type !== 'school' && <RemoteSelect<Course> url={api + '/courses'} name="course_id" label="Khóa học" searchable
+          toOption={item => item.archived ? null : item} />}
         <RemoteSelect<Item> url={api + '/branches'} name="branch_id" label="Cơ sở" toOption={identityOption} />
       </ActionForm>
     </details>}
@@ -159,10 +166,12 @@ const statusLabels: Record<string, string> = {
   draft: 'Bản nháp', scheduled: 'Đã lên lịch', active: 'Đang học', completed: 'Hoàn tất', cancelled: 'Đã hủy', archived: 'Lưu trữ',
 }
 export function ClassWorkspace(props: WorkspaceProps) {
+  type ClassOverview = ClassRow & { enrolled: number; teacher: string | null
+    next: { id: string; lesson_date: string; starts_at: number; room: string } | null }
   const { classId } = useParams()
   const classApi = props.api + '/classes/' + classId
   const route = props.base + '/lop/' + classId
-  const load = useLoad<{ data: ClassRow }>(classApi)
+  const load = useLoad<{ data: ClassOverview }>(classApi)
   const [feedback, setFeedback] = useState('')
   const admin = props.workspace.role !== 'teacher'
   return <LoadView load={load}>{({ data: item }) => <>
@@ -171,12 +180,29 @@ export function ClassWorkspace(props: WorkspaceProps) {
       <Badge status={item.status} />
     </Header>
     <nav className="tabs" aria-label="Không gian lớp">
-      {[['', 'Thông tin'], ['/ghi-danh', 'Học viên'], ['/giao-vien', 'Giáo viên'], ['/lich', 'Lịch & điểm danh']]
+      {[['', 'Tổng quan'], ['/ghi-danh', 'Học viên'], ['/giao-vien', 'Giáo viên'], ['/lich', 'Lịch & chuyên cần'], ...(admin ? [['/chinh-sua', 'Chỉnh sửa']] : [])]
         .map(([path, label]) => <NavLink key={label} end={!path} to={route + path}>{label}</NavLink>)}
     </nav>
     <Notice>{feedback}</Notice>
     <Routes>
-      <Route index element={<Panel title="Thông tin lớp">
+      <Route index element={<>
+        <Panel title="Thông tin nhanh">
+          <div className="class-overview">
+            <div><small>Sĩ số đang học</small><strong>{item.enrolled}/{item.capacity}</strong></div>
+            <div><small>Giáo viên phụ trách</small><strong>{item.teacher ?? 'Chưa phân công'}</strong></div>
+            <div><small>Phòng mặc định</small><strong>{item.room || 'Chưa đặt phòng'}</strong></div>
+          </div>
+          {item.notes && <p>{item.notes}</p>}
+        </Panel>
+        <Panel title="Buổi tiếp theo">
+          {item.next ? <Link className="row-link" to={props.base + '/buoi/' + item.next.id}>
+            <span>{formatDay(item.next.lesson_date)} · {formatClock(item.next.starts_at)}{item.next.room && ' · ' + item.next.room}</span>
+            <ChevronRight size={17} aria-hidden="true" /></Link> : <Empty>Chưa có buổi học sắp tới.</Empty>}
+          <Link className="back" to={route + '/lich'}>Xem lịch lớp</Link>
+        </Panel>
+        {admin && <Link className="back" to={props.base + '/bao-cao?class_id=' + item.id}>Xem chuyên cần của lớp</Link>}
+      </>} />
+      {admin && <Route path="chinh-sua" element={<Panel title="Chỉnh sửa thông tin lớp">
         <p>Sĩ số tối đa {item.capacity} · {item.room || 'Chưa đặt phòng học mặc định'}</p>
         {item.notes && <p>{item.notes}</p>}
         {admin && <ActionForm action={data => send(classApi, { ...classForm(data), status: value(data, 'status') }, 'PATCH')}
@@ -186,7 +212,7 @@ export function ClassWorkspace(props: WorkspaceProps) {
             {[item.status, ...(classTransitions[item.status] ?? [])].map(status => <option key={status} value={status}>{statusLabels[status]}</option>)}
           </select></Field>
         </ActionForm>}
-      </Panel>} />
+      </Panel>} />}
       <Route path="ghi-danh" element={<EnrollmentPanel key={classId} {...props} item={item} classApi={classApi} />} />
       <Route path="giao-vien" element={<TeacherPanel key={classId} {...props} item={item} classApi={classApi} />} />
       <Route path="lich" element={<>
@@ -222,7 +248,7 @@ function EnrollmentPanel({ workspace, api, item, classApi }: WorkspaceProps & { 
         {admin && !row.withdrawn_on && !row.shared ? <ActionForm label="Xác nhận thay đổi" onSaved={() => saved('Đã cập nhật ghi danh.')}
           action={data => {
             const target = value(data, 'transfer_to')
-            if (!window.confirm(target ? 'Chuyển học viên sang lớp đã chọn?' : 'Rút học viên khỏi lớp từ hôm nay?')) return Promise.reject(new Error('Đã hủy thao tác.'))
+            confirmOrCancel(target ? 'Chuyển học viên sang lớp đã chọn?' : 'Rút học viên khỏi lớp từ hôm nay?')
             return send(classApi + '/enrollments/' + row.id, target ? { transfer_to: target } : {}, 'PATCH')
           }}>
           <RemoteSelect<ClassCard> url={api + '/classes'} name="transfer_to" label="Lớp nhận (để trống nếu rút)" required={false}
@@ -237,22 +263,25 @@ function TeacherPanel({ workspace, api, item, classApi }: WorkspaceProps & { ite
   const [feedback, setFeedback] = useState('')
   const admin = workspace.role !== 'teacher'
   const saved = () => { setFeedback('Đã cập nhật phân công.'); list.load.refresh() }
+  const primaryLabel = workspace.type === 'school' ? 'Chủ nhiệm' : 'Phụ trách chính'
   return <>
     <Notice>{feedback}</Notice>
     {admin && <Panel title="Phân công giáo viên">
       <ActionForm label="Phân công" onSaved={saved} action={data => send(classApi + '/teachers', { user_id: value(data, 'user_id'), duty: value(data, 'duty') })}>
         <RemoteSelect<StaffRow> url={api + '/staff'} name="user_id" label="Giáo viên" searchable toOption={row =>
           row.role === 'teacher' && (!row.branch_id || row.branch_id === item.branch_id) ? { id: row.user_id, name: row.name } : null} />
-        <Field label="Vai trò"><select name="duty"><option value="primary">Phụ trách chính</option><option value="support">Hỗ trợ</option></select></Field>
+        <Field label="Vai trò"><select name="duty"><option value="primary">{primaryLabel}</option><option value="support">Hỗ trợ</option></select></Field>
       </ActionForm>
     </Panel>}
     <Panel title="Giáo viên của lớp">
+      {workspace.type === 'school' && <p className="muted">Giáo viên chủ nhiệm phụ trách buổi điểm danh. Đổi chủ nhiệm và phân công bộ môn ở mục Thời khóa biểu.</p>}
       <Collection state={list} render={items => <div className="list">{items.map((row, index) => <details className="detail-row" key={row.user_id + index}>
-        <summary><strong>{row.name}</strong><span>{row.duty === 'primary' ? 'Phụ trách chính' : 'Hỗ trợ'}</span>{row.ended_at && <span className="badge">Đã kết thúc</span>}</summary>
+        <summary><strong>{row.name}</strong><span>{row.duty === 'primary' ? primaryLabel : 'Hỗ trợ'}</span>{row.ended_at && <span className="badge">Đã kết thúc</span>}</summary>
         {admin && !row.ended_at ? <ActionForm label="Kết thúc phân công" onSaved={saved}
-          action={() => window.confirm('Kết thúc phân công của giáo viên này?')
-            ? send(classApi + '/teachers/' + row.user_id, {}, 'DELETE')
-            : Promise.reject(new Error('Đã hủy thao tác.'))}><p>Buổi học chưa hoàn tất cần đổi giáo viên trước.</p></ActionForm> : <p>Phân công giảng dạy</p>}
+          action={() => {
+            confirmOrCancel('Kết thúc phân công của giáo viên này?')
+            return send(classApi + '/teachers/' + row.user_id, {}, 'DELETE')
+          }}><p>Buổi học chưa hoàn tất cần đổi giáo viên trước.</p></ActionForm> : <p>Phân công giảng dạy</p>}
       </details>)}</div>} />
     </Panel>
   </>
@@ -264,6 +293,54 @@ function History({ api, base, student }: { api: string; base: string; student: S
       <strong>{item.class_name}</strong><span>{formatDay(item.enrolled_on)}{item.withdrawn_on ? ' – ' + formatDay(item.withdrawn_on) : ' · Đang học'}</span>
     </Link>)}
   </div>} />
+}
+function StudentImport({ api, onSaved }: { api: string; onSaved: (message: string) => void }) {
+  type Draft = { code: string; name: string }
+  const [preview, setPreview] = useState<{ students: Draft[]; existing: string[] }>()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  async function importStudents() {
+    if (!preview) return
+    setBusy(true)
+    setError('')
+    try {
+      const { created, skipped } = await send<{ created: number; skipped: number }>(api + '/students/import', {
+        preview: false, students: preview.students,
+      })
+      setPreview(undefined)
+      onSaved('Đã thêm ' + created + ' học viên · Bỏ qua ' + skipped + ' mã đã có.')
+    } catch (failure) { setError(errorText(failure)) }
+    finally { setBusy(false) }
+  }
+  return <details className="panel new-record">
+    <summary>Nhập nhiều học viên từ Excel</summary>
+    <ActionForm label="Đối chiếu trước khi nhập" reset={false} action={async form => {
+      setPreview(undefined)
+      setError('')
+      const lines = value(form, 'roster').trim().split(/\r?\n/).filter(line => line.trim())
+      const students = lines.map((line, index) => {
+        const cells = line.split('\t').map(cell => cell.trim())
+        if (cells.length !== 2 || cells.some(cell => !cell)) throw new Error('Dòng ' + (index + 1) + ' cần có đúng hai cột mã và họ tên.')
+        return { code: cells[0], name: cells[1] }
+      })
+      const { existing } = await send<{ existing: string[] }>(api + '/students/import', { preview: true, students })
+      setPreview({ students, existing })
+    }}>
+      <Field label="Mã và họ tên"><textarea name="roster" rows={5} maxLength={17000} required
+        placeholder="Dán hai cột mã và họ tên từ Excel, tối đa 100 dòng, bỏ dòng tiêu đề"
+        onChange={() => setPreview(undefined)} /></Field>
+    </ActionForm>
+    {preview && <div className="schedule-preview">
+      <p>{preview.students.length - preview.existing.length} hồ sơ mới · {preview.existing.length} mã đã có</p>
+      {preview.students.map(row => <div className="schedule-occurrence" key={row.code}>
+        <strong>{row.code} · {row.name}</strong>
+        <span>{preview.existing.includes(row.code.toLowerCase()) ? 'Đã có · Bỏ qua' : 'Thêm mới'}</span>
+      </div>)}
+      <Notice error>{error}</Notice>
+      <button type="button" className="primary" disabled={busy || preview.existing.length === preview.students.length}
+        onClick={importStudents}>{busy ? 'Đang nhập…' : 'Nhập hồ sơ mới'}</button>
+    </div>}
+  </details>
 }
 export function Students({ api, base, workspace }: WorkspaceProps) {
   const list = useCollection<Student>(api + '/students')
@@ -282,6 +359,7 @@ export function Students({ api, base, workspace }: WorkspaceProps) {
     </Panel>}</LoadView> : <Panel title="Thêm học viên"><ActionForm label="Thêm học viên" action={data => send(api + '/students', itemForm(data))}
       onSaved={saved}><ItemFields label="Họ và tên" /></ActionForm></Panel>
     }
+    {!workspace.shared_directory && <StudentImport api={api} onSaved={message => { saved(); setFeedback(message) }} />}
     <Panel title="Danh sách học viên">
       <PageSearch placeholder="Tên hoặc mã học viên" action={list.search} />
       <Collection state={list} render={items => <div className="list">{items.map(item => <Disclosure key={item.id}
@@ -315,17 +393,24 @@ export function Staff({ api, workspace, local }: WorkspaceProps & { local: boole
     </Panel>}
     {owner && !local && <Panel title="Mời thành viên">
       <ActionForm label="Tạo mã mời" action={async data => {
+        const role = value(data, 'role')
         const invite = await send<{ code: string }>(api + '/invitations', {
-          email: value(data, 'email'), role: value(data, 'role'), branch_id: value(data, 'branch_id') || null,
+          email: value(data, 'email'), role, branch_id: value(data, 'branch_id') || null,
         })
-        setCode(invite.code)
+        // Teachers get a link to the teacher page. The code sits after # so it never reaches server logs.
+        setCode(role === 'teacher' ? location.origin + basePath + '/gv/kich-hoat#' + invite.code : invite.code)
       }}>
         <Field label="Email người nhận"><input name="email" type="email" maxLength={254} required /></Field>
         <Field label="Vai trò"><select name="role"><option value="teacher">Giáo viên</option><option value="branch_admin">Quản trị cơ sở</option></select></Field>
         <RemoteSelect<Item> url={api + '/branches'} name="branch_id" label="Cơ sở (bắt buộc với quản trị cơ sở)" required={false} toOption={identityOption} />
       </ActionForm>
-      {code && <div className="invite" role="status"><p>Mã dùng một lần trong 24 giờ. Gửi riêng cho người nhận.</p>
-        <Field label="Mã mời vừa tạo"><input readOnly value={code} onFocus={event => event.target.select()} /></Field></div>}
+      {code && <div className="invite" role="status">
+        <p>{code.includes('#') ? 'Link dùng một lần trong 24 giờ. Gửi riêng cho giáo viên; mở link trên điện thoại để tạo mật khẩu và vào trang giáo viên.'
+          : 'Mã dùng một lần trong 24 giờ. Gửi riêng cho người nhận.'}</p>
+        <Field label={code.includes('#') ? 'Link kích hoạt vừa tạo' : 'Mã mời vừa tạo'}>
+          <input readOnly value={code} onFocus={event => event.target.select()} /></Field>
+        <button type="button" onClick={() => navigator.clipboard?.writeText(code).then(() => setFeedback('Đã sao chép.'), () => undefined)}>Sao chép</button>
+      </div>}
     </Panel>}
     <Panel title={owner ? 'Thành viên đơn vị' : 'Giáo viên cơ sở'}>
       <PageSearch placeholder="Tên thành viên" action={list.search} />
@@ -339,7 +424,7 @@ export function Staff({ api, workspace, local }: WorkspaceProps & { local: boole
             const message = local
               ? (row.active ? 'Ngừng phân công giáo viên này?' : 'Cho phép phân công giáo viên này?')
               : (row.active ? 'Tạm dừng quyền truy cập của thành viên này?' : 'Khôi phục quyền truy cập của thành viên này?')
-            if (!window.confirm(message)) throw new Error('Đã hủy thao tác.')
+            confirmOrCancel(message)
             await send(api + '/staff/' + row.user_id, { active: !row.active }, 'PATCH')
           }} onSaved={() => { setFeedback(local ? 'Đã cập nhật hồ sơ giáo viên.' : 'Đã cập nhật quyền truy cập.'); list.load.refresh() }}>
           <p>Lịch sử giảng dạy và điểm danh của thành viên được lưu giữ.</p>
@@ -363,8 +448,10 @@ export function WorkspaceSettings({ api, workspace, refresh }: WorkspaceProps & 
       }}>
         <TextField label="Tên đơn vị" name="name" initial={workspace.name} maxLength={120} required /><TypeField current={workspace.type} />
       </ActionForm>
-      <p className="muted">Múi giờ Việt Nam · Asia/Ho_Chi_Minh</p>
+      <p className="muted">Múi giờ Việt Nam · Asia/Ho_Chi_Minh{workspace.type === 'school' ? '' :
+        ' · Chọn loại hình Trường học để dùng học kỳ, môn học, thời khóa biểu và điểm danh theo buổi.'}</p>
     </Panel>
+    {workspace.type === 'school' && <SchoolSettings api={api} schoolName={workspace.name} />}
     <Panel title="Cơ sở">
       <ActionForm label="Thêm cơ sở" action={data => send(api + '/branches', { name: value(data, 'name') })}
         onSaved={() => { setFeedback('Đã thêm cơ sở.'); list.load.refresh() }}>

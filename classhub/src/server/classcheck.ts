@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import {
-  type Ctx, audit, bad, body, classScope, conflict, db, missing, newId, now, optionalText,
-  pageResult, pagination, query, requireRole, result, router, rows, text, uuid, validated,
+  type Ctx, Failure, audit, bad, body, classScope, conflict, db, denied, missing, newId, now, one, optionalText,
+  pageResult, pagination, param, query, requireRole, result, router, rows, text, uuid, validated,
 } from './core'
-import { dateRange, sessionFor } from './scheduling'
+import { dateRange, sessionFor, type Session } from './scheduling'
+import { teachesShift } from './school'
 
 const statuses = ['present', 'late', 'absent', 'excused', 'unmarked'] as const
 const entry = z.object({ enrollment_id: uuid, status: z.enum(statuses), note: optionalText(400) })
@@ -16,11 +17,40 @@ const eligible = `e.org_id=? AND e.class_id=? AND (
     WHERE a.org_id=e.org_id AND a.enrollment_id=e.id AND a.session_id=?))
 )`
 
-async function attendanceSession(c: Ctx) {
-  const session = await sessionFor(c)
-  const { role, userId } = c.get('scope')
-  if (role === 'teacher' && userId !== session.teacher_id) throw missing()
-  return session
+type AttendanceSession = Session & { shift: 'morning' | 'afternoon' | null }
+/** Minutes after finalizing during which the teacher who finalized a school session may reopen it. */
+export const correctionMinutes = 30
+
+// Admins use the class scope. A teacher may mark a session they instruct in a class they are assigned to.
+// For a school session (one per class and shift) a teacher who has a timetabled period with that class in
+// that shift on that date may mark it too.
+async function attendanceSession(c: Ctx): Promise<AttendanceSession> {
+  const { role, userId, orgId } = c.get('scope')
+  if (role !== 'teacher') {
+    const session = await sessionFor(c)
+    const extra = await one<{ shift: AttendanceSession['shift'] }>(c, 'SELECT shift FROM class_sessions WHERE org_id=? AND id=?', orgId, session.id)
+    return { ...session, shift: extra?.shift ?? null }
+  }
+  const session = await one<AttendanceSession>(c, `SELECT s.id,s.class_id,s.branch_id,s.teacher_id,s.lesson_date,s.starts_at,s.ends_at,s.room,
+    s.status,s.attendance_state,s.version,s.shift,cl.name AS class_name,u.name AS teacher_name FROM class_sessions s
+    JOIN classes cl ON cl.org_id=s.org_id AND cl.id=s.class_id JOIN "user" u ON u.id=s.teacher_id
+    WHERE s.org_id=? AND s.id=?`, orgId, param(c, 'sessionId'))
+  if (!session) throw missing()
+  const instructs = session.teacher_id === userId && await one(c, `SELECT 1 FROM teacher_assignments
+    WHERE org_id=? AND class_id=? AND user_id=? AND ended_at IS NULL`, orgId, session.class_id, userId)
+  if (instructs) return session
+  if (session.shift && await teachesShift(c, userId, session.class_id, session.lesson_date, session.shift)) return session
+  throw missing()
+}
+
+/** When the current teacher may still reopen a school session they finalized, the deadline in epoch ms. */
+async function correctableUntil(c: Ctx, session: AttendanceSession) {
+  const { role, userId, orgId } = c.get('scope')
+  if (role !== 'teacher' || !session.shift || session.attendance_state !== 'finalized') return null
+  const last = await one<{ actor_id: string; occurred_at: number }>(c, `SELECT actor_id,occurred_at FROM audit_events
+    WHERE org_id=? AND target_id=? AND event='attendance.finalized' ORDER BY occurred_at DESC LIMIT 1`, orgId, session.id)
+  const until = last && last.actor_id === userId ? last.occurred_at + correctionMinutes * 60_000 : 0
+  return until > now() ? until : null
 }
 
 async function save(c: Ctx, finalize: boolean) {
@@ -79,7 +109,8 @@ async function save(c: Ctx, finalize: boolean) {
 
 function reportFilter(c: Ctx) {
   const scope = requireRole(c, 'owner', 'branch_admin')
-  const { from, to } = dateRange(c)
+  // Up to a year so a whole school term or year can be filtered and exported.
+  const { from, to } = dateRange(c, 31, 366)
   const [rule, ...args] = classScope(scope)
   const ids = ['class_id', 'branch_id', 'teacher_id', 'student_id'] as const
   const filters = ids.map(key => {
@@ -88,6 +119,18 @@ function reportFilter(c: Ctx) {
   })
   return {
     args: [scope.orgId, ...args, from, to, ...filters.flatMap(value => [value, value])],
+    coverageArgs: [now(), scope.orgId, ...args, from, to, ...filters.flatMap(value => [value, value])],
+    coverageSql: `SELECT COUNT(*) AS sessions,
+      COUNT(*) FILTER (WHERE s.attendance_state='finalized') AS finalized FROM class_sessions s
+      JOIN classes cl ON cl.org_id=s.org_id AND cl.id=s.class_id
+      WHERE (s.ends_at<=? OR s.attendance_state='finalized') AND s.org_id=? AND ${rule} AND s.status<>'cancelled'
+      AND s.lesson_date BETWEEN ? AND ? AND (? IS NULL OR cl.id=?)
+      AND (? IS NULL OR cl.branch_id=?) AND (? IS NULL OR s.teacher_id=?)
+      AND (? IS NULL OR EXISTS (SELECT 1 FROM enrollments e WHERE e.org_id=s.org_id
+        AND e.class_id=s.class_id AND e.student_id=? AND (
+          (s.attendance_state='unmarked' AND e.enrolled_on<=s.lesson_date AND (e.withdrawn_on IS NULL OR e.withdrawn_on>s.lesson_date))
+          OR (s.attendance_state<>'unmarked' AND EXISTS (SELECT 1 FROM attendance_records a
+            WHERE a.org_id=s.org_id AND a.session_id=s.id AND a.enrollment_id=e.id)))))`,
     sql: `FROM attendance_records a
       JOIN class_sessions s ON s.org_id=a.org_id AND s.id=a.session_id
       JOIN classes cl ON cl.org_id=s.org_id AND cl.id=s.class_id
@@ -99,7 +142,7 @@ function reportFilter(c: Ctx) {
   }
 }
 type ReportRow = { lesson_date: string; class_name: string; student_code: string; student_name: string; status: Entry['status'] }
-const reportCols = `SELECT s.lesson_date,cl.name AS class_name,st.code AS student_code,st.name AS student_name,a.status`
+const reportCols = `SELECT s.id AS session_id,s.lesson_date,cl.name AS class_name,st.code AS student_code,st.name AS student_name,a.status`
 const reportSort = 'ORDER BY s.lesson_date DESC,s.starts_at DESC,s.id,st.name,st.id'
 const labels: Record<Entry['status'], string> = {
   present: 'Có mặt', late: 'Đi muộn', absent: 'Vắng', excused: 'Có phép', unmarked: 'Chưa đánh dấu',
@@ -120,13 +163,19 @@ export const classcheck = router()
       WHERE ${eligible} ORDER BY s.name,s.id LIMIT 100`,
     session.id, orgId, session.class_id, session.attendance_state, session.lesson_date,
     session.lesson_date, session.attendance_state, session.id)
-    return result(c, { session, roster, canEdit: session.status === 'scheduled' && session.starts_at <= now() })
+    return result(c, { session, roster, canEdit: session.status === 'scheduled' && session.starts_at <= now(),
+      correctableUntil: await correctableUntil(c, session) })
   })
   .put('/sessions/:sessionId/attendance', c => save(c, false))
   .post('/sessions/:sessionId/attendance/finalize', c => save(c, true))
   .post('/sessions/:sessionId/attendance/reopen', async c => {
-    const { orgId, userId } = requireRole(c, 'owner', 'branch_admin')
+    const { orgId, userId, role } = c.get('scope')
     const session = await attendanceSession(c)
+    if (role === 'teacher' && !await correctableUntil(c, session)) {
+      throw session.shift
+        ? new Failure(403, 'correction_closed', 'Đã quá ' + correctionMinutes + ' phút sau khi chốt. Hãy nhờ quản trị mở lại để sửa.')
+        : denied()
+    }
     const { version, reason } = await body(c, z.object({ version: z.number().int().min(0), reason: text(400) }))
     const timestamp = now()
     const writes = await db(c).batch([
@@ -149,15 +198,21 @@ export const classcheck = router()
     return pageResult(c, list, page)
   })
   .get('/reports/attendance', async c => {
-    const { sql, args } = reportFilter(c)
+    const { sql, args, coverageSql, coverageArgs } = reportFilter(c)
     const page = pagination(c)
-    const [summary, data] = await db(c).batch([
+    const [summary, data, coverage, review] = await db(c).batch([
       query(c, `SELECT COUNT(*) AS total, count(*) FILTER (WHERE a.status='present') AS present,
         count(*) FILTER (WHERE a.status='late') AS late,count(*) FILTER (WHERE a.status='absent') AS absent,
         count(*) FILTER (WHERE a.status='excused') AS excused,count(*) FILTER (WHERE a.status='unmarked') AS unmarked ${sql}`, ...args),
       query(c, `${reportCols} ${sql} ${reportSort} LIMIT ? OFFSET ?`, ...args, page.limit + 1, page.offset),
+      query(c, coverageSql, ...coverageArgs),
+      query(c, `SELECT st.id,st.name,st.code, COUNT(*) FILTER (WHERE a.status='absent') AS absent,
+        COUNT(*) FILTER (WHERE a.status='late') AS late ${sql}
+        GROUP BY st.id,st.name,st.code HAVING absent>=2 OR late>=2
+        ORDER BY absent DESC,late DESC,st.name,st.id LIMIT 26`, ...args),
     ])
-    return c.json({ data: data.results.slice(0, page.limit), summary: summary.results[0],
+    return c.json({ data: data.results.slice(0, page.limit), summary: summary.results[0], coverage: coverage.results[0],
+      review: review.results.slice(0, 25), reviewHasMore: review.results.length > 25,
       pagination: { page: page.page, hasMore: data.results.length > page.limit } })
   })
   .get('/reports/attendance.csv', async c => {

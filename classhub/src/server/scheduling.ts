@@ -6,6 +6,7 @@ import {
 } from './core'
 
 const admins = ['owner', 'branch_admin'] as const
+export const calendarGridLimit = 400
 const teacherId = z.string().regex(/^[a-zA-Z0-9_-]{16,64}$/)
 const clock = z.object({ teacher_id: teacherId, starts_at: time, ends_at: time, room: optionalText(80) })
 const sessionInput = clock.extend({ lesson_date: isoDate })
@@ -60,20 +61,37 @@ function validateClock(input: z.output<typeof clock>) {
   if (input.starts_at >= input.ends_at) throw bad('Giờ kết thúc phải sau giờ bắt đầu trong cùng ngày.')
 }
 
+const generationRange = z.object({ from: isoDate, to: isoDate })
+async function generationPlan(c: Ctx, { from, to }: z.infer<typeof generationRange>) {
+  const { orgId } = requireRole(c, ...admins)
+  const item = await scopedClass(c)
+  const id = param(c, 'ruleId')
+  if (from > to || Date.parse(to) - Date.parse(from) >= 90 * dayMs) throw bad('Chọn khoảng tối đa 90 ngày để tạo buổi.')
+  const rule = await one<Rule>(c, 'SELECT * FROM timetable_rules WHERE org_id=? AND class_id=? AND id=?', orgId, item.id, id)
+  if (!rule) throw missing()
+  if (['completed', 'archived', 'cancelled'].includes(item.status)) throw conflict('Lớp đã kết thúc.')
+  const dates = datesInRule(rule, from < item.starts_on ? item.starts_on : from, to > item.ends_on ? item.ends_on : to)
+  return { item, rule, dates }
+}
+
 export const scheduling = router()
   .get('/sessions', async c => {
     const scope = c.get('scope')
     const [rule, ...args] = classScope(scope)
     const { from, to } = dateRange(c)
-    const page = pagination(c)
+    // Week and month grids need every session in the range on one response.
+    const page = pagination(c, calendarGridLimit)
     const classId = c.req.query('class_id') ? validated(z.uuid(), c.req.query('class_id')) : null
+    const teacher = c.req.query('teacher_id') ? validated(teacherId, c.req.query('teacher_id')) : null
+    const room = validated(optionalText(80), c.req.query('room'))
     const list = await rows<Session>(c, `SELECT s.id,s.class_id,s.lesson_date,s.starts_at,s.ends_at,s.room,s.status,
       s.attendance_state,cl.name AS class_name,u.name AS teacher_name
       FROM class_sessions s JOIN classes cl ON cl.org_id=s.org_id AND cl.id=s.class_id JOIN "user" u ON u.id=s.teacher_id
       WHERE s.org_id=? AND ${rule} AND (? IS NULL OR s.class_id=?) AND s.lesson_date BETWEEN ? AND ?
-        AND (?<>'teacher' OR s.teacher_id=?)
+        AND (?<>'teacher' OR s.teacher_id=?) AND (? IS NULL OR s.teacher_id=?)
+        AND instr(lower(s.room),lower(?)) > 0
       ORDER BY s.starts_at,s.id LIMIT ? OFFSET ?`,
-    scope.orgId, ...args, classId, classId, from, to, scope.role, scope.userId, page.limit + 1, page.offset)
+    scope.orgId, ...args, classId, classId, from, to, scope.role, scope.userId, teacher, teacher, room, page.limit + 1, page.offset)
     return pageResult(c, list, page)
   })
   .get('/sessions/:sessionId', async c => result(c, await sessionFor(c)))
@@ -111,17 +129,38 @@ export const scheduling = router()
     if (!writes[0].meta.changes) throw conflict('Lớp hoặc phân công đã thay đổi. Hãy tải lại.')
     return result(c, { id }, 201)
   })
+  .get('/classes/:classId/timetable/:ruleId/preview', async c => {
+    const { item, rule, dates } = await generationPlan(c, validated(generationRange, c.req.query()))
+    const { orgId, role, branchId } = c.get('scope')
+    const existing = await rows<{ source_date: string }>(c,
+      'SELECT source_date FROM class_sessions WHERE org_id=? AND rule_id=? AND source_date IN (SELECT value FROM json_each(?))',
+      orgId, rule.id, JSON.stringify(dates))
+    const windows = dates.map(date => ({ date, start: localInstant(date, rule.starts_at), end: localInstant(date, rule.ends_at) }))
+    const overlaps = await rows<{ date: string; name: string; sameClass: number; sameTeacher: number; sameRoom: number }>(c, `
+      SELECT j.value->>'date' AS date, CASE WHEN ?='owner' OR s.branch_id=? THEN cl.name ELSE '' END AS name,
+        s.class_id=? AS sameClass, s.teacher_id=? AS sameTeacher,
+        (s.branch_id=? AND s.room<>'' AND s.room=?) AS sameRoom
+      FROM class_sessions s JOIN classes cl ON cl.org_id=s.org_id AND cl.id=s.class_id CROSS JOIN json_each(?) j
+      WHERE s.org_id=? AND s.status<>'cancelled' AND s.starts_at<(j.value->>'end') AND s.ends_at>(j.value->>'start')
+      AND (s.class_id=? OR s.teacher_id=? OR (s.branch_id=? AND s.room<>'' AND s.room=?))
+      ORDER BY date,s.starts_at,s.id`, role, branchId, item.id, rule.teacher_id, item.branch_id, rule.room,
+      JSON.stringify(windows), orgId, item.id, rule.teacher_id, item.branch_id, rule.room)
+    const generated = new Set(existing.map(row => row.source_date))
+    return result(c, dates.map(date => {
+      const issues = overlaps.filter(row => row.date === date).map(row => [
+        row.sameClass && 'Trùng lớp', row.sameTeacher && 'Trùng giáo viên', row.sameRoom && 'Trùng phòng',
+      ].filter(Boolean).join(', ') + (row.name ? ' · ' + row.name : ''))
+      return { date, status: generated.has(date) ? 'existing' : issues.length ? 'conflict' : 'ready', issues }
+    }))
+  })
   .post('/classes/:classId/timetable/:ruleId/generate', async c => {
     const { orgId, userId } = requireRole(c, ...admins)
-    const item = await scopedClass(c)
-    const id = param(c, 'ruleId')
-    const { from, to } = await body(c, z.object({ from: isoDate, to: isoDate }))
-    if (from > to || Date.parse(to) - Date.parse(from) >= 90 * dayMs) throw bad('Chọn khoảng tối đa 90 ngày để tạo buổi.')
-    const rule = await one<Rule>(c, 'SELECT * FROM timetable_rules WHERE org_id=? AND class_id=? AND id=?', orgId, item.id, id)
-    if (!rule) throw missing()
-    if (['completed', 'archived', 'cancelled'].includes(item.status)) throw conflict('Lớp đã kết thúc.')
-    const dates = datesInRule(rule, from, to)
-    const payload = dates.map(date => ({
+    const input = await body(c, generationRange.extend({ selectedDates: z.array(isoDate).max(90).optional() }))
+    const { rule, dates } = await generationPlan(c, input)
+    const selected = input.selectedDates ? new Set(input.selectedDates) : null
+    if (selected && [...selected].some(date => !dates.includes(date))) throw bad('Có ngày đã chọn nằm ngoài quy tắc lịch.')
+    const id = rule.id
+    const payload = dates.filter(date => !selected || selected.has(date)).map(date => ({
       id: newId(), date, start: localInstant(date, rule.starts_at), end: localInstant(date, rule.ends_at),
     }))
     const timestamp = now()
@@ -136,7 +175,7 @@ export const scheduling = router()
       timestamp, timestamp, JSON.stringify(payload), orgId, id),
       query(c, `INSERT INTO audit_events(org_id,id,actor_id,event,target_id,occurred_at,details)
         SELECT ?,?,?,'sessions.generated',?,?,json_object('ruleId',?,'count',changes()) WHERE changes()>0`,
-      orgId, newId(), userId, item.id, timestamp, id),
+      orgId, newId(), userId, rule.class_id, timestamp, id),
     ])
     return result(c, { created: writes[0].meta.changes ?? 0, occurrences: dates.length })
   })
@@ -169,11 +208,16 @@ export const scheduling = router()
     const where = "WHERE org_id=? AND id=? AND version=? AND status='scheduled' AND attendance_state='unmarked'"
     let update: D1PreparedStatement
     if (input.action === 'cancel') {
-      update = query(c, `UPDATE class_sessions SET status='cancelled',version=version+1,updated_at=? ${where}`,
+      // pinned=1 keeps timetable reconciliation from restoring a session cancelled or moved by hand.
+      update = query(c, `UPDATE class_sessions SET status='cancelled',pinned=1,version=version+1,updated_at=? ${where}`,
         timestamp, orgId, item.id, input.version)
     } else {
       validateClock(input)
-      update = query(c, `UPDATE class_sessions SET teacher_id=?,lesson_date=?,starts_at=?,ends_at=?,room=?,version=version+1,updated_at=?
+      const school = await one<{ shift: string | null }>(c, 'SELECT shift FROM class_sessions WHERE org_id=? AND id=?', orgId, item.id)
+      if (school?.shift && input.lesson_date !== item.lesson_date) {
+        throw bad('Buổi điểm danh theo thời khóa biểu chỉ đổi được giờ trong cùng ngày. Muốn cho lớp nghỉ, hãy hủy buổi.')
+      }
+      update = query(c, `UPDATE class_sessions SET teacher_id=?,lesson_date=?,starts_at=?,ends_at=?,room=?,pinned=1,version=version+1,updated_at=?
         ${where} AND EXISTS (SELECT 1 FROM classes WHERE org_id=? AND id=? AND ? BETWEEN starts_on AND ends_on)`,
       input.teacher_id, input.lesson_date, localInstant(input.lesson_date, input.starts_at),
       localInstant(input.lesson_date, input.ends_at), input.room, timestamp, orgId, item.id, input.version,

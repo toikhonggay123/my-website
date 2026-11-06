@@ -1,0 +1,59 @@
+@layer components {
+  .student-top { min-height: 64px; padding: 8px max(16px, calc((100% - 1030px) / 2)); border-bottom: 1px solid var(--line); background: #fff; }
+  .student-top, .student-brand, .student-choose-head, .student-calendar-head, .student-calendar-tools,
+  .student-week, .student-week-controls { display: flex; align-items: center; gap: 10px; }
+  .student-top, .student-choose-head, .student-calendar-head, .student-calendar-tools { justify-content: space-between; }
+  .student-brand { color: var(--ink); line-height: 1.3; text-decoration: none; }
+  .student-brand small { color: var(--muted); }
+  .student-home { font-weight: 700; padding-block: 8px; font-size: .86rem; }
+  .student-main { max-width: 1062px; padding: 22px 16px 40px; margin: auto; display: grid; gap: 14px; }
+  .student-title { padding: clamp(16px, 4vw, 32px); border-radius: var(--radius); background: linear-gradient(120deg, #edf4ff, #f9fbff); }
+  .student-title h1 { margin-block: 4px 8px; }
+  .student-title > p:last-child { color: var(--muted); }
+  .student-choose-head, .student-calendar-head, .student-calendar-tools { flex-wrap: wrap; }
+  .student-search { display: flex; position: relative; align-items: center; min-width: min(100%, 230px); }
+  .student-search > svg { position: absolute; left: 12px; color: var(--muted); }
+  .student-search input { padding-left: 36px; }
+  .student-choices { display: flex; gap: 6px; flex-wrap: wrap; }
+  .student-choose .student-choices { margin-top: 10px; }
+  .student-choices button, .student-days button { font-size: .88rem; }
+  .student-page button[aria-pressed="true"] { background: var(--soft); border-color: #5482d2; color: var(--blue-dark); }
+  .student-classes button[aria-pressed="true"] { background: var(--blue); color: white; border-color: var(--blue); }
+  .student-calendar-head { margin-bottom: 14px; }
+  .student-calendar-head h2 { font-size: 1.45rem; }
+  .student-calendar-head button { font-size: .85rem; }
+  .student-calendar-tools { gap: 9px; }
+  .student-week-controls { gap: 5px; }
+  .student-week-controls button[aria-label] { min-width: 44px; padding-inline: 9px; }
+  .student-week, .student-feedback { margin-block: 11px; color: var(--muted); font-size: .87rem; }
+  .student-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .student-days button { display: grid; gap: 0; padding: 4px 0; min-width: 0; }
+  .student-days button span { font-size: .74rem; }
+  .student-count { font-weight: 750; margin-block: 12px; }
+  .student-shift + .student-shift { margin-top: 13px; }
+  .student-shift h3 { background: var(--soft); color: var(--blue-dark); padding: 8px 10px; border-radius: 8px; font-size: .88rem; }
+  .student-shift h3 span { font-weight: 500; }
+  .student-shift ul { margin: 0; padding: 0; list-style: none; }
+  .student-shift li { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: center; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .student-shift li small, .student-shift li time { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+  .period-number { color: var(--blue-dark); border-radius: 6px; padding: 3px 7px; background: var(--soft); white-space: nowrap; font-size: .84rem; }
+  .student-week-list { display: grid; gap: 16px; }
+  .student-week-day > h3 { margin-bottom: 8px; }
+  .student-empty { color: var(--muted); }
+  .student-notices { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+  .student-notices li { display: flex; gap: 8px; align-items: start; padding: 10px 12px; border-radius: 10px; background: #fff1d6; color: #6b4206; font-weight: 600; font-size: .9rem; }
+  .student-notices svg { margin-top: 3px; }
+  .student-now { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--blue); color: #fff; font-weight: 700; }
+  .student-shift li.student-current { background: var(--soft); border-radius: 8px; padding-inline: 8px; box-shadow: inset 4px 0 0 var(--blue); }
+  .student-shift li.student-cancelled > span strong, .student-shift li.student-cancelled time { text-decoration: line-through; color: var(--muted); }
+  .student-off { color: #91212d !important; font-weight: 700; }
+}
+@layer responsive {
+  @media (max-width: 425px) {
+    .student-main { padding: 13px 11px 28px; gap: 10px; }
+    .student-title { padding: 14px; }
+    .student-search { min-width: 100%; }
+    .student-shift li { grid-template-columns: max-content minmax(0, 1fr); gap: 3px 8px; }
+    .student-shift li time { grid-column: 2; }
+  }
+}

@@ -72,14 +72,18 @@ const worker = new Miniflare({
 })
 try {
   const db = await worker.getD1Database('CLASSHUB_DB', workerName)
-  const applySql = file => db.batch(unstable_splitSqlQuery(readFileSync(file, 'utf8')).map(sql => db.prepare(sql)))
+  const demoDb = web ? await worker.getD1Database('CLASSHUB_DEMO_DB', workerName) : null
+  const applySql = (file, database = db) => database.batch(
+    unstable_splitSqlQuery(readFileSync(file, 'utf8')).map(sql => database.prepare(sql)),
+  )
   for (const file of readdirSync('migrations').filter(name => name.endsWith('.sql')).sort()) {
     await applySql(join('migrations', file))
+    if (demoDb) await applySql(join('migrations', file), demoDb)
   }
   if (direct) {
     await applySql('scripts/local-bootstrap.sql')
   } else {
-    const owners = ['owner-a@example.test', 'owner-b@example.test'].map(email => ({
+    const owners = ['owner-a@example.test', 'owner-b@example.test', 'owner-c@example.test', 'owner-d@example.test', 'owner-e@example.test'].map(email => ({
       email, code: randomBytes(32).toString('hex'),
     }))
     const now = Date.now()

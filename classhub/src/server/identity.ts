@@ -28,7 +28,9 @@ export function auth(c: Ctx) {
     secret: BETTER_AUTH_SECRET,
     database: db(c),
     emailAndPassword: { enabled: true, autoSignIn: false, minPasswordLength: 12, maxPasswordLength: 128 },
-    session: { expiresIn: 8 * 60 * 60, disableSessionRefresh: true },
+    // Sign-ins without "remember me" (the administration form) last one day in a browser-session cookie and
+    // are never extended. The teacher page signs in with "remember me": 30 days, extended at most once a day.
+    session: { expiresIn: 30 * 24 * 60 * 60, updateAge: 24 * 60 * 60 },
     advanced: {
       ipAddress: { ipAddressHeaders: ['cf-connecting-ip'] },
       ...(APP_BASE_PATH ? { cookiePrefix: 'afyllx-classhub', defaultCookieAttributes: { path: APP_BASE_PATH } } : {}),
@@ -48,7 +50,9 @@ async function identity(c: Ctx) {
     if (!user) throw new Failure(503, 'local_setup', 'Hãy chạy pnpm setup:local để thiết lập ClassHub.')
     return user
   }
-  const active = await auth(c).api.getSession({ headers: c.req.raw.headers })
+  const { response: active, headers } = await auth(c).api.getSession({ headers: c.req.raw.headers, returnHeaders: true })
+  // A refreshed "remember me" session renews its cookie on this response.
+  for (const cookie of headers?.getSetCookie?.() ?? []) c.header('Set-Cookie', cookie, { append: true })
   if (!active) throw unauthenticated()
   return active.user
 }

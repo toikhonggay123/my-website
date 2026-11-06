@@ -12,7 +12,7 @@ The workspace contains two MealCheck checkouts and no existing ClassHub implemen
 - Use application-owned tenant memberships and class assignments to authorize operations independently of account authentication.
 - Use parameterized SQL migrations and D1 transactional batches. Database triggers protect scheduling and enrollment constraints during concurrent writes. Attendance uses an optimistic edit version.
 - Use manually delivered, expiring invitations during local development and controlled trials. Production email delivery and account recovery require separate configuration and testing.
-- Pair the owner-supplied AFYLLX Edu mark with the ClassHub product name. Use Plus Jakarta Sans, a deep navy navigation surface, blue actions, and clear status labels. Keep dense roster surfaces opaque.
+- Pair the owner-supplied AFYLLX Edu mark with the ClassHub product name. Use Be Vietnam Pro (weights 400, 700 and 800), a deep navy navigation surface, blue actions, and clear status labels. Keep dense roster surfaces opaque.
 
 ## References
 

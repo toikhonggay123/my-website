@@ -9,8 +9,13 @@
 | Class and enrollment management | Workspace | Assigned branch | |
 | Schedule management | Workspace | Assigned branch | Read assigned classes |
 | Session attendance write and finalize | Workspace | Assigned branch | Assigned class and session instructor |
-| Reopen and CSV export | Workspace | Assigned branch | |
+| School session attendance write and finalize | Workspace | Assigned branch | Homeroom teacher, or a teacher with a timetabled period in that class and shift that day |
+| Summary, monthly register, alerts and their exports | Workspace | Assigned branch | |
+| Reopen and CSV export | Workspace | Assigned branch | Reopen only: the teacher who finalized a school session, within 30 minutes |
+| Publish or stop the public student timetable | Workspace | | |
+| Teacher page views (today, week, own classes) | | | Own sessions, periods and assigned classes |
 | Audit history | Workspace | Scoped to class attendance | |
+| School terms, subjects, bells, closures, timetable and homeroom/subject assignments | Workspace | | |
 
 A valid session establishes identity. Each request reloads active membership against the workspace route. Cross-tenant and out-of-scope object identifiers return a generic resource error. Platform staff, students and guardians do not receive an operational membership in this slice. Later releases need separate explicit policies and adversarial tests for those roles.
 

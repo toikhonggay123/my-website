@@ -4,6 +4,9 @@ import { AlertCircle, ArrowLeft, ArrowRight, Inbox } from 'lucide-react'
 export type Page<T> = { data: T[]; pagination: { page: number; hasMore: boolean } }
 type ApiError = { error?: { message?: string }; message?: string }
 export const basePath = import.meta.env.BASE_URL.replace(/\/$/, '')
+export const studentTimetablePath = '/hs'
+/** Earlier shared links keep working. */
+export const legacyStudentTimetablePath = '/thoi-khoa-bieu'
 export class RequestError extends Error {
   constructor(readonly status: number, message: string) { super(message) }
 }
@@ -14,7 +17,7 @@ export async function request<T>(path: string, method = 'GET', data: unknown = {
   })
   const json = await response.json().catch(() => null) as ApiError & T | null
   if (!response.ok || !json) {
-    const message = response.status === 401 ? 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.'
+    const message = response.status === 401 && !path.startsWith('/api/v1/demo/') ? 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.'
       : json?.error?.message ?? json?.message ?? 'Không thể tải dữ liệu. Vui lòng thử lại.'
     throw new RequestError(response.status, message)
   }
@@ -24,6 +27,13 @@ export async function send<T = unknown>(path: string, data: unknown, method = 'P
   return (await request<{ data: T }>(path, method, data)).data
 }
 export const errorText = (error: unknown) => error instanceof Error ? error.message : 'Có lỗi xảy ra. Vui lòng thử lại.'
+/** Thrown when the user declines a confirmation. ActionForm stops quietly without showing an error. */
+export class Cancelled extends Error {
+  constructor() { super('Đã hủy thao tác.') }
+}
+export function confirmOrCancel(message: string) {
+  if (!window.confirm(message)) throw new Cancelled()
+}
 
 export function useLoad<T>(path: string) {
   const [revision, setRevision] = useState(0)
@@ -100,7 +110,9 @@ export function ActionForm({ action, children, label = 'Lưu thay đổi', grid 
       await action(data)
       if (reset) form.reset()
       onSaved?.()
-    } catch (error) { setError(errorText(error)) }
+    } catch (error) {
+      if (!(error instanceof Cancelled)) setError(errorText(error))
+    }
     finally { setBusy(false) }
   }
   return <form onSubmit={submit}>
@@ -132,6 +144,7 @@ export function addDays(date: string, days: number) {
 export const roles = { owner: 'Chủ đơn vị', branch_admin: 'Quản trị cơ sở', teacher: 'Giáo viên' }
 export type Workspace = { id: string; name: string; type: string; role: keyof typeof roles; branch_id: string | null; shared_directory?: boolean }
 export const statuses: Record<string, string> = {
+  upcoming: 'Sắp diễn ra', needs_attendance: 'Cần điểm danh', needs_review: 'Chờ chốt', recording: 'Đang điểm danh',
   active: 'Đang học', draft: 'Bản nháp', scheduled: 'Đã lên lịch', completed: 'Hoàn tất',
   archived: 'Lưu trữ', cancelled: 'Đã hủy', finalized: 'Đã chốt', unmarked: 'Chưa đánh dấu',
   present: 'Có mặt', late: 'Đi muộn', absent: 'Vắng', excused: 'Có phép',

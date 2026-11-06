@@ -5,6 +5,7 @@ export type Role = 'owner' | 'branch_admin' | 'teacher'
 export type Scope = { userId: string; orgId: string; branchId: string | null; role: Role }
 export type Bindings = {
   CLASSHUB_DB: D1Database
+  CLASSHUB_DEMO_DB?: D1Database
   APP_ORIGIN: string
   APP_BASE_PATH?: '/classhub'
   CLASSHUB_LOCAL_ADMIN?: string
@@ -15,7 +16,7 @@ export type Bindings = {
   BETTER_AUTH_SECRET: string
   ACTIVATION_LIMIT: RateLimit
 }
-export type App = { Bindings: Bindings; Variables: { scope: Scope } }
+export type App = { Bindings: Bindings; Variables: { scope: Scope; demoDb?: D1Database } }
 export type Ctx = Context<App>
 export const router = () => new Hono<App>()
 
@@ -60,21 +61,23 @@ export async function body<S extends z.ZodType>(c: Ctx, schema: S) {
   return validated(schema, await c.req.json().catch(() => null))
 }
 export const param = (c: Ctx, key: string) => validated(uuid, c.req.param(key))
-export const db = (c: Ctx) => c.env.CLASSHUB_DB
+export const db = (c: Ctx) => c.get('demoDb') ?? c.env.CLASSHUB_DB
 export function localAdmin(c: Ctx) {
   return c.env.CLASSHUB_LOCAL_ADMIN === '1'
     && /^http:\/\/127\.0\.0\.1:\d+$/.test(c.env.APP_ORIGIN)
     && new URL(c.req.url).origin === c.env.APP_ORIGIN
 }
+export const staffProfilesOnly = (c: Ctx) => Boolean(c.get('demoDb')) || localAdmin(c)
 type Value = string | number | null
 export const query = (c: Ctx, sql: string, ...values: Value[]) => db(c).prepare(sql).bind(...values)
 export const one = <T>(c: Ctx, sql: string, ...values: Value[]) => query(c, sql, ...values).first<T>()
 export const rows = async <T = Record<string, unknown>>(c: Ctx, sql: string, ...values: Value[]) =>
   (await query(c, sql, ...values).all<T>()).results
 export const result = <T>(c: Ctx, data: T, status: 200 | 201 = 200) => c.json({ data }, status)
-export function pagination(c: Ctx) {
+/** Pages hold 25 rows. Routes that pass a larger maxLimit also accept an explicit `limit` query up to that cap. */
+export function pagination(c: Ctx, maxLimit = 25) {
   const page = validated(z.coerce.number().int().min(1).max(10_000), c.req.query('page') ?? 1)
-  const limit = 25
+  const limit = maxLimit > 25 ? validated(z.coerce.number().int().min(1).max(maxLimit), c.req.query('limit') ?? 25) : 25
   return { page, limit, offset: (page - 1) * limit }
 }
 export const pageResult = <T>(c: Ctx, list: T[], page: { page: number; limit: number }) =>
