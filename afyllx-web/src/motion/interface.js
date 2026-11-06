@@ -43,7 +43,6 @@ if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
   });
 }
 
-const poses = { hero: 0, edu: .36, digital: .58, gov: .8 };
 for (const visual of document.querySelectorAll('[data-depth-visual]')) {
   let scene;
   let frame = 0;
@@ -51,11 +50,28 @@ for (const visual of document.querySelectorAll('[data-depth-visual]')) {
   let pending = false;
   let visible = false;
   const canvas = visual.querySelector('canvas');
-  const progress = poses[visual.dataset.depthVisual] ?? 0;
+  const focus = visual.dataset.depthVisual;
+  const lineup = !['edu', 'digital', 'gov'].includes(focus);
+  // Play the object's build sequence once when the page opens.
+  let playFrom;
+  let last;
+  let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0;
+  window.addEventListener('pointermove', (event) => {
+    if (event.pointerType !== 'mouse') return;
+    pointerX = (event.clientX / innerWidth - .5) * .7;
+    pointerY = (event.clientY / innerHeight - .5) * .5;
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => { pointerX = pointerY = 0; });
   function tick(time) {
     frame = 0;
     if (!scene || !visible || document.hidden || motionReduced()) return;
-    scene.render(progress, time / 1000);
+    playFrom ??= time + 300;
+    const build = lineup ? 1 : Math.min(1, Math.max(0, (time - playFrom) / 4200));
+    const follow = 1 - Math.exp(-Math.min(1, (time - (last ?? time)) / 1000) / .2);
+    last = time;
+    smoothX += (pointerX - smoothX) * follow;
+    smoothY += (pointerY - smoothY) * follow;
+    scene.render(0, build, time / 1000, smoothX, smoothY);
     frame = requestAnimationFrame(tick);
   }
   function schedule() {
@@ -73,10 +89,10 @@ for (const visual of document.querySelectorAll('[data-depth-visual]')) {
     if (pending || scene || motionReduced()) return;
     pending = true;
     try {
-      const { createDepthScene } = await import('./depth-scene.js');
+      const { createStageScene } = await import('./stage-scene.js');
       if (motionReduced()) return;
-      scene = createDepthScene(canvas, { mode: 'detail' });
-      scene.render(progress, 0);
+      scene = createStageScene(canvas, lineup ? { mode: 'lineup' } : { mode: 'detail', focus });
+      scene.render(0, lineup ? 1 : 0, 0);
       visual.classList.add('is-rendered');
       resize = new ResizeObserver(() => scene?.resize());
       resize.observe(canvas);

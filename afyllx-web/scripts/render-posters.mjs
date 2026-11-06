@@ -6,11 +6,17 @@ import { chromium } from '@playwright/test';
 const project = fileURLToPath(new URL('..', import.meta.url));
 const output = path.join(project, 'public/afyllx-media');
 const base = new URL(process.env.AFYLLX_TEST_URL || 'http://127.0.0.1:4321');
-const poses = [['hero', 0], ['edu', .36], ['digital', .58], ['gov', .8], ['panorama', 1]];
+// Each shot is [file name, scene options, chapter index, local/build]. Journey
+// shots use local .72 (the hold point: fully expanded object, copy shown).
+const chapters = ['edu', 'digital', 'gov'];
 const groups = [
-  { prefix: 'depth-', suffix: '', width: 1600, height: 1000, mode: 'journey', poses },
-  { prefix: 'depth-', suffix: '-mobile', width: 540, height: 1168, mode: 'journey', poses },
-  { prefix: 'sculpture-', suffix: '', width: 1280, height: 960, mode: 'detail', poses: poses.slice(0, 4) },
+  { prefix: 'depth-', suffix: '', width: 1600, height: 1000, shots: chapters.map((id, i) => [id, { mode: 'journey' }, i, .72]) },
+  { prefix: 'depth-', suffix: '-mobile', width: 540, height: 1168, shots: chapters.map((id, i) => [id, { mode: 'journey' }, i, .72]) },
+  { prefix: 'depth-', suffix: '', width: 1600, height: 1000, shots: [['hero', { mode: 'lineup' }, 0, 1]] },
+  { prefix: 'sculpture-', suffix: '', width: 1280, height: 960, shots: [
+    ...chapters.map(id => [id, { mode: 'detail', focus: id }, 0, 1]),
+    ['hero', { mode: 'lineup' }, 0, 1],
+  ] },
 ];
 const browser = await chromium.launch({
   channel: process.env.AFYLLX_BROWSER_CHANNEL || (process.platform === 'win32' ? 'msedge' : undefined),
@@ -35,35 +41,38 @@ try {
   });
   await page.goto(new URL('/robots.txt', base).href, { waitUntil: 'networkidle' });
   for (const group of groups) {
-    const pictures = await page.evaluate(async ({ prefix, suffix, width, height, mode, poses }) => {
-      let createDepthScene;
+    const pictures = await page.evaluate(async ({ prefix, suffix, width, height, shots }) => {
+      let createStageScene;
       try {
-        ({ createDepthScene } = await import('/src/motion/depth-scene.js'));
+        ({ createStageScene } = await import('/src/motion/stage-scene.js'));
       } catch (error) {
         throw new Error('Poster rendering requires the Astro dev server, not the built preview: ' + error.message);
       }
-      const canvas = document.createElement('canvas');
-      canvas.style.cssText = 'display:block;width:' + width + 'px;height:' + height + 'px';
-      document.body.style.cssText = 'margin:0;background:#01030a';
-      document.body.replaceChildren(canvas);
-      const imageStart = window.__afyllxPosterImages.length;
-      const scene = createDepthScene(canvas, { mode });
-      try {
-        await Promise.all(window.__afyllxPosterImages.slice(imageStart).map(image => image.decode()));
-        await new Promise(requestAnimationFrame);
-        await new Promise(requestAnimationFrame);
-        const gl = canvas.getContext('webgl2');
-        if (!gl || gl.isContextLost()) throw new Error('WebGL2 is unavailable while rendering posters');
-        if (canvas.width !== Math.round(width * 1.5) || canvas.height !== Math.round(height * 1.5)) {
-          throw new Error('Expected 1.5× poster resolution, received ' + canvas.width + '×' + canvas.height);
-        }
-        const info = gl.getExtension('WEBGL_debug_renderer_info');
-        const renderer = info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : 'WebGL2';
-        const pictures = [];
-        for (const [name, progress] of poses) {
-          scene.render(progress, 3);
+      document.body.style.cssText = 'margin:0;background:#050915';
+      const pictures = [];
+      let canvas;
+      for (const [name, options, index, local] of shots) {
+        // A fresh canvas per shot gives every scene its own WebGL context.
+        canvas?.remove();
+        canvas = document.createElement('canvas');
+        canvas.style.cssText = 'display:block;width:' + width + 'px;height:' + height + 'px';
+        document.body.replaceChildren(canvas);
+        const imageStart = window.__afyllxPosterImages.length;
+        const scene = createStageScene(canvas, options);
+        try {
+          await Promise.all(window.__afyllxPosterImages.slice(imageStart).map(image => image.decode()));
           await new Promise(requestAnimationFrame);
-          scene.render(progress, 3);
+          await new Promise(requestAnimationFrame);
+          const gl = canvas.getContext('webgl2');
+          if (!gl || gl.isContextLost()) throw new Error('WebGL2 is unavailable while rendering posters');
+          if (canvas.width !== Math.round(width * 1.5) || canvas.height !== Math.round(height * 1.5)) {
+            throw new Error('Expected 1.5× poster resolution, received ' + canvas.width + '×' + canvas.height);
+          }
+          const info = gl.getExtension('WEBGL_debug_renderer_info');
+          const renderer = info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : 'WebGL2';
+          scene.render(index, local, 3);
+          await new Promise(requestAnimationFrame);
+          scene.render(index, local, 3);
           const pixels = new Uint8Array(canvas.width * canvas.height * 4);
           gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
           let opaque = 0;
@@ -76,12 +85,12 @@ try {
           const image = canvas.toDataURL('image/webp', .95);
           if (!image.startsWith('data:image/webp;base64,')) throw new Error('The browser did not encode WebP');
           pictures.push({ name: prefix + name + suffix + '.webp', image, width: canvas.width, height: canvas.height, renderer });
+        } finally {
+          scene.dispose();
         }
-        return pictures;
-      } finally {
-        scene.dispose();
-        canvas.remove();
       }
+      canvas?.remove();
+      return pictures;
     }, group);
     for (const picture of pictures) {
       const bytes = Buffer.from(picture.image.slice('data:image/webp;base64,'.length), 'base64');

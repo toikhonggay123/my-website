@@ -65,44 +65,52 @@ try {
     console.log(JSON.stringify({ scene: name, brightPixels: first.bright, completeFrame: true, animated, renderer: first.renderer }));
   }
 
+  // Scroll to a chapter's anchor, which sits at its hold point (fully expanded).
   async function chapter(name) {
     await page.evaluate(name => {
-      const element = document.querySelector('[data-scene="' + name + '"]');
-      scrollTo(0, element.getBoundingClientRect().top + scrollY + element.clientHeight / 2 - innerHeight / 2);
+      const anchor = document.getElementById('chuong-' + name);
+      scrollTo({ top: anchor.getBoundingClientRect().top + scrollY, behavior: 'instant' });
     }, name);
-    await page.waitForTimeout(1000);
-    assert.equal(await page.locator('[data-journey]').getAttribute('data-current'), name);
-    assert.ok(Math.abs(await page.locator('.journey-viewport').evaluate(element => element.getBoundingClientRect().top)) < 1, name + ': sticky viewport');
+    await page.locator('.stage.is-rendered').waitFor();
+    // Playback is speed-limited, so wait for the stage to catch up with the scroll.
+    await page.waitForFunction(name => {
+      const copy = document.querySelector('[data-stage-copy="' + name + '"]');
+      return document.querySelector('[data-stage]').dataset.current === name && Number(getComputedStyle(copy).opacity) > .95;
+    }, name, { timeout: 10000 });
+    // Let the canvas finish its 600 ms fade-in.
+    await page.waitForTimeout(900);
+    assert.equal(await page.locator('[data-stage]').getAttribute('data-current'), name);
+    assert.ok(Math.abs(await page.locator('.stage-sticky').evaluate(element => element.getBoundingClientRect().top)) < 1, name + ': sticky stage');
+    const copy = page.locator('[data-stage-copy="' + name + '"]');
+    assert.ok(Number(await copy.evaluate(element => getComputedStyle(element).opacity)) > .95, name + ': chapter copy visible');
   }
 
   await page.goto(base, { waitUntil: 'networkidle' });
-  await page.locator('.journey.is-rendered').waitFor();
-  await page.waitForTimeout(1000);
-  await inspect('[data-depth-canvas]', 'desktop-hero');
-  for (const name of ['intro', 'edu', 'digital', 'gov', 'digital', 'edu']) {
+  for (const name of ['edu', 'digital', 'gov', 'digital', 'edu']) {
     await chapter(name);
-    await inspect('[data-depth-canvas]', 'desktop-' + name + '-' + frames);
+    await inspect('[data-stage-canvas]', 'desktop-' + name + '-' + frames);
   }
   for (const [label, viewport] of [
     ['tall', { width: 1182, height: 1177 }],
     ['mobile', { width: 390, height: 844 }],
   ]) {
     await page.setViewportSize(viewport);
-    for (const name of ['hero', 'edu', 'digital', 'gov']) {
+    for (const name of ['edu', 'digital', 'gov']) {
       await chapter(name);
-      await inspect('[data-depth-canvas]', label + '-' + name);
+      await inspect('[data-stage-canvas]', label + '-' + name);
     }
   }
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.goto(base + '/#chuong-digital', { waitUntil: 'networkidle' });
-  await page.locator('.journey.is-rendered').waitFor();
-  await page.waitForTimeout(1000);
-  await inspect('[data-depth-canvas]', 'direct-chapter');
+  await page.locator('.stage.is-rendered').waitFor();
+  await page.waitForTimeout(1200);
+  assert.equal(await page.locator('[data-stage]').getAttribute('data-current'), 'digital', 'direct chapter link');
+  await inspect('[data-stage-canvas]', 'direct-chapter');
   const secondTab = await browser.newPage();
   await secondTab.bringToFront();
   await page.bringToFront();
   await page.waitForTimeout(600);
-  await inspect('[data-depth-canvas]', 'tab-return');
+  await inspect('[data-stage-canvas]', 'tab-return');
   await secondTab.close();
   for (const name of ['edu', 'digital', 'gov', 've-afyllx']) {
     await page.goto(base + '/' + name, { waitUntil: 'networkidle' });

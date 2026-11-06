@@ -30,6 +30,9 @@ const canonical = new URL(current, Astro.site);
     <meta property="og:image" content={new URL(image, Astro.site).href} />
     <link rel="canonical" href={canonical.href} />
     <link rel="icon" href="/afyllx-brand/mark.webp" type="image/webp" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Lexend:wght@300;400;600;700&display=swap" />
     <title>{title}</title>
   </head>
   <body class:list={{ 'is-home': current === '/' }}>

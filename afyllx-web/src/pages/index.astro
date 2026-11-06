@@ -8,6 +8,11 @@ const stories = [
   { ...divisions[1], headline: ['Từ ý tưởng kinh doanh.', 'Đến một website.'], body: 'Định hướng nền tảng kinh doanh website trực tuyến, kết nối nhu cầu với một không gian số có thể đưa vào sử dụng.', cues: ['Ý tưởng', 'Website', 'Kinh doanh'] },
   { ...divisions[2], headline: ['Hiểu quy trình.', 'Kiến tạo', 'giải pháp số.'], body: 'Định hướng giải pháp chuyển đổi số chính phủ, bắt đầu từ thực tế của từng cơ quan và đơn vị.', cues: ['Quy trình', 'Kết nối', 'Chuyển đổi số'] },
 ];
+const coverText: Record<string, string> = {
+  edu: 'Công nghệ cho vận hành nhà trường.',
+  digital: 'Nền tảng kinh doanh website.',
+  gov: 'Chuyển đổi số khu vực công.',
+};
 const approach = [
   { title: 'Hiểu nhu cầu.', text: 'Bắt đầu với người thực hiện và công việc họ cần hoàn thành.' },
   { title: 'Xác định phạm vi.', text: 'Chọn bài toán, kết quả cần đạt và phần việc nên làm trước.' },
@@ -15,60 +20,75 @@ const approach = [
   { title: 'Hoàn thiện.', text: 'Quan sát cách sử dụng và tiếp tục cải thiện từ thực tế.' },
 ];
 ---
-<Site title="AFYLLX · Kiến tạo những khả năng số" description="AFYLLX phát triển nền tảng cho giáo dục, kinh doanh website trực tuyến và chuyển đổi số chính phủ.">
-  <div class="journey" data-journey data-current="hero">
-    <div class="journey-viewport" aria-hidden="true">
-      <picture>
-        <source data-journey-poster-mobile media="(max-width: 760px)" srcset="/afyllx-media/depth-hero-mobile.webp" />
-        <img class="journey-poster" data-journey-poster src="/afyllx-media/depth-hero.webp" width="1600" height="1000" fetchpriority="high" alt="" />
-      </picture>
-      <canvas data-depth-canvas></canvas>
-      <div class="hero-film" data-hero-film><span class="hero-radiance"></span></div>
-      <div class="scene-shade"></div><div class="scene-vignette"></div><span class="scene-grain"></span>
-    </div>
-
-    <section class="hero scene-section" data-scene="hero" aria-labelledby="hero-title">
-      <div class="hero-copy" data-hero-copy>
-        <span class="eyebrow"><span class="glow-dot"></span> GIÁO DỤC · KINH DOANH · CHUYỂN ĐỔI SỐ</span>
-        <h1 id="hero-title"><span>Kiến tạo những</span><em>khả năng số.</em></h1>
-        <p>AFYLLX phát triển nền tảng cho giáo dục,<br class="desktop-break" /> kinh doanh website trực tuyến và chuyển đổi số chính phủ.</p>
-        <a class="button button-primary" href="#kham-pha" data-explore>Khám phá AFYLLX <Icon name="down" size={17} /></a>
-      </div>
-      <div class="wrap hero-floor">
-        <span class="floor-label">Từ nhu cầu thực tế.<br />Đến những khả năng mới.</span>
-        <a class="scroll-cue" href="#kham-pha" aria-label="Cuộn để khám phá"><span></span><small>CUỘN ĐỂ KHÁM PHÁ</small></a>
-        <span class="floor-label floor-right">Ba lĩnh vực.<br />Một thương hiệu AFYLLX.</span>
-      </div>
-    </section>
-
-    <section class="intro scene-section" id="kham-pha" data-scene="intro" aria-labelledby="intro-title">
-      <div class="intro-copy" data-choreography>
-        <span class="eyebrow">KHẢ NĂNG BẮT ĐẦU TỪ NHU CẦU</span>
-        <h2 id="intro-title">Một công việc.<br /><span>Một cách làm tốt hơn.</span></h2>
-        <p>Từ vận hành nhà trường đến kinh doanh trên web và chuyển đổi số khu vực công. AFYLLX phát triển theo ba hướng, cùng bắt đầu từ người dùng và công việc thực tế.</p>
-        <div class="intro-line" aria-hidden="true"><i></i></div>
-      </div>
-    </section>
-
-    {stories.map((story) => (
-      <section class:list={['scene-section', 'chapter', `chapter-${story.id}`]} id={`chuong-${story.id}`} data-scene={story.id} aria-labelledby={`title-${story.id}`}>
-        <div class="wrap chapter-layout">
-          <div class="chapter-copy" data-choreography>
-            <div class="chapter-meta"><span class="eyebrow">{story.number} / AFYLLX {story.name.toUpperCase()}</span><Status id={story.id} status={story.status} /></div>
-            <h2 id={`title-${story.id}`}>{story.headline.map((line, index) => <span class:list={{ 'chapter-accent': index === story.headline.length - 1 }}>{line}</span>)}</h2>
-            <p>{story.body}</p>
-            <a class="text-link" href={`/${story.id}`}>Khám phá {story.name} <span class="round-arrow"><Icon name="external" size={17} /></span></a>
-          </div>
-          <div class="chapter-cues" aria-hidden="true">{story.cues.map((cue, index) => <span><small>0{index + 1}</small>{cue}</span>)}</div>
+<Site title="AFYLLX · Xây nền tảng số cho công việc thực tế" description="AFYLLX phát triển công nghệ cho nhà trường, kinh doanh website trực tuyến và chuyển đổi số khu vực công.">
+  <section class="cover" aria-labelledby="hero-title">
+    <div class="wrap cover-hero">
+      <div class="cover-copy">
+        <span class="cover-eyebrow">Tổng quan AFYLLX</span>
+        <h1 id="hero-title">Xây nền tảng số<br />cho <b>công việc</b><br /><b>thực tế.</b></h1>
+        <p>Công nghệ cho nhà trường, kinh doanh website<br class="desktop-break" /> trực tuyến và chuyển đổi số khu vực công.</p>
+        <div class="cover-actions">
+          <a class="pill pill-solid" href="#kham-pha">Khám phá các lĩnh vực</a>
+          <a class="pill pill-line" href="/ve-afyllx">Về AFYLLX</a>
         </div>
-      </section>
-    ))}
+      </div>
+      <div class="cover-stage" aria-hidden="true">
+        <span class="ring ring-outer"></span><span class="ring ring-inner"></span><span class="cover-glow"></span>
+        <img src="/afyllx-brand/afyllx-logo.png" width="640" height="640" alt="" fetchpriority="high" />
+      </div>
+    </div>
+    <div class="wrap cover-chapters">
+      {divisions.map((division, index) => (
+        <a class:list={['cover-chapter', { 'is-active': index === 0 }]} href={`#chuong-${division.id}`}>
+          <span class="cover-eyebrow">Chương {index + 1} / 3</span>
+          <strong>{division.name}</strong>
+          <span class="cover-desc">{coverText[division.id]}</span>
+          <span class:list={['cover-tag', { live: division.status === 'Đã triển khai' }]}>{division.status}</span>
+          {index === 0 && <span class="cover-progress"><i></i></span>}
+        </a>
+      ))}
+    </div>
+  </section>
 
-    <nav class="journey-nav" data-journey-nav aria-label="Chuyển chương" hidden>
-      {divisions.map((division) => <a href={`#chuong-${division.id}`} data-chapter-link={division.id}><span>{division.number}</span><strong>{division.name}</strong><i></i></a>)}
-    </nav>
-    <div class="journey-bottom"><button type="button" data-motion-toggle hidden aria-pressed="false">Giảm chuyển động</button><span data-scene-count hidden>01 / 05</span></div>
-  </div>
+  <section class="intro-block section-pad" id="kham-pha" aria-labelledby="intro-title">
+    <div class="wrap intro-copy" data-reveal>
+      <span class="eyebrow">KHẢ NĂNG BẮT ĐẦU TỪ NHU CẦU</span>
+      <h2 id="intro-title">Một công việc.<br /><span>Một cách làm tốt hơn.</span></h2>
+      <p>Từ vận hành nhà trường đến kinh doanh trên web và chuyển đổi số khu vực công. AFYLLX phát triển theo ba hướng, cùng bắt đầu từ người dùng và công việc thực tế.</p>
+    </div>
+  </section>
+
+  <section class="stage" data-stage data-current="edu" aria-label="Ba lĩnh vực AFYLLX">
+    {divisions.map((division, index) => <span class="stage-anchor" id={`chuong-${division.id}`} style={`--at:${index}`}></span>)}
+    <div class="stage-sticky">
+      <div class="stage-art" aria-hidden="true">
+        {divisions.map((division) => (
+          <picture class="stage-poster" data-stage-poster={division.id}>
+            <source media="(max-width: 760px)" srcset={`/afyllx-media/depth-${division.id}-mobile.webp`} />
+            <img src={`/afyllx-media/depth-${division.id}.webp`} width="2400" height="1500" alt="" loading="lazy" />
+          </picture>
+        ))}
+        <canvas data-stage-canvas></canvas>
+      </div>
+      <div class="wrap stage-layout">
+        {stories.map((story) => (
+          <article class="stage-copy" data-stage-copy={story.id} aria-labelledby={`title-${story.id}`}>
+            <div class="chapter-meta" data-stage-reveal><span class="eyebrow">CHƯƠNG {Number(story.number)} / 3 · AFYLLX {story.name.toUpperCase()}</span><Status id={story.id} status={story.status} /></div>
+            <h2 id={`title-${story.id}`} data-stage-reveal>{story.headline.map((line, index) => <span class:list={{ 'chapter-accent': index === story.headline.length - 1 }}>{line}</span>)}</h2>
+            <p data-stage-reveal>{story.body}</p>
+            <ol class="stage-steps" data-stage-reveal aria-label="Các bước">{story.cues.map((cue, index) => <li data-stage-step><small>0{index + 1}</small>{cue}</li>)}</ol>
+            <a class="text-link" href={`/${story.id}`} data-stage-reveal>Khám phá {story.name} <span class="round-arrow"><Icon name="external" size={17} /></span></a>
+          </article>
+        ))}
+      </div>
+      <div class="wrap stage-bottom">
+        <nav class="stage-rail" aria-label="Chuyển chương">
+          {divisions.map((division, index) => <a href={`#chuong-${division.id}`} data-stage-link={index}><span>Chương {index + 1}</span><strong>{division.name}</strong><i></i></a>)}
+        </nav>
+        <button type="button" class="stage-motion" data-motion-toggle hidden aria-pressed="false">Giảm chuyển động</button>
+      </div>
+    </div>
+  </section>
 
   <section class="ecosystem section-pad" id="linh-vuc" aria-labelledby="ecosystem-title">
     <div class="wrap">
@@ -95,5 +115,5 @@ const approach = [
   </section>
 </Site>
 <script>
-  import '../motion/depth-journey.js';
+  import '../motion/stage-journey.js';
 </script>
