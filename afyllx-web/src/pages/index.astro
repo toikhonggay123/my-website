@@ -4,15 +4,15 @@ import Icon from '../components/Icon.astro';
 import Status from '../components/Status.astro';
 import { divisions } from '../data.js';
 const stories = [
-  { ...divisions[0], headline: ['Công nghệ cho', 'nhịp vận hành', 'nhà trường.'], body: 'Từ những công việc mỗi ngày, mở ra cách tổ chức và vận hành thuận tiện hơn.', cues: ['Nhà trường', 'Con người', 'Vận hành'] },
-  { ...divisions[1], headline: ['Từ ý tưởng kinh doanh.', 'Đến một website.'], body: 'Định hướng nền tảng kinh doanh website trực tuyến, kết nối nhu cầu với một không gian số có thể đưa vào sử dụng.', cues: ['Ý tưởng', 'Website', 'Kinh doanh'] },
-  { ...divisions[2], headline: ['Hiểu quy trình.', 'Kiến tạo', 'giải pháp số.'], body: 'Định hướng giải pháp chuyển đổi số chính phủ, bắt đầu từ thực tế của từng cơ quan và đơn vị.', cues: ['Quy trình', 'Kết nối', 'Chuyển đổi số'] },
+  { ...divisions[0], headline: ['Công nghệ cho', 'nhịp vận hành', 'nhà trường'], body: 'Từ những công việc mỗi ngày, mở ra cách tổ chức và vận hành thuận tiện hơn.', cues: ['Nhà trường', 'Con người', 'Vận hành'] },
+  { ...divisions[1], headline: ['Từ ý tưởng kinh doanh', 'Đến một website'], body: 'Định hướng nền tảng kinh doanh website trực tuyến, kết nối nhu cầu với một không gian số có thể đưa vào sử dụng.', cues: ['Ý tưởng', 'Website', 'Kinh doanh'] },
+  { ...divisions[2], headline: ['Hiểu quy trình', 'Kiến tạo', 'giải pháp số'], body: 'Định hướng giải pháp chuyển đổi số chính phủ, bắt đầu từ thực tế của từng cơ quan và đơn vị.', cues: ['Quy trình', 'Kết nối', 'Chuyển đổi số'] },
 ];
 const approach = [
-  { title: 'Hiểu nhu cầu.', text: 'Bắt đầu với người thực hiện và công việc họ cần hoàn thành.' },
-  { title: 'Xác định phạm vi.', text: 'Chọn bài toán, kết quả cần đạt và phần việc nên làm trước.' },
-  { title: 'Dựng giải pháp.', text: 'Kết nối trải nghiệm, thiết kế và công nghệ trong một sản phẩm.' },
-  { title: 'Hoàn thiện.', text: 'Quan sát cách sử dụng và tiếp tục cải thiện từ thực tế.' },
+  { title: 'Hiểu nhu cầu', text: 'Bắt đầu với người thực hiện và công việc họ cần hoàn thành.' },
+  { title: 'Xác định phạm vi', text: 'Chọn bài toán, kết quả cần đạt và phần việc nên làm trước.' },
+  { title: 'Dựng giải pháp', text: 'Kết nối trải nghiệm, thiết kế và công nghệ trong một sản phẩm.' },
+  { title: 'Hoàn thiện', text: 'Quan sát cách sử dụng và tiếp tục cải thiện từ thực tế.' },
 ];
 ---
 <Site title="AFYLLX · Xây nền tảng số cho công việc thực tế" description="AFYLLX phát triển công nghệ cho nhà trường, kinh doanh website trực tuyến và chuyển đổi số khu vực công.">
@@ -20,7 +20,7 @@ const approach = [
     <div class="wrap cover-hero">
       <div class="cover-copy">
         <span class="cover-eyebrow">Tổng quan AFYLLX</span>
-        <h1 id="hero-title">Xây nền tảng số<br />cho <b>công việc</b><br /><b>thực tế.</b></h1>
+        <h1 id="hero-title">Xây nền tảng số<br />cho <b>công việc</b><br /><b>thực tế</b></h1>
         <p>Công nghệ cho nhà trường, kinh doanh website<br class="desktop-break" /> trực tuyến và chuyển đổi số khu vực công.</p>
         <div class="cover-actions">
           <a class="pill pill-solid" href="#kham-pha">Khám phá các lĩnh vực</a>
@@ -37,7 +37,7 @@ const approach = [
   <section class="intro-block section-pad" id="kham-pha" aria-labelledby="intro-title">
     <div class="wrap intro-copy" data-reveal>
       <span class="eyebrow">KHẢ NĂNG BẮT ĐẦU TỪ NHU CẦU</span>
-      <h2 id="intro-title">Một công việc.<br /><span>Một cách làm tốt hơn.</span></h2>
+      <h2 id="intro-title">Một công việc<br /><span>Một cách làm tốt hơn</span></h2>
       <p>Từ vận hành nhà trường đến kinh doanh trên web và chuyển đổi số khu vực công. AFYLLX phát triển theo ba hướng, cùng bắt đầu từ người dùng và công việc thực tế.</p>
     </div>
   </section>
@@ -76,7 +76,7 @@ const approach = [
 
   <section class="ecosystem section-pad" id="linh-vuc" aria-labelledby="ecosystem-title">
     <div class="wrap">
-      <div class="section-heading" data-reveal><span class="eyebrow"><span class="glow-dot"></span> HỆ SINH THÁI AFYLLX</span><h2 id="ecosystem-title">Ba lĩnh vực.<br /><em>Cùng mở ra phía trước.</em></h2><p>Mỗi lĩnh vực có trọng tâm riêng, cùng hướng đến những giải pháp số có thể sử dụng trong thực tế.</p></div>
+      <div class="section-heading" data-reveal><span class="eyebrow"><span class="glow-dot"></span> HỆ SINH THÁI AFYLLX</span><h2 id="ecosystem-title">Ba lĩnh vực<br /><em>Cùng mở ra phía trước</em></h2><p>Mỗi lĩnh vực có trọng tâm riêng, cùng hướng đến những giải pháp số có thể sử dụng trong thực tế.</p></div>
       <div class="ecosystem-grid">
         {divisions.map((division) => <a class:list={['ecosystem-card', `theme-${division.id}`]} href={`/${division.id}`} data-light-card>
           <div class="ecosystem-art"><img src={`/afyllx-media/sculpture-${division.id}.webp`} width="960" height="720" alt="" loading="lazy" /><span class="ecosystem-number" aria-hidden="true">{division.number}</span></div>
@@ -88,7 +88,7 @@ const approach = [
 
   <section class="approach section-pad" aria-labelledby="approach-title">
     <div class="wrap">
-      <div class="approach-heading" data-reveal><span class="eyebrow">TỪ MỘT BÀI TOÁN ĐẾN GIẢI PHÁP</span><h2 id="approach-title">Bắt đầu bằng<br /><em>việc hiểu rõ hơn.</em></h2><a class="text-link" href="/ve-afyllx">Cách AFYLLX tiếp cận <span class="round-arrow"><Icon name="external" size={17} /></span></a></div>
+      <div class="approach-heading" data-reveal><span class="eyebrow">TỪ MỘT BÀI TOÁN ĐẾN GIẢI PHÁP</span><h2 id="approach-title">Bắt đầu bằng<br /><em>việc hiểu rõ hơn</em></h2><a class="text-link" href="/ve-afyllx">Cách AFYLLX tiếp cận <span class="round-arrow"><Icon name="external" size={17} /></span></a></div>
       <ol class="approach-grid">{approach.map((step, index) => <li data-reveal><span class="step-number">0{index + 1}</span><div class="step-light" aria-hidden="true"></div><h3>{step.title}</h3><p>{step.text}</p></li>)}</ol>
     </div>
   </section>
