@@ -35,6 +35,33 @@ Không chạy HTTP write tests lên bản cloud-live hoặc database local thậ
 
 Không commit roster, SQL nhập riêng, token QR, khóa, `.dev.vars`, database hoặc bản sao riêng. Đồng bộ source không tự chia sẻ tệp riêng. `SucVatHoaThan` có quyền Write source; quyền đó không cấp quyền Cloudflare dashboard hoặc dữ liệu trên máy.
 
+## Chống DDoS và chống spam yêu cầu
+
+Có ba lớp bảo vệ, xếp từ ngoài vào trong:
+
+1. **Cloudflare edge (tự động, mọi gói):** chặn DDoS tầng mạng (L3/L4) và bộ luật HTTP DDoS Managed Ruleset (L7) cho mọi request qua `afyllx.com`, `edu.afyllx.com` và `*.workers.dev`. Không cần code.
+2. **Lớp chắn trong Worker (`lib/shield.mjs`, gọi đầu tiên trong `worker/index.ts`):** giới hạn tốc độ theo IP (IPv6 gộp theo /64) bằng Workers Rate Limiting binding khai báo trong `wrangler.cloud.jsonc`. Chạy trước khi chuyển sang `afyllx-web`, render trang hoặc truy vấn D1. Gateway Edu chuyển nguyên request nên `CF-Connecting-IP` vẫn là IP thật của người dùng.
+
+   | Nhóm | Route | Giới hạn mỗi IP |
+   |---|---|---|
+   | `page` | trang, RSC, trang thương hiệu | 200 / 10 giây |
+   | `read` | GET `/api/*` (board, records, students, health…) | 300 / 10 giây |
+   | `write` | POST `/api/*` (quét QR, duyệt…) | 100 / 10 giây |
+   | `heavy` | export, daily, audit, qr/cards, reset-preview/backups, devices | 60 / 60 giây |
+   | `enroll` | `device/start`, `qr/scanner/start` (tạo dòng thiết bị trong D1) | 20 / 60 giây; thêm trần chung 300 / 60 giây cho mỗi route |
+
+   Ngưỡng được tính cho một mạng trường dùng chung IP (NAT), có nhiều máy quét và tab quản trị làm mới mỗi 10 giây. Vượt ngưỡng sẽ nhận 429 kèm `Retry-After`. Hàng đợi quét offline coi 429 là lỗi tạm thời: giữ nguyên lượt quét và gửi lại sau, không mất dữ liệu. URL dài hơn 4096 ký tự bị trả 414, phương thức API lạ bị trả 405. Bộ đếm tính riêng theo từng vị trí Cloudflare. Nếu dịch vụ rate limit lỗi, request vẫn được cho qua. Bản localhost không khai báo binding nên không bị giới hạn.
+3. **Ứng dụng:** kiểm tra Origin cho POST, giới hạn body 2 MB, cookie thiết bị HttpOnly, thu hồi thiết bị phía server.
+
+Muốn đổi ngưỡng, sửa `limit` trong `wrangler.cloud.jsonc` (`period` chỉ nhận 10 hoặc 60 và phải khớp `SHIELD_BUCKETS`), chạy `pnpm check` rồi build/deploy như trên. Không đổi `namespace_id` đang dùng.
+
+### Cấu hình nên bật trên Cloudflare dashboard (zone `afyllx.com`)
+
+- **Security → WAF → Rate limiting rules** (gói Free được 1 rule): `URI Path starts with "/api/"`, đếm theo IP, 10 giây, ngưỡng khoảng 400, hành động Block 10 giây. Rule này chặn ngay tại edge, trước khi Worker chạy, nên request bị chặn không bị tính vào hạn mức Worker. Lớp trong Worker vẫn bị tính phí cho từng request bị từ chối.
+- **Security → DDoS → HTTP DDoS attack protection:** giữ mặc định. Khi đang bị tấn công có thể nâng sensitivity lên High.
+- **Không bật Bot Fight Mode hoặc "I'm Under Attack" thường xuyên.** Hai chế độ này đưa ra thử thách JavaScript, làm hỏng các lệnh `fetch` API từ PWA và máy quét. Chỉ bật Under Attack khi khẩn cấp: máy quét vẫn lưu lượt quét offline và gửi lại sau. Nếu cần thử thách, tạo Custom rule với Managed Challenge cho trang và bỏ qua `/api/`.
+- Host `my-website.fyllxestonia.workers.dev` không nằm trong zone nên không áp dụng rule WAF ở trên. Nó vẫn có DDoS edge và lớp chắn trong Worker. Tắt host cũ này là quyết định của chủ dự án.
+
 ## Danh sách chung với ClassHub
 
 MealCheck web là nguồn chính cho học sinh và lớp sinh hoạt. Migration `0004_shared_directory.sql` bổ sung mã lớp ổn định, phiên bản danh sách và thông tin chống ghi trùng khi gửi lại thao tác. Migration không sửa hồ sơ học sinh, QR hay dữ liệu điểm danh đã lưu.

@@ -13,6 +13,7 @@
 - The real database was imported and verified. Never reinitialize or overwrite it. The original QR secret is unavailable; do not replace it without explicit approval for a card-reissue plan.
 - New-card approval is for Cloudflare only. Preserve the local database and 34 original local cards; no write tests on live cloud/local records. Read CLOUDFLARE_LIVE.md for the active cloud configuration.
 
+- Flood/DDoS shield: `lib/shield.mjs` runs first in `worker/index.ts` using Workers Rate Limiting bindings from `wrangler.cloud.jsonc` only (local loopback stays unlimited). Keep 429 retryable for the offline scan queue; see CLOUDFLARE_LIVE.md before changing limits.
 - Use `pnpm install --frozen-lockfile`, Node 22.22+, pnpm 10.31.
 - Use codex/ feature branches by default. The owner explicitly authorized this initial source handoff directly to main. Stop and report Git conflicts; never force push.
 - Run `pnpm check`, `pnpm build`, `node scripts/local-qa.mjs` for backend/build changes.
