@@ -9,7 +9,8 @@
   "routes": [{"pattern": "edu.afyllx.com", "custom_domain": true, "zone_id": "7f90bfb41da548c95053b38ceba75a8c"}],
   "services": [
     {"binding": "MEALCHECK", "service": "my-website"},
-    {"binding": "CLASSHUB", "service": "afyllx-classhub"}
+    {"binding": "CLASSHUB", "service": "afyllx-classhub"},
+    {"binding": "ACCOUNTS", "service": "afyllx-accounts"}
   ],
   "send_email": [{"name": "CONTACT_EMAIL", "destination_address": "contact.afyllx@gmail.com"}],
   "ratelimits": [{"name": "CONTACT_RATE_LIMIT", "namespace_id": "4086926", "simple": {"limit": 4, "period": 60}}],

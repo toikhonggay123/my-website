@@ -17,7 +17,11 @@
     "MEALCHECK_DIRECTORY_ORIGIN": "https://my-website.fyllxestonia.workers.dev",
     "MEALCHECK_DIRECTORY_ORG_ID": "51740000-0000-4000-8000-000000000002"
   },
-  "services": [{ "binding": "MEALCHECK_DIRECTORY", "service": "my-website" }],
+  "services": [
+    { "binding": "MEALCHECK_DIRECTORY", "service": "my-website" },
+    // AFYLLX Account: Founder and platform administrators sign in to ClassHub with it (src/server/platform.ts).
+    { "binding": "ACCOUNTS", "service": "afyllx-accounts" }
+  ],
   "triggers": { "crons": ["*/15 * * * *"] },
   "ratelimits": [
     { "name": "ACTIVATION_LIMIT", "namespace_id": "517402", "simple": { "limit": 12, "period": 60 } }

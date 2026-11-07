@@ -17,11 +17,28 @@ export async function request<T>(path: string, method = 'GET', data: unknown = {
   })
   const json = await response.json().catch(() => null) as ApiError & T | null
   if (!response.ok || !json) {
-    const message = response.status === 401 && !path.startsWith('/api/v1/demo/') ? 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.'
+    const message = response.status === 401 && path === signInPath ? 'Email hoặc mật khẩu chưa đúng.'
+      : response.status === 401 && !path.startsWith('/api/v1/demo/') ? 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.'
       : json?.error?.message ?? json?.message ?? 'Không thể tải dữ liệu. Vui lòng thử lại.'
     throw new RequestError(response.status, message)
   }
   return json as T
+}
+const signInPath = '/api/auth/sign-in/email'
+/**
+ * Signs in with a ClassHub password or, on edu.afyllx.com, an AFYLLX Account (Founder, platform administrator).
+ * An AFYLLX Account with two-step sign-in finishes at /tai-khoan and comes back here.
+ */
+export async function signIn(email: string, password: string, rememberMe: boolean) {
+  const response = await request<{ platform?: 'full' | 'mfa' | 'enroll' }>(signInPath, 'POST',
+    { email: email.trim().toLowerCase(), password, rememberMe })
+  if (response.platform === 'mfa' || response.platform === 'enroll') {
+    // AFYLLX Account lives at account.afyllx.com; QA runs keep it under /tai-khoan on the same origin.
+    const live = location.hostname === 'afyllx.com' || location.hostname.endsWith('.afyllx.com')
+    location.assign(live ? 'https://account.afyllx.com/?tiep=' + encodeURIComponent(location.href)
+      : '/tai-khoan/?tiep=' + encodeURIComponent(location.pathname))
+    await new Promise(() => undefined)
+  }
 }
 export async function send<T = unknown>(path: string, data: unknown, method = 'POST') {
   return (await request<{ data: T }>(path, method, data)).data

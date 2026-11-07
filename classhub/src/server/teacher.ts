@@ -1,4 +1,5 @@
-import { type Ctx, dayMs, isoDate, missing, now, one, param, requireRole, result, router, rows, today, validated } from './core'
+import { z } from 'zod'
+import { type Ctx, dayMs, denied, isoDate, missing, now, one, param, result, router, rows, today, validated } from './core'
 import { effectiveVersion, ensurePrepared, weekdayOf } from './school'
 
 // Read-only views for the teacher page. Every query is limited to the signed-in teacher: sessions they
@@ -10,7 +11,25 @@ type MarkSession = { id: string; class_id: string; class_name: string; shift: st
   starts_at: number; ends_at: number; status: string; attendance_state: string; teacher_id: string; teacher_name: string }
 
 const addDays = (date: string, days: number) => new Date(Date.parse(date) + days * dayMs).toISOString().slice(0, 10)
-const teacher = (c: Ctx) => requireRole(c, 'teacher')
+/**
+ * The signed-in teacher, or, for an owner or branch administrator (Founder included), the teacher named by `?xem=` so they
+ * can see that teacher's page. These routes only read. Branch administrators see teachers of their own branch only.
+ */
+async function teacher(c: Ctx) {
+  const scope = c.get('scope')
+  if (scope.role === 'teacher') return scope
+  if (scope.role !== 'owner' && scope.role !== 'branch_admin') throw denied()
+  const viewed = c.req.query('xem')
+  if (!viewed) throw denied()
+  // Account ids come from the sign-in library (random letters and digits) or are UUIDs.
+  const userId = validated(z.string().regex(/^[A-Za-z0-9_-]{8,64}$/), viewed)
+  const member = await one(c, `SELECT user_id FROM memberships WHERE org_id=? AND user_id=? AND role='teacher' AND active=1
+    AND (? IS NULL OR branch_id=?)`, scope.orgId, userId, scope.branchId, scope.branchId)
+  if (!member) throw missing()
+  const next = { ...scope, userId, role: 'teacher' as const }
+  c.set('scope', next)
+  return next
+}
 
 async function periodsOn(c: Ctx, date: string): Promise<{ closure: string | null; periods: Period[] }> {
   const { orgId, userId } = c.get('scope')
@@ -62,8 +81,16 @@ async function classAccess(c: Ctx, classId: string) {
 }
 
 export const teacherRoutes = router()
+  // Teachers an owner or branch administrator can open the teacher page as.
+  .get('/teacher/viewable', async c => {
+    const scope = c.get('scope')
+    if (scope.role !== 'owner' && scope.role !== 'branch_admin') throw denied()
+    return result(c, await rows<{ id: string; name: string }>(c, `SELECT u.id,u.name FROM memberships m JOIN "user" u ON u.id=m.user_id
+      WHERE m.org_id=? AND m.role='teacher' AND m.active=1 AND (? IS NULL OR m.branch_id=?) ORDER BY u.name,u.id LIMIT 300`,
+    scope.orgId, scope.branchId, scope.branchId))
+  })
   .get('/teacher/today', async c => {
-    const { orgId, userId } = teacher(c)
+    const { orgId, userId } = await teacher(c)
     await ensurePrepared(c)
     const date = today()
     const { closure, periods } = await periodsOn(c, date)
@@ -94,7 +121,7 @@ export const teacherRoutes = router()
     })
   })
   .get('/teacher/week', async c => {
-    teacher(c)
+    await teacher(c)
     const from = validated(isoDate, c.req.query('from') ?? today())
     const monday = addDays(from, 1 - weekdayOf(from))
     const days = []
@@ -105,7 +132,7 @@ export const teacherRoutes = router()
     return result(c, { monday, days })
   })
   .get('/teacher/classes', async c => {
-    const { orgId, userId } = teacher(c)
+    const { orgId, userId } = await teacher(c)
     const term = await one<{ id: string }>(c, 'SELECT id FROM school_terms WHERE org_id=? AND starts_on<=? AND ends_on>=?', orgId, today(), today())
     const classes = await rows<{ id: string; name: string; homeroom: number; enrolled: number; subjects: string | null }>(c, `SELECT cl.id,cl.name,
       EXISTS (SELECT 1 FROM teacher_assignments a WHERE a.org_id=cl.org_id AND a.class_id=cl.id AND a.user_id=? AND a.ended_at IS NULL
@@ -120,7 +147,7 @@ export const teacherRoutes = router()
     return result(c, classes)
   })
   .get('/teacher/classes/:classId', async c => {
-    const { orgId } = teacher(c)
+    const { orgId } = await teacher(c)
     const item = await classAccess(c, param(c, 'classId'))
     const date = today()
     const from = addDays(date, -29)

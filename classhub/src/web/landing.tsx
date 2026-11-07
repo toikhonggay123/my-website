@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { Backpack, ChevronRight, GraduationCap, Lock, Sparkles, X } from 'lucide-react'
-import { basePath, errorText, request, send, studentTimetablePath, useLoad, value } from './ui'
+import { basePath, errorText, request, send, signIn, studentTimetablePath, useLoad, value } from './ui'
 import './edu.css'
 import './landing.css'
 
@@ -34,7 +34,7 @@ function AdminSheet({ close, onLogin }: { close: () => void; onLogin: (identity:
       const password = value(data, 'password')
       const code = value(data, 'code').trim()
       if (activate) await send('/api/v1/activate', { code, email, password, name: value(data, 'name') })
-      await request('/api/auth/sign-in/email', 'POST', { email, password, rememberMe: false })
+      await signIn(email, password, false)
       const response = await request<{ data: Identity }>('/api/v1/me')
       onLogin(response.data, code)
     } catch (failure) { setError(errorText(failure)) } finally { setBusy(false) }

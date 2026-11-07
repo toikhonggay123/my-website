@@ -15,6 +15,8 @@ export type Bindings = {
   MEALCHECK_DIRECTORY_ORG_ID?: string
   BETTER_AUTH_SECRET: string
   ACTIVATION_LIMIT: RateLimit
+  /** AFYLLX Account Worker (service binding). Present only on edu.afyllx.com. */
+  ACCOUNTS?: Fetcher
 }
 export type App = { Bindings: Bindings; Variables: { scope: Scope; demoDb?: D1Database } }
 export type Ctx = Context<App>

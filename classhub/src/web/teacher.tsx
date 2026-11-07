@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   AlertTriangle, ArrowLeft, BellRing, CalendarDays, Check, ChevronLeft, ChevronRight, ClipboardCheck, Filter, House,
-  KeyRound, LogOut, MessageSquare, Moon, Sparkles, UsersRound,
+  Eye, KeyRound, LayoutDashboard, LogOut, MessageSquare, Moon, Sparkles, UsersRound,
 } from 'lucide-react'
 import {
-  RequestError, addDays, basePath, errorText, formatClock, formatDay, localDay, request, send, useLoad, type Workspace,
+  RequestError, addDays, basePath, errorText, formatClock, formatDay, localDay, request, send, signIn, useLoad, type Workspace,
 } from './ui'
 import './edu.css'
 import './teacher.css'
@@ -31,6 +31,14 @@ type Sheet = {
 }
 
 const workspaceKey = 'classhub:gv:workspace'
+const viewingKey = 'classhub:gv:xem'
+/** An owner or administrator (Founder included) looking at a teacher's page. Read-only. */
+type Viewing = { workspace: Workspace; teacherId: string; name: string }
+const ViewingContext = createContext<Viewing | null>(null)
+function useTeacherPath() {
+  const viewing = useContext(ViewingContext)
+  return (path: string) => viewing ? path + (path.includes('?') ? '&' : '?') + 'xem=' + viewing.teacherId : path
+}
 const shiftName: Record<Shift, string> = { morning: 'Buổi sáng', afternoon: 'Buổi chiều' }
 const dayNames = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ nhật']
 const statusName: Record<Status, string> = { present: 'Có mặt', absent: 'Vắng', late: 'Đi muộn', excused: 'Có phép', unmarked: 'Chưa đánh dấu' }
@@ -80,9 +88,7 @@ function DoneMark() {
 
 /* ------------------------------------------------------------------ Sign-in, activation, reset */
 
-async function signIn(email: string, password: string) {
-  await request('/api/auth/sign-in/email', 'POST', { email: email.trim().toLowerCase(), password, rememberMe: true })
-}
+const signInTeacher = (email: string, password: string) => signIn(email, password, true)
 function useSubmit(action: (data: FormData) => Promise<void>) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -108,7 +114,7 @@ function useHashCode() {
 }
 
 function Login({ onDone }: { onDone: () => void }) {
-  const form = useSubmit(async data => { await signIn(text(data, 'email'), text(data, 'password')); onDone() })
+  const form = useSubmit(async data => { await signInTeacher(text(data, 'email'), text(data, 'password')); onDone() })
   return <Gate title="Đăng nhập">
     <p className="tp-muted">Dành cho cán bộ, giáo viên. Đăng nhập một lần, điện thoại sẽ nhớ trong 30 ngày.</p>
     <form className="tp-form" onSubmit={form.submit}>
@@ -134,7 +140,7 @@ function Activate({ onDone }: { onDone: () => void }) {
       if (password !== text(data, 'confirm')) throw new Error('Hai lần nhập mật khẩu chưa khớp.')
       await send('/api/v1/activate', { code, email, password, name: text(data, 'name') })
     }
-    await signIn(email, password)
+    await signInTeacher(email, password)
     await send('/api/v1/accept-invitation', { code })
     onDone()
     navigate('/gv', { replace: true })
@@ -170,7 +176,7 @@ function ResetPassword({ onDone }: { onDone: () => void }) {
     const password = text(data, 'password')
     if (password !== text(data, 'confirm')) throw new Error('Hai lần nhập mật khẩu chưa khớp.')
     const { email } = await send<{ email: string }>('/api/v1/password-reset', { code, password })
-    await signIn(email, password)
+    await signInTeacher(email, password)
     onDone()
     navigate('/gv', { replace: true })
   })
@@ -262,13 +268,14 @@ function timeline(data: Today, now: string): TimelineItem[] {
 }
 
 function TodayView({ api, name }: { api: string; name: string }) {
-  const load = useLoad<{ data: Today }>(api + '/teacher/today')
+  const viewing = useContext(ViewingContext)
+  const load = useLoad<{ data: Today }>(useTeacherPath()(api + '/teacher/today'))
   const now = useNow()
   return <Load load={load}>{({ data }) => {
     const items = timeline(data, now)
     return <>
       <header className="tp-heading edu-rise">
-        <p className="tp-greeting"><Sparkles size={15} aria-hidden="true" /> Chào {name}</p>
+        <p className="tp-greeting"><Sparkles size={15} aria-hidden="true" /> {viewing ? 'Lịch của ' + viewing.name : 'Chào ' + name}</p>
         <h1>Hôm nay</h1><p>{dayNames[data.weekday - 1]}, {formatDay(data.date)}</p>
       </header>
       <ActionHero data={data} now={Date.now()} />
@@ -330,6 +337,7 @@ function Finalized({ sheet, endpoint, done }: { sheet: Sheet; endpoint: string; 
   const [error, setError] = useState('')
   const count = (status: Status) => sheet.roster.filter(row => row.status === status).length
   const absent = sheet.roster.filter(row => row.status === 'absent').map(row => row.name)
+  const readOnly = Boolean(useContext(ViewingContext))
   async function reopen() {
     setBusy(true)
     setError('')
@@ -346,14 +354,17 @@ function Finalized({ sheet, endpoint, done }: { sheet: Sheet; endpoint: string; 
     {error && <p className="tp-error" role="alert">{error}</p>}
     <div className="tp-finished-actions">
       <Link className="button edu-primary edu-press" to="/gv">Về Hôm nay</Link>
-      {sheet.correctableUntil && <button type="button" className="edu-press" disabled={busy} onClick={reopen}>
+      {sheet.correctableUntil && !readOnly && <button type="button" className="edu-press" disabled={busy} onClick={reopen}>
         Sửa lại · còn {Math.max(1, Math.ceil((sheet.correctableUntil - Date.now()) / 60_000))} phút</button>}
     </div>
   </section>
 }
 
 function MarkSheet({ sheet, endpoint, done }: { sheet: Sheet; endpoint: string; done: (message: string) => void }) {
-  const { session, roster, canEdit } = sheet
+  const { session, roster } = sheet
+  // Someone viewing a teacher's page only looks: no marking on the teacher's behalf here.
+  const viewing = useContext(ViewingContext)
+  const canEdit = sheet.canEdit && !viewing
   const storageKey = 'classhub:gv:attendance:' + session.id + ':' + session.version
   const editable = canEdit && session.attendance_state !== 'finalized'
   // A sheet nobody has marked starts with everyone present; the teacher only taps the exceptions.
@@ -406,7 +417,8 @@ function MarkSheet({ sheet, endpoint, done }: { sheet: Sheet; endpoint: string; 
         <strong key={count(status)} className="edu-bump">{count(status)}</strong>{statusName[status]}</span>)}
     </div>
     {session.status === 'cancelled' && <p className="tp-banner">Buổi này đã hủy.</p>}
-    {!canEdit && session.status === 'scheduled' && <p className="tp-banner">Điểm danh mở lúc {formatClock(session.starts_at)}.</p>}
+    {viewing && <p className="tp-banner">Bạn đang xem trang của {viewing.name}. Chỉ giáo viên được điểm danh tại đây; quản trị sửa điểm danh ở trang quản trị.</p>}
+    {!sheet.canEdit && session.status === 'scheduled' && <p className="tp-banner">Điểm danh mở lúc {formatClock(session.starts_at)}.</p>}
     {editable && session.attendance_state === 'unmarked' && <p className="tp-hint">Cả lớp đang là <strong>Có mặt</strong>. Chạm vào tên để đổi: Vắng → Đi muộn → Có phép.</p>}
     {editable && entries.length > 12 && <button type="button" className="tp-filter edu-press" aria-pressed={onlyExceptions}
       onClick={() => setOnlyExceptions(!onlyExceptions)}><Filter size={15} aria-hidden="true" />
@@ -478,7 +490,7 @@ function WeekView({ api }: { api: string }) {
   const today = localDay()
   const [monday, setMonday] = useState(weekStart(today))
   const load = useLoad<{ data: { monday: string; days: { date: string; closure: string | null; periods: Period[] }[] } }>(
-    api + '/teacher/week?from=' + monday)
+    useTeacherPath()(api + '/teacher/week?from=' + monday))
   return <>
     <header className="tp-heading"><p className="edu-eyebrow"><CalendarDays size={13} aria-hidden="true" /> Lịch dạy</p><h1>Lịch tuần</h1>
       <div className="tp-week-nav">
@@ -503,7 +515,7 @@ function WeekView({ api }: { api: string }) {
 
 type ClassRow = { id: string; name: string; homeroom: number; enrolled: number; subjects: string | null }
 function ClassesView({ api }: { api: string }) {
-  const load = useLoad<{ data: ClassRow[] }>(api + '/teacher/classes')
+  const load = useLoad<{ data: ClassRow[] }>(useTeacherPath()(api + '/teacher/classes'))
   return <>
     <header className="tp-heading"><p className="edu-eyebrow"><UsersRound size={13} aria-hidden="true" /> Phân công</p><h1>Lớp của tôi</h1></header>
     <Load load={load}>{({ data }) => data.length ? <ul className="tp-cards">{data.map((item, index) => <li key={item.id} className="edu-rise" style={stagger(index)}>
@@ -522,7 +534,7 @@ type StudentStat = { id: string; name: string; code: string; present: number; la
 function ClassView({ api }: { api: string }) {
   const { classId } = useParams()
   const load = useLoad<{ data: { name: string; homeroom: boolean; from: string; to: string; sessions: number; students: StudentStat[] } }>(
-    api + '/teacher/classes/' + classId)
+    useTeacherPath()(api + '/teacher/classes/' + classId))
   const [onlyFlagged, setOnlyFlagged] = useState(false)
   return <>
     <Link className="tp-back" to="/gv/lop"><ArrowLeft size={17} aria-hidden="true" /> Lớp của tôi</Link>
@@ -547,14 +559,16 @@ function ClassView({ api }: { api: string }) {
 
 /* ------------------------------------------------------------------ Shell */
 
-function Shell({ identity, logout }: { identity: Identity; logout: () => void }) {
+function Shell({ identity, logout, viewing, stopViewing }: {
+  identity: Identity; logout: () => void; viewing?: Viewing; stopViewing?: () => void
+}) {
   const location = useLocation()
-  const teaching = identity.workspaces.filter(item => item.role === 'teacher')
+  const teaching = viewing ? [viewing.workspace] : identity.workspaces.filter(item => item.role === 'teacher')
   const [selected, setSelected] = useState(() => readStorage(workspaceKey))
   const workspace = teaching.find(item => item.id === selected) ?? teaching[0]
   const api = '/api/v1/orgs/' + workspace.id
   const choose = (id: string) => { setSelected(id); writeStorage(workspaceKey, id) }
-  return <div className="edu tp">
+  return <ViewingContext.Provider value={viewing ?? null}><div className="edu tp">
     <a className="skip" href="#tp-main">Đến nội dung</a>
     <header className="tp-top edu-glass-bar">
       <Brand />
@@ -562,13 +576,18 @@ function Shell({ identity, logout }: { identity: Identity; logout: () => void })
         <summary aria-label="Tài khoản"><span className="tp-avatar" aria-hidden="true">{identity.user.name[0]?.toUpperCase()}</span></summary>
         <div className="tp-menu edu-rise">
           <p><strong>{identity.user.name}</strong><small>{workspace.name}</small></p>
-          {teaching.length > 1 && teaching.filter(item => item.id !== workspace.id).map(item =>
+          {!viewing && teaching.length > 1 && teaching.filter(item => item.id !== workspace.id).map(item =>
             <button type="button" key={item.id} onClick={() => choose(item.id)}>Chuyển sang {item.name}</button>)}
+          {viewing && <button type="button" onClick={stopViewing}><Eye size={16} aria-hidden="true" /> Xem giáo viên khác</button>}
+          {viewing && <a href={basePath + '/w/' + workspace.id}><LayoutDashboard size={16} aria-hidden="true" /> Trang quản trị</a>}
           <button type="button" onClick={logout}><LogOut size={16} aria-hidden="true" /> Đăng xuất</button>
         </div>
       </details>
     </header>
-    <main className="tp-main" id="tp-main" key={workspace.id}>
+    {viewing && <p className="tp-viewing edu-rise" role="status"><Eye size={15} aria-hidden="true" />
+      <span>Đang xem trang của <strong>{viewing.name}</strong> · chỉ xem</span>
+      <button type="button" className="text-button" onClick={stopViewing}>Đổi</button></p>}
+    <main className="tp-main" id="tp-main" key={workspace.id + (viewing?.teacherId ?? '')}>
       <div key={location.pathname} className="tp-route edu-page">
         <Routes location={location}>
           <Route index element={<TodayView api={api} name={identity.user.name} />} />
@@ -585,7 +604,37 @@ function Shell({ identity, logout }: { identity: Identity; logout: () => void })
       <NavLink to="/gv/tuan"><CalendarDays size={21} aria-hidden="true" />Tuần</NavLink>
       <NavLink to="/gv/lop"><UsersRound size={21} aria-hidden="true" />Lớp</NavLink>
     </nav>
-  </div>
+  </div></ViewingContext.Provider>
+}
+
+/** Owners, branch administrators and the AFYLLX Founder have no classes of their own: they pick a teacher to look at. */
+function ViewPicker({ identity, logout, pick }: { identity: Identity; logout: () => void; pick: (viewing: Viewing) => void }) {
+  const admin = identity.workspaces.filter(item => item.role === 'owner' || item.role === 'branch_admin')
+  const [orgId, setOrgId] = useState(() => admin.find(item => item.id === readStorage(workspaceKey))?.id ?? admin[0].id)
+  const workspace = admin.find(item => item.id === orgId) ?? admin[0]
+  const load = useLoad<{ data: { id: string; name: string }[] }>('/api/v1/orgs/' + workspace.id + '/teacher/viewable')
+  const [query, setQuery] = useState('')
+  const key = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+  return <Gate title="Xem trang giáo viên">
+    <p>Tài khoản <strong>{identity.user.name}</strong> là quản trị, không có lớp dạy riêng. Chọn một giáo viên để xem đúng trang của họ. Chế độ này chỉ để xem.</p>
+    {admin.length > 1 && <label className="tp-field">Đơn vị<select value={workspace.id} onChange={event => { setOrgId(event.target.value); writeStorage(workspaceKey, event.target.value) }}>
+      {admin.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
+    <Load load={load}>{({ data }) => data.length ? <>
+      {data.length > 8 && <input className="tp-search" type="search" aria-label="Tìm giáo viên" placeholder="Tìm giáo viên"
+        value={query} onChange={event => setQuery(event.target.value)} />}
+      <ul className="tp-pick">{data.filter(item => key(item.name).includes(key(query.trim()))).map((item, index) =>
+        <li key={item.id} className="edu-rise" style={stagger(Math.min(index, 10))}>
+          <button type="button" className="tp-card edu-card edu-press" onClick={() => pick({ workspace, teacherId: item.id, name: item.name })}>
+            <span className="tp-avatar" aria-hidden="true">{item.name.trim().split(/\s+/).at(-1)?.[0]?.toUpperCase()}</span>
+            <span className="tp-card-main"><strong>{item.name}</strong><small>{workspace.name}</small></span>
+            <ChevronRight size={18} aria-hidden="true" />
+          </button></li>)}</ul>
+    </> : <p className="tp-empty">{workspace.name} chưa có giáo viên nào. Thêm giáo viên ở mục Nhân sự của trang quản trị.</p>}</Load>
+    <div className="tp-pick-actions">
+      <a className="button edu-press" href={basePath + '/w/' + workspace.id}><LayoutDashboard size={16} aria-hidden="true" /> Mở trang quản trị</a>
+      <button type="button" className="text-button" onClick={logout}>Đăng xuất</button>
+    </div>
+  </Gate>
 }
 
 function Signed() {
@@ -599,8 +648,16 @@ function Signed() {
     else setError(errorText(failure))
   })
   useEffect(() => { refresh() }, [])
+  const [viewed, setViewed] = useState(() => {
+    try { return JSON.parse(readStorage(viewingKey) ?? 'null') as { orgId: string; teacherId: string; name: string } | null } catch { return null }
+  })
+  const view = (next: { orgId: string; teacherId: string; name: string } | null) => {
+    setViewed(next)
+    writeStorage(viewingKey, next && JSON.stringify(next))
+  }
   async function logout() {
     await request('/api/auth/sign-out', 'POST').catch(() => undefined)
+    view(null)
     setIdentity(null)
   }
   if (error) return <Gate title="Chưa mở được"><Problem message={error} retry={refresh} /></Gate>
@@ -611,7 +668,14 @@ function Signed() {
     <a className="button" href={basePath + '/'}>Về trang quản trị</a>
   </Gate>
   if (!identity.workspaces.some(item => item.role === 'teacher')) {
-    // Administrators who signed in here belong on the administration pages.
+    // Administrators (and the AFYLLX Founder) look at a teacher's page instead of being sent away.
+    if (identity.workspaces.some(item => item.role === 'owner' || item.role === 'branch_admin')) {
+      const workspace = viewed && identity.workspaces.find(item => item.id === viewed.orgId && item.role !== 'teacher')
+      if (viewed && workspace) return <Shell identity={identity} logout={logout} stopViewing={() => view(null)}
+        viewing={{ workspace, teacherId: viewed.teacherId, name: viewed.name }} />
+      return <ViewPicker identity={identity} logout={logout}
+        pick={next => view({ orgId: next.workspace.id, teacherId: next.teacherId, name: next.name })} />
+    }
     if (identity.workspaces.length) return <Navigate to="/" replace />
     return <Gate title="Chưa có lớp">
       <p>Tài khoản {identity.user.email} chưa là giáo viên ở đơn vị nào.</p>

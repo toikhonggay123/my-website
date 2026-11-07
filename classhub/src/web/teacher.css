@@ -158,6 +158,20 @@
   .tp-mini { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
   .tp-mini li { display: flex; gap: 12px; align-items: start; padding: 8px 10px; border-radius: 12px; background: #f5f7fd; }
   .tp-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  /* Administrators viewing a teacher's page. */
+  .tp-viewing { position: sticky; top: calc(var(--tp-top, 64px) + 6px); z-index: 4; width: min(100% - 32px, 608px); margin: 10px auto 0;
+    display: flex; align-items: center; gap: 8px; padding: 9px 12px 9px 14px; border-radius: 999px; font-size: .9rem; color: #5a2a00;
+    background: linear-gradient(135deg, #fff1e0, #ffe3ee 60%, #efe8ff); box-shadow: 0 10px 24px -18px rgb(160 60 40 / .7); }
+  .tp-viewing > span { flex: 1; min-width: 0; }
+  .tp-viewing .text-button { min-height: 32px; font-weight: 700; }
+  .tp-menu a { display: flex; align-items: center; gap: 8px; min-height: 40px; color: inherit; text-decoration: none; font-weight: 600; }
+  .tp-pick { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: min(56vh, 520px); overflow: auto; }
+  .tp-pick .tp-card { width: 100%; min-height: 64px; border: 0; font: inherit; text-align: left; cursor: pointer; }
+  .tp-pick .tp-avatar { width: 38px; height: 38px; flex: none; }
+  .tp-search, .tp-field select { width: 100%; min-height: 46px; padding: 0 14px; border: 1px solid #dfe4f2; border-radius: 14px; background: #fff; font: inherit; }
+  .tp-field { display: grid; gap: 6px; font-weight: 700; font-size: .9rem; }
+  .tp-pick-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .tp-pick-actions .button { display: inline-flex; align-items: center; gap: 8px; }
   .tp-card { display: flex; align-items: center; gap: 12px; min-height: 80px; padding: 12px 14px; color: var(--edu-ink); text-decoration: none; }
   .tp-card-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
   .tp-card-main strong { font-size: 1.08rem; }

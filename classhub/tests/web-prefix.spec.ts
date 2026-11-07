@@ -148,3 +148,55 @@ test('ClassHub activation and the shared roster work under the Edu gateway prefi
   const shared = (await (await page.request.get(api + '/shared-directory')).json()).data
   expect(shared.classes).toHaveLength(8)
 })
+
+// Runs after the workspace above exists. The Founder has no ClassHub password: the staff form signs them in through
+// AFYLLX Account and they act as owner of every workspace.
+test('an AFYLLX Account Founder signs in to ClassHub with the same form and signs out of both', async ({ browser }) => {
+  const founder = JSON.parse(await readFile(
+    '.wrangler/qa-' + process.env.CLASSHUB_QA_ID + '-web/founder.json', 'utf8',
+  )) as { email: string; code: string }
+  const origin = 'http://127.0.0.1:5178'
+  const orgId = '51740000-0000-4000-8000-000000000002'
+  const password = 'Founder-QA-Bridge-2026'
+  const context = await browser.newContext({ baseURL: origin, viewport: { width: 390, height: 844 }, extraHTTPHeaders: { 'CF-Connecting-IP': '198.51.100.31' } })
+  try {
+    const activated = await context.request.post('/tai-khoan/api/password/set', {
+      headers: { Origin: origin, 'Content-Type': 'application/json' }, data: { code: founder.code, password },
+    })
+    expect(activated.status()).toBe(200)
+    await context.clearCookies()
+
+    const page = await context.newPage()
+    await page.goto('/classhub/gv')
+    await page.getByLabel('Email').fill(founder.email)
+    await page.getByLabel('Mật khẩu').fill('not-the-password-1')
+    await page.getByRole('button', { name: 'Đăng nhập' }).click()
+    await expect(page.getByText('Email hoặc mật khẩu chưa đúng.')).toBeVisible()
+    await page.getByLabel('Mật khẩu').fill(password)
+    await page.getByRole('button', { name: 'Đăng nhập' }).click()
+    // The staff entrance offers the Founder a teacher's view instead of sending them away.
+    await expect(page.getByRole('heading', { name: 'Xem trang giáo viên' })).toBeVisible()
+    await expect(page.getByText('Đơn vị QA chưa có giáo viên nào', { exact: false })).toBeVisible()
+    await page.getByRole('link', { name: 'Mở trang quản trị' }).click()
+    await expect(page).toHaveURL(new RegExp('/classhub/w/' + orgId + '$'))
+    await expect(page.getByRole('heading', { name: 'Hôm nay', exact: true })).toBeVisible()
+    const cookie = (await context.cookies()).find(item => item.name === 'afyllx_session')!
+    expect(cookie.path).toBe('/')
+    expect(cookie.httpOnly).toBe(true)
+
+    const me = (await (await context.request.get('/classhub/api/v1/me')).json()).data
+    expect(me.user).toMatchObject({ email: founder.email, platform: 'founder' })
+    expect(me.workspaces).toContainEqual(expect.objectContaining({ id: orgId, role: 'owner' }))
+    expect((await context.request.get('/classhub/api/v1/orgs/' + orgId + '/staff')).status()).toBe(200)
+    expect((await context.request.get('/classhub/api/v1/orgs/' + crypto.randomUUID() + '/staff')).status()).toBe(404)
+
+    // Signing out of ClassHub also ends the AFYLLX Account session.
+    const out = await context.request.post('/classhub/api/auth/sign-out', { headers: { Origin: origin, 'Content-Type': 'application/json' }, data: {} })
+    expect(out.status()).toBe(200)
+    expect((await context.cookies()).some(item => item.name === 'afyllx_session')).toBe(false)
+    expect((await context.request.get('/classhub/api/v1/me')).status()).toBe(401)
+    expect((await context.request.get('/tai-khoan/api/me')).status()).toBe(401)
+  } finally {
+    await context.close()
+  }
+})

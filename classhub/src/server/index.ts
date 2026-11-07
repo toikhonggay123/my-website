@@ -11,6 +11,7 @@ import { teacherRoutes } from './teacher'
 import { publicRoutes } from './public'
 import { reports } from './reports'
 import { directoryRoutes, refreshDirectory, sharedEnabled } from './shared-directory'
+import { platformSignIn, platformSignOut } from './platform'
 
 const app = router()
 app.use('*', secureHeaders())
@@ -36,8 +37,32 @@ app.get('/api/health', async c => {
   await c.env.CLASSHUB_DB.prepare('SELECT id FROM organizations LIMIT 1').first()
   return c.json({ status: 'ok' })
 })
-app.post('/api/auth/sign-in/email', c => auth(c).handler(c.req.raw))
-app.post('/api/auth/sign-out', c => auth(c).handler(c.req.raw))
+app.post('/api/auth/sign-in/email', async c => {
+  const text = await c.req.text()
+  const response = await auth(c).handler(new Request(c.req.raw.url, { method: 'POST', headers: c.req.raw.headers, body: text }))
+  if (response.status !== 401) return response
+  // Not a ClassHub password: an AFYLLX Account (Founder, platform administrator) may sign in with the same form.
+  const input = (() => { try { return JSON.parse(text) as { email?: unknown; password?: unknown } } catch { return {} } })()
+  const platform = typeof input.email === 'string' && typeof input.password === 'string'
+    ? await platformSignIn(c, input.email.trim().toLowerCase(), input.password) : null
+  const invalid = { error: { code: 'invalid_login', message: 'Email hoặc mật khẩu chưa đúng.' } }
+  if (!platform) return c.json(invalid, 401)
+  for (const cookie of platform.cookies) c.header('Set-Cookie', cookie, { append: true })
+  if (platform.status === 200 && (platform.state === 'full' || platform.state === 'mfa' || platform.state === 'enroll')) {
+    return c.json({ platform: platform.state })
+  }
+  if (platform.status === 429) return c.json({ error: { code: 'rate_limited', message: platform.message ?? 'Vui lòng thử lại sau ít phút.' } }, 429)
+  return c.json(invalid, 401)
+})
+app.post('/api/auth/sign-out', async c => {
+  const cleared = await platformSignOut(c)
+  const response = await auth(c).handler(c.req.raw)
+  if (!cleared) return response
+  const headers = new Headers(response.headers)
+  for (const cookie of cleared) headers.append('Set-Cookie', cookie)
+  headers.set('Content-Type', 'application/json')
+  return new Response(JSON.stringify({ success: true }), { status: 200, headers })
+})
 app.route('/api/v1', identityRoutes)
 app.route('/api/v1', publicRoutes)
 app.route('/api/v1/demo', demo)

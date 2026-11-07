@@ -18,6 +18,7 @@ import { SCHOOL } from "@/lib/mealcheck.mjs";
 import { sectionForView } from "@/lib/navigation.mjs";
 import { useLiquidIndicator } from "./liquid-motion";
 import {Brand,BrandSupport} from './brand';
+import { AccountLink } from "./account-link";
 export {Brand} from './brand';
 
 export function navigationItems(admin: boolean) {
@@ -112,6 +113,7 @@ export function AppNavigation({
         </div>
         <nav ref={sidebarNav} className="liquid-navigation" aria-label="Điều hướng chính"><span className="liquid-indicator" aria-hidden="true"/>{links}</nav>
         <div className="sidebar-bottom">
+          <AccountLink />
           <div className="private">
             <ShieldCheck size={18} aria-hidden="true" />
             <b>{publicDemo ? "Bản demo" : "Quản trị nhà trường"}</b>
@@ -170,6 +172,7 @@ export function AppNavigation({
             </button>
           </header>
           <nav ref={dialogNav} className="liquid-navigation" aria-label="Tất cả chức năng"><span className="liquid-indicator" aria-hidden="true"/>{links}</nav>
+          <AccountLink />
           <BrandSupport onHomeClick={askHome}/>
         </div>
       </dialog>

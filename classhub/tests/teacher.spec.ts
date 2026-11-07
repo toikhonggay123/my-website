@@ -129,6 +129,11 @@ test('teachers activate by link, mark a school session by tapping and correct it
     const sheet = (await call(subject, attendance)).data
     await call(subject, attendance + '/reopen', { data: { version: sheet.session.version, reason: 'QA' }, status: 403 })
     await call(owner, scope + '/teacher/today', { status: 403 })
+    // An owner may read a teacher's page by naming the teacher; only teachers of this workspace qualify.
+    const viewedToday = (await call(owner, scope + '/teacher/today?xem=' + id('Thầy Bộ Môn QA'))).data
+    expect(viewedToday.periods.map((row: { subject: string }) => row.subject)).toEqual(['Toán'])
+    await call(owner, scope + '/teacher/today?xem=' + crypto.randomUUID(), { status: 404 })
+    await call(subject, scope + '/teacher/viewable', { status: 403 })
 
     // Within 30 minutes the teacher who finalized can correct it.
     await teacher.getByRole('button', { name: /^Sửa lại · còn/ }).click()
@@ -152,11 +157,23 @@ test('teachers activate by link, mark a school session by tapping and correct it
     expect(stats.students.find((row: { name: string }) => row.name === 'Chi Học sinh')).toMatchObject({ late: 1, absent: 0 })
     await call(outsider, scope + '/teacher/classes/' + classId, { status: 404 })
 
-    // The front door routes by role: a teacher at / lands on the teacher page, an owner at /gv on administration.
+    // The front door routes by role: a teacher at / lands on the teacher page. An owner at /gv picks a teacher and
+    // sees that teacher's page read-only.
     await teacher.goto('/')
     await expect(teacher).toHaveURL(/\/gv$/)
     await page.goto('/gv')
-    await expect(page).toHaveURL(origin + '/')
+    await expect(page.getByRole('heading', { name: 'Xem trang giáo viên' })).toBeVisible()
+    await page.getByRole('button', { name: /Thầy Bộ Môn QA/ }).click()
+    await expect(page.getByText('Lịch của Thầy Bộ Môn QA')).toBeVisible()
+    await expect(page.getByRole('status').filter({ hasText: 'chỉ xem' })).toBeVisible()
+    await expect(page.getByText('7A · Toán')).toBeVisible()
+    await page.getByRole('link', { name: 'Lớp', exact: true }).click()
+    await page.getByRole('link', { name: /7A/ }).click()
+    await expect(page.getByRole('heading', { name: 'Lớp 7A' })).toBeVisible()
+    await page.reload()
+    await expect(page.getByRole('heading', { name: 'Lớp 7A' })).toBeVisible()
+    await page.getByRole('button', { name: 'Đổi' }).click()
+    await expect(page.getByRole('heading', { name: 'Xem trang giáo viên' })).toBeVisible()
 
     // Forgotten password: the owner creates a one-time link that sets a new password and signs out old sessions.
     await page.goto('/w/' + org + '/nhan-su')

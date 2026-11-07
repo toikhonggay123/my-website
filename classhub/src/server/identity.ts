@@ -6,6 +6,7 @@ import {
   localAdmin, now, one, optionalText, param, query, result, router, rows, text, tokenHash, unauthenticated,
 } from './core'
 import { sharedEnabled } from './shared-directory'
+import { type PlatformUser, platformUser } from './platform'
 
 const inviteCode = z.string().regex(/^[0-9a-f]{64}$/)
 export const organizationProfile = z.object({
@@ -43,7 +44,9 @@ export function auth(c: Ctx) {
   })
 }
 
-async function identity(c: Ctx) {
+type Identity = { id: string; name: string; email: string; platform?: PlatformUser['platform'] }
+
+async function identity(c: Ctx): Promise<Identity> {
   if (localAdmin(c)) {
     const user = await one<{ id: string; name: string; email: string }>(c,
       'SELECT id,name,email FROM "user" WHERE email=?', 'local-admin@classhub.invalid')
@@ -53,8 +56,11 @@ async function identity(c: Ctx) {
   const { response: active, headers } = await auth(c).api.getSession({ headers: c.req.raw.headers, returnHeaders: true })
   // A refreshed "remember me" session renews its cookie on this response.
   for (const cookie of headers?.getSetCookie?.() ?? []) c.header('Set-Cookie', cookie, { append: true })
-  if (!active) throw unauthenticated()
-  return active.user
+  if (active) return { id: active.user.id, name: active.user.name, email: active.user.email }
+  // Otherwise an AFYLLX Account Founder or platform administrator signed in at /tai-khoan.
+  const platform = await platformUser(c)
+  if (!platform) throw unauthenticated()
+  return platform
 }
 
 async function invitation(c: Ctx, code: string) {
@@ -69,10 +75,15 @@ async function invitation(c: Ctx, code: string) {
 export const identityRoutes = router()
   .get('/me', async c => {
     const user = await identity(c)
-    const workspaces = await rows<{ id: string; name: string; type: string; role: Scope['role']; branch_id: string | null }>(c, `SELECT o.id,o.name,o.type,m.role,m.branch_id
+    type Workspace = { id: string; name: string; type: string; role: Scope['role']; branch_id: string | null }
+    // Platform accounts act as owner of every active workspace.
+    const workspaces = user.platform
+      ? await rows<Workspace>(c, `SELECT id,name,type,'owner' AS role,NULL AS branch_id FROM organizations
+        WHERE status='active' ORDER BY name,id LIMIT 50`)
+      : await rows<Workspace>(c, `SELECT o.id,o.name,o.type,m.role,m.branch_id
       FROM memberships m JOIN organizations o ON o.id=m.org_id
       WHERE m.user_id=? AND m.active=1 AND o.status='active' ORDER BY o.name,o.id LIMIT 50`, user.id)
-    return result(c, { user: { name: user.name, email: user.email },
+    return result(c, { user: { name: user.name, email: user.email, ...(user.platform ? { platform: user.platform } : {}) },
       workspaces: workspaces.map(item => ({ ...item,
         shared_directory: sharedEnabled(c, item.id),
       })), local: localAdmin(c) })
@@ -159,6 +170,11 @@ export const identityRoutes = router()
 export async function workspaceScope(c: Ctx, next: () => Promise<void>) {
   const user = await identity(c)
   const orgId = param(c, 'orgId')
+  if (user.platform) {
+    if (!await one(c, `SELECT id FROM organizations WHERE id=? AND status='active'`, orgId)) throw missing()
+    c.set('scope', { orgId, userId: user.id, branchId: null, role: 'owner' })
+    return next()
+  }
   const member = await one<{ role: Scope['role']; branch_id: string | null }>(c,
     `SELECT m.role,m.branch_id FROM memberships m JOIN organizations o ON o.id=m.org_id
     WHERE m.org_id=? AND m.user_id=? AND m.active=1 AND o.status='active'`, orgId, user.id)

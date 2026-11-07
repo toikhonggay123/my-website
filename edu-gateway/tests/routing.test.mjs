@@ -41,3 +41,32 @@ test('ClassHub keeps its namespace while the service receives the original origi
  }
  assert.equal(await (await worker.fetch(new Request(origin+'/classhub-not-an-app'),env)).text(),'portal');
 });
+test('AFYLLX Account lives under /tai-khoan with its cookie and origin intact, and fails closed without a binding',async()=>{
+ const origin='https://edu.afyllx.com';
+ const request=new Request(origin+'/tai-khoan/api/login',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:'{"email":"qa@example.test"}'});
+ const response=new Response('{}',{headers:{'Set-Cookie':'afyllx_session=fixture; Path=/; Secure; HttpOnly; SameSite=Lax'}});
+ const env={ACCOUNTS:{fetch:async incoming=>{
+  assert.equal(incoming.url,origin+'/api/login');
+  assert.equal(incoming.headers.get('Origin'),origin);
+  assert.deepEqual(await incoming.json(),{email:'qa@example.test'});
+  return response;
+ }},ASSETS:{fetch:()=>assert.fail('Account reached portal assets')},MEALCHECK:{fetch:()=>assert.fail('Account reached MealCheck')}};
+ const out=await worker.fetch(request,env);
+ assert.equal(out,response);assert.match(out.headers.get('Set-Cookie'),/Path=\//);
+ // The API stays here; the pages moved to account.afyllx.com.
+ const echo={...env,ACCOUNTS:{fetch:incoming=>new Response(new URL(incoming.url).pathname)}};
+ for(const [path,target] of [['/tai-khoan/api/me','/api/me'],['/tai-khoan/api','/api']]){
+  assert.equal(await (await worker.fetch(new Request(origin+path),echo)).text(),target);
+ }
+ for(const [path,target] of [['/tai-khoan','/'],['/tai-khoan/','/'],['/tai-khoan/dat-mat-khau','/dat-mat-khau'],['/tai-khoan/?tiep=%2Fclasshub','/?tiep=%2Fclasshub']]){
+  const moved=await worker.fetch(new Request(origin+path),echo);
+  assert.equal(moved.status,302);assert.equal(moved.headers.get('Location'),'https://account.afyllx.com'+target);
+ }
+ // Other hosts (QA, workers.dev) keep proxying the pages.
+ assert.equal(await (await worker.fetch(new Request('http://127.0.0.1:5178/tai-khoan/dat-mat-khau'),echo)).text(),'/dat-mat-khau');
+ const post=await worker.fetch(new Request(origin+'/tai-khoan/dat-mat-khau',{method:'POST'}),echo);
+ assert.equal(await post.text(),'/dat-mat-khau');
+ const offline=await worker.fetch(new Request(origin+'/tai-khoan/api/me'),{ASSETS:{fetch:()=>assert.fail('fell through')}});
+ assert.equal(offline.status,503);assert.equal(offline.headers.get('Cache-Control'),'no-store');
+ assert.equal(await (await worker.fetch(new Request(origin+'/tai-khoan-khac'),{ASSETS:{fetch:async()=>new Response('portal')}})).text(),'portal');
+});

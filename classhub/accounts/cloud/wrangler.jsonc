@@ -1,0 +1,32 @@
+{
+  // Live AFYLLX Account behind the Edu gateway at https://edu.afyllx.com/tai-khoan.
+  // D1 afyllx-accounts-live created 07/11/2026. The secret ACCOUNTS_ENCRYPTION_KEY lives only on the Worker. See accounts/README.md.
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "afyllx-accounts",
+  "account_id": "dbe7e43add9b24b62bed8c25d05b419e",
+  "main": "../src/server/index.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  // Own domain since 08/11/2026. The Edu gateway still forwards edu.afyllx.com/tai-khoan/api/* here (same-origin reads for
+  // the portal and MealCheck, service-binding calls from ClassHub); its pages redirect to account.afyllx.com.
+  "routes": [{ "pattern": "account.afyllx.com", "custom_domain": true, "zone_id": "7f90bfb41da548c95053b38ceba75a8c" }],
+  "vars": {
+    "APP_ORIGIN": "https://account.afyllx.com",
+    "EXTRA_ORIGINS": "https://edu.afyllx.com",
+    "COOKIE_DOMAIN": "afyllx.com"
+  },
+  "ratelimits": [
+    { "name": "LOGIN_LIMIT", "namespace_id": "517411", "simple": { "limit": 10, "period": 60 } }
+  ],
+  "assets": { "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+  "d1_databases": [
+    {
+      "binding": "ACCOUNTS_DB",
+      "database_name": "afyllx-accounts-live",
+      "database_id": "688f31ca-c3d0-4504-82c9-06848396deac",
+      "migrations_dir": "../migrations"
+    }
+  ]
+}
