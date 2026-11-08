@@ -94,7 +94,7 @@ Khách mở `/classhub` sẽ vào thẳng bản dùng thử. Mỗi trình duyệ
 
 `/classhub/hs` là trang tra cứu công khai, không cần đăng nhập. Link cũ `/classhub/thoi-khoa-bieu` vẫn dùng được. Chia sẻ link theo lớp bằng `?truong=<tên ngắn>&lop=8a`.
 
-**Thời khóa biểu thật từ ClassHub:** trong chế độ trường học, chủ đơn vị vào **Thiết lập → Trang học sinh**, chọn tên ngắn rồi bấm **Công bố trang học sinh**. Trang đọc trực tiếp thời khóa biểu đã công bố, ngày nghỉ và buổi bị quản trị hủy, rồi hiện tiết đang học hoặc tiết tiếp theo trong ngày. Dữ liệu trả về chỉ gồm tên lớp, môn, giờ, phòng và thông báo. Không có tên giáo viên, danh sách học sinh hay kết quả điểm danh. **Ngừng công bố** sẽ đóng trang ngay. Khi chỉ có một trường công bố, `/classhub/hs` mở thẳng trường đó.
+**Thời khóa biểu thật từ ClassHub:** trong chế độ trường học, chủ đơn vị vào **Thiết lập → Trang học sinh**, chọn tên ngắn rồi bấm **Công bố trang học sinh**. Trang đọc trực tiếp thời khóa biểu đã công bố, ngày nghỉ và buổi bị quản trị hủy, rồi hiện tiết đang học hoặc tiết tiếp theo trong ngày. Dữ liệu trả về chỉ gồm tên lớp, môn, giờ, phòng và thông báo. Không có tên giáo viên, danh sách học sinh hay kết quả điểm danh. **Ngừng công bố** sẽ đóng trang. Trên edu.afyllx.com, câu trả lời của trang được giữ ở bộ nhớ đệm Cloudflare 60 giây theo từng địa chỉ (biến `PUBLIC_EDGE_CACHE`), nên công bố, sửa hoặc ngừng công bố có thể mất tới một phút mới hiện ra. Bản chạy trên máy và QA không dùng bộ nhớ đệm này. Khi chỉ có một trường công bố, `/classhub/hs` mở thẳng trường đó.
 
 Buổi điểm danh do quản trị hủy hoặc đổi giờ bằng tay được giữ nguyên khi đồng bộ thời khóa biểu. Buổi theo thời khóa biểu chỉ đổi được giờ trong cùng ngày.
 
@@ -126,5 +126,7 @@ Buổi điểm danh do quản trị hủy hoặc đổi giờ bằng tay đượ
 Trước khi triển khai bản có migration mới, sao lưu rồi áp dụng migration cho **cả hai** D1 `afyllx-classhub-live` và `afyllx-classhub-demo`, vì Worker và lệnh dọn bản dùng thử đọc các bảng mới. Không áp dụng tự động.
 
 Build từ thư mục này bằng `pnpm build:cloud`. Dùng Wrangler với cấu hình `.wrangler/web-build/afyllx_classhub/wrangler.json` để triển khai Worker. Cấu hình `cloud/wrangler.jsonc` khai báo D1 và các binding. Hai secret `BETTER_AUTH_SECRET` và `MEALCHECK_DIRECTORY_KEY` được quản lý trên Worker. Gateway nằm trong `edu-gateway` ở cấp repository.
+
+Bản web giới hạn mọi `/api/*` ở 300 yêu cầu mỗi 10 giây cho mỗi IP (IPv6 theo /64) bằng binding `API_LIMIT` (`src/server/edge.ts`), quá thì trả 429 kèm `Retry-After`; binding thiếu hoặc lỗi thì cho qua. Cấu hình trên máy không có binding này. `public/_headers` giữ CSP của trang, chặn nhúng khung và bật HSTS; gateway bỏ `/classhub` trước khi chuyển tiếp nên quy tắc `/*` áp cho mọi trang.
 
 Chạy kiểm thử bản web qua gateway bằng cách đặt biến môi trường `CLASSHUB_QA_WEB=1`, chạy `pnpm build:cloud` rồi `pnpm test:e2e`. Kịch bản dùng database và danh sách giả lập.

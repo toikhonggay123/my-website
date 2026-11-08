@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { type Ctx, dayMs, isoDate, one, result, router, rows, today, validated } from './core'
+import { edgeCache, edgeCached } from './edge'
 
 // Public student timetable. Only schools whose owner chose a public slug are served. The response holds
 // class names, subjects, period times, rooms and notices. It never includes teachers, students or attendance.
@@ -29,8 +30,24 @@ async function school(c: Ctx) {
   return list.length === 1 ? list[0] : null
 }
 
+/** Background work after the response; skipped where there is no execution context (Node tests). */
+function waitUntil(c: Ctx, task: Promise<unknown>) {
+  let context: ExecutionContext | undefined
+  try { context = c.executionCtx } catch { context = undefined }
+  context?.waitUntil(task)
+}
+/** The address the browser asked for: the Edu gateway removes /classhub before forwarding. */
+function publicUrl(c: Ctx) {
+  const url = new URL(c.req.url)
+  url.pathname = (c.env.APP_BASE_PATH ?? '') + url.pathname
+  return url.href
+}
+
 export const publicRoutes = router()
-  .get('/public/timetable', async c => {
+  // Every student opens this page and it changes rarely: on edu.afyllx.com the edge keeps each URL for 60 s (its
+  // Cache-Control) instead of running the timetable queries on every hit. Publishing changes or stopping
+  // publication can take up to a minute to show there. Local runs and QA never cache.
+  .get('/public/timetable', c => edgeCached(publicUrl(c), task => waitUntil(c, task), async () => {
     const org = await school(c)
     c.header('Cache-Control', 'public, max-age=60')
     if (!org) return result(c, { enabled: false })
@@ -109,4 +126,4 @@ export const publicRoutes = router()
       enabled: true, school: org.name, slug: org.public_slug, today: date, monday, notices,
       classes: classes.map(({ internal: _internal, ...row }) => row), timetable,
     })
-  })
+  }, c.env.PUBLIC_EDGE_CACHE === '1' ? edgeCache() : undefined))

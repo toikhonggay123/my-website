@@ -12,9 +12,12 @@ import { publicRoutes } from './public'
 import { reports } from './reports'
 import { directoryRoutes, refreshDirectory, sharedEnabled } from './shared-directory'
 import { platformSignIn, platformSignOut } from './platform'
+import { apiRateLimited } from './edge'
 
 const app = router()
 app.use('*', secureHeaders())
+// Flood limit per client before any database work (cloud only, see edge.ts).
+app.use('/api/*', async (c, next) => (await apiRateLimited(c.req.raw, c.env.API_LIMIT)) ?? next())
 app.use('*', async (c, next) => {
   c.header('Cache-Control', 'no-store')
   if (c.env.APP_BASE_PATH && new URL(c.req.url).origin !== c.env.APP_ORIGIN) throw missing()

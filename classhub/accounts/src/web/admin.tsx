@@ -12,7 +12,7 @@ const stagger = (index: number) => ({ '--i': index }) as CSSProperties
 const linkFor = (code: string) => location.origin + base + '/dat-mat-khau#' + code
 const actions: Record<string, string> = {
   'login.password': 'Đăng nhập (mật khẩu)', 'login.second_factor': 'Qua bước hai lớp', 'login.failed': 'Đăng nhập sai',
-  'login.second_factor_failed': 'Sai mã hai lớp', 'mfa.enabled': 'Bật xác thực hai lớp', 'mfa.recovery_codes_regenerated': 'Tạo lại mã khôi phục',
+  'login.second_factor_failed': 'Sai mã hai lớp', 'mfa.enabled': 'Bật xác thực hai lớp', 'mfa.enroll_denied': 'Sai mật khẩu khi bật hai lớp','mfa.recovery_codes_regenerated': 'Tạo lại mã khôi phục',
   'mfa.reset_by_founder': 'Founder đặt lại hai lớp', 'password.changed': 'Đổi mật khẩu', 'password.reset': 'Đặt lại mật khẩu',
   'account.activated': 'Kích hoạt tài khoản', 'account.created': 'Tạo tài khoản', 'account.updated': 'Sửa tài khoản',
   'link.created': 'Tạo link một lần', 'organization.created': 'Tạo đơn vị', 'session.revoked': 'Đăng xuất thiết bị',

@@ -19,9 +19,11 @@ Trong A1, Founder và Quản trị hệ thống thấy ClassHub, MealCheck và c
 
 - **Mật khẩu:** PBKDF2-SHA256 100 000 vòng với muối riêng, tối thiểu 12 ký tự. So sánh hằng thời gian. Email không tồn tại cũng mất cùng thời gian xử lý.
 - **Phiên:** mã ngẫu nhiên 256 bit, database chỉ lưu SHA-256 của mã. Cookie `afyllx_session` đặt `HttpOnly`, `Secure` (trên HTTPS), `SameSite=Lax`, `Path=/` để các sản phẩm dưới `edu.afyllx.com` dùng chung. Khóa tài khoản, đổi vai trò, đổi mật khẩu hoặc bật hai lớp mới đều đăng xuất các thiết bị khác.
-- **Xác thực hai lớp (tùy chọn):** TOTP theo RFC 6238 (đã kiểm bằng bộ vector chuẩn), cho lệch tối đa một bước 30 giây, chặn dùng lại mã. Khóa bí mật được mã hóa AES-GCM bằng secret `ACCOUNTS_ENCRYPTION_KEY`. Có 10 mã khôi phục dùng một lần, chỉ lưu dạng băm.
+- **Xác thực hai lớp (tùy chọn):** TOTP theo RFC 6238 (đã kiểm bằng bộ vector chuẩn), cho lệch tối đa một bước 30 giây, chặn dùng lại mã. Khóa bí mật được mã hóa AES-GCM bằng secret `ACCOUNTS_ENCRYPTION_KEY`. Có 10 mã khôi phục dùng một lần, chỉ lưu dạng băm. Bật hoặc đổi điện thoại xác thực từ tab Bảo mật phải nhập lại mật khẩu, nên phiên bị mượn hoặc bị lấy cắp không tự gắn được điện thoại khác. Bước xác nhận chỉ nhận đúng lần thiết lập vừa tạo trong cùng phiên, trong 10 phút.
 - **Link một lần** (kích hoạt 72 giờ, đặt lại 24 giờ): chỉ lưu SHA-256. Mã nằm sau dấu `#` nên không vào log máy chủ, và bị xóa khỏi thanh địa chỉ sau khi mở. Tạo link mới làm link cũ hết hiệu lực.
-- **Chống dò mật khẩu:** giới hạn 10 lần mỗi phút theo IP; tạm khóa đăng nhập 15 phút sau 10 lần sai cho cùng một email.
+- **Chống dò mật khẩu:** giới hạn 10 lần mỗi phút theo IP. Sau 10 lần sai cho cùng một email từ cùng một mạng (một địa chỉ IPv4 hoặc một dải IPv6 /64), mạng đó bị tạm khóa đăng nhập email này 15 phút; chủ tài khoản ở mạng khác vẫn đăng nhập được. Tổng 100 lần sai từ mọi mạng trong 15 phút thì khóa email đó ở mọi nơi. Thông báo giống nhau dù email có tài khoản hay không.
+- **Chống dồn yêu cầu:** trên bản web, mọi `/api/*` giới hạn 300 yêu cầu mỗi 10 giây cho mỗi IP (IPv6 theo /64), quá thì trả 429 kèm `Retry-After`. Binding `API_LIMIT` chỉ có trong `cloud/wrangler.jsonc`; thiếu hoặc lỗi thì cho qua. ClassHub gọi qua service binding kèm IP của người dùng nên chỉ tính vào người đó.
+- **Trang tĩnh:** `public/_headers` chặn nhúng khung (`X-Frame-Options: DENY`, `frame-ancestors 'none'`), bật HSTS, `nosniff` và `Referrer-Policy` cho các trang trên account.afyllx.com.
 - **Yêu cầu ghi:** chỉ nhận JSON và đúng Origin. Mọi đăng nhập, lần sai, thay đổi tài khoản, vai trò và link đều ghi vào nhật ký.
 
 ## Chạy và kiểm tra trên máy
@@ -31,7 +33,7 @@ Chạy trong thư mục `classhub`:
 ```
 node accounts/scripts/accounts.mjs setup
 node node_modules/vite/bin/vite.js build --config accounts/vite.config.ts
-node --test accounts/tests/crypto.test.ts accounts/tests/schema.test.ts
+node --test accounts/tests/crypto.test.ts accounts/tests/schema.test.ts accounts/tests/api.test.ts
 node node_modules/@playwright/test/cli.js test --config accounts/playwright.config.ts
 ```
 

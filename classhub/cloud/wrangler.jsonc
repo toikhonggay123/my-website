@@ -15,7 +15,9 @@
     "APP_ORIGIN": "https://edu.afyllx.com",
     "APP_BASE_PATH": "/classhub",
     "MEALCHECK_DIRECTORY_ORIGIN": "https://my-website.fyllxestonia.workers.dev",
-    "MEALCHECK_DIRECTORY_ORG_ID": "51740000-0000-4000-8000-000000000002"
+    "MEALCHECK_DIRECTORY_ORG_ID": "51740000-0000-4000-8000-000000000002",
+    // Public student timetable answers stay in the edge cache for 60 s (src/server/public.ts). Absent locally and in QA.
+    "PUBLIC_EDGE_CACHE": "1"
   },
   "services": [
     { "binding": "MEALCHECK_DIRECTORY", "service": "my-website" },
@@ -24,7 +26,9 @@
   ],
   "triggers": { "crons": ["*/15 * * * *"] },
   "ratelimits": [
-    { "name": "ACTIVATION_LIMIT", "namespace_id": "517402", "simple": { "limit": 12, "period": 60 } }
+    { "name": "ACTIVATION_LIMIT", "namespace_id": "517402", "simple": { "limit": 12, "period": 60 } },
+    // Flood limit for every /api/* request per client IP (IPv6 per /64), src/server/edge.ts. Fails open.
+    { "name": "API_LIMIT", "namespace_id": "517420", "simple": { "limit": 300, "period": 10 } }
   ],
   "d1_databases": [
     {

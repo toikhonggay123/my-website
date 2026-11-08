@@ -117,20 +117,36 @@ export function RecoveryCodes({ codes, done, label = 'Tôi đã cất kỹ các 
   </div>
 }
 
-export function Enroll({ email, done, cancel }: { email: string; done: () => void; cancel?: () => void }) {
-  const [setup, setSetup] = useState<{ secret: string; uri: string; qr: string }>()
+type Setup = { secret: string; uri: string; qr: string }
+async function startSetup(password?: string): Promise<Setup> {
+  const response = await api<{ secret: string; uri: string }>('/api/mfa/enroll', 'POST', password === undefined ? {} : { password })
+  return { ...response, qr: await QRCode.toString(response.uri, { type: 'svg', margin: 1, width: 196, errorCorrectionLevel: 'M' }) }
+}
+
+/**
+ * Authenticator setup. From a signed-in session (Security tab) the server asks for the password again before it
+ * creates a new setup, so a borrowed or stolen session cannot switch the second factor to another phone.
+ */
+export function Enroll({ email, done, cancel, askPassword = false }: { email: string; done: () => void; cancel?: () => void; askPassword?: boolean }) {
+  const [setup, setSetup] = useState<Setup>()
   const [codes, setCodes] = useState<string[]>()
   const [error, setError] = useState('')
   useEffect(() => {
-    api<{ secret: string; uri: string }>('/api/mfa/enroll', 'POST', {})
-      .then(async response => setSetup({ ...response, qr: await QRCode.toString(response.uri, { type: 'svg', margin: 1, width: 196, errorCorrectionLevel: 'M' }) }))
-      .catch(failure => setError(message(failure)))
+    if (!askPassword) startSetup().then(setSetup).catch(failure => setError(message(failure)))
   }, [])
+  const unlock = useForm(async data => setSetup(await startSetup(field(data, 'password'))))
   const form = useForm(async data => {
     const response = await api<{ recoveryCodes: string[] }>('/api/mfa/confirm', 'POST', { code: field(data, 'code') })
     setCodes(response.recoveryCodes)
   })
   if (codes) return <RecoveryCodes codes={codes} done={done} />
+  if (askPassword && !setup) return <form className="ac-form" onSubmit={unlock.submit}>
+    <p className="edu-muted">Để bảo vệ tài khoản, hãy nhập lại mật khẩu trước khi bật hoặc đổi điện thoại xác thực.</p>
+    <label>Nhập lại mật khẩu để tiếp tục<input type="password" name="password" autoComplete="current-password" required maxLength={128} autoFocus /></label>
+    <Problem>{unlock.error}</Problem>
+    <button className="edu-primary edu-press" disabled={unlock.busy}>{unlock.busy ? 'Đang kiểm tra…' : 'Hiện mã QR thiết lập'}</button>
+    {cancel && <button type="button" className="text-button" onClick={cancel}>Để sau</button>}
+  </form>
   return <div className="ac-enroll">
     <ol className="ac-steps">
       <li className="edu-rise" style={stagger(0)}><Smartphone size={18} aria-hidden="true" /> Cài một ứng dụng xác thực: Google Authenticator, Microsoft Authenticator hoặc ứng dụng tương tự.</li>
@@ -222,7 +238,7 @@ function Security({ me, refresh }: { me: Me; refresh: () => void }) {
     {notice && <p className="ac-notice edu-rise" role="status">{notice}</p>}
     <section className="ac-panel edu-card edu-rise" style={stagger(1)} aria-labelledby="ac-mfa">
       <h2 id="ac-mfa"><ShieldCheck size={18} aria-hidden="true" /> Xác thực hai lớp</h2>
-      {enrolling ? <Enroll email={me.account.email} done={() => { setEnrolling(false); setNotice('Đã bật xác thực hai lớp.'); refresh() }}
+      {enrolling ? <Enroll email={me.account.email} askPassword done={() => { setEnrolling(false); setNotice('Đã bật xác thực hai lớp.'); refresh() }}
         cancel={() => setEnrolling(false)} />
         : codes ? <RecoveryCodes codes={codes} done={() => setCodes(undefined)} label="Tôi đã cất các mã mới; mã cũ không còn dùng được" />
         : <>

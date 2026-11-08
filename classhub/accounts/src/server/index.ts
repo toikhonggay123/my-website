@@ -9,6 +9,7 @@ import {
 import {
   hashPassword, newTotpSecret, normalizeRecovery, otpauthUri, randomHex, recoveryCodes, seal, sha256, unseal, verifyPassword, verifyTotp,
 } from './crypto'
+import { apiRateLimited, clientKey } from '../../../src/server/edge'
 
 const app = router()
 const day = 86_400_000
@@ -23,6 +24,8 @@ const publicAccount = (account: Account) => ({
 })
 
 app.use('*', secureHeaders())
+// Flood limit per client before the session lookup (cloud only, see edge.ts).
+app.use('/api/*', async (c, next) => (await apiRateLimited(c.req.raw, c.env.API_LIMIT)) ?? next())
 app.use('*', async (c, next) => {
   c.header('Cache-Control', 'no-store')
   // The Worker answers on its own domain and, for the API, under the Edu gateway. Anything else is refused.
@@ -44,16 +47,27 @@ app.get('/api/health', async c => {
 
 /* ------------------------------------------------------------------ Sign-in */
 
+/**
+ * Sign-in lockout over the last 15 minutes of failures for one email. Failures count per client network (IPv4
+ * address or IPv6 /64, stored as details.client of each login.failed row), so guessing from one place cannot keep
+ * the real owner out from anywhere else. A much higher cap across every network stops a distributed guess at one
+ * account. Both answer with the same message, whether or not the email has an account.
+ */
+const loginLock = { window: 15 * 60_000, perClient: 10, perEmail: 100 }
+
 app.post('/api/login', async c => {
-  await limit(c, 'login:' + ip(c))
+  const client = clientKey(ip(c))
+  await limit(c, 'login:' + client)
   const input = await body(c, z.object({ email, password: z.string().min(1).max(128) }))
-  const recent = await one<{ count: number }>(c, `SELECT COUNT(*) AS count FROM audit_events WHERE action='login.failed' AND target_id=? AND occurred_at>?`,
-    input.email, now() - 15 * 60_000)
-  if ((recent?.count ?? 0) >= 10) throw new Failure(429, 'locked', 'Tài khoản tạm khóa đăng nhập 15 phút vì nhập sai nhiều lần.')
+  const recent = await one<{ client: number; total: number }>(c, `SELECT COUNT(CASE WHEN json_extract(details,'$.client')=? THEN 1 END) AS client,
+    COUNT(*) AS total FROM audit_events WHERE action='login.failed' AND target_id=? AND occurred_at>?`, client, input.email, now() - loginLock.window)
+  if ((recent?.client ?? 0) >= loginLock.perClient || (recent?.total ?? 0) >= loginLock.perEmail) {
+    throw new Failure(429, 'locked', 'Đăng nhập tạm khóa 15 phút vì nhập sai nhiều lần.')
+  }
   const account = await one<Account>(c, 'SELECT * FROM accounts WHERE email=?', input.email)
   const valid = await verifyPassword(input.password, account?.password_hash ?? null)
   if (!account || !valid || account.status !== 'active') {
-    await audit(c, 'login.failed', input.email, {}, account?.id ?? null).run()
+    await audit(c, 'login.failed', input.email, { client }, account?.id ?? null).run()
     throw new Failure(401, 'invalid_login', 'Email hoặc mật khẩu chưa đúng.')
   }
   await startSession(c, account)
@@ -117,12 +131,37 @@ app.post('/api/mfa/verify', async c => {
   throw bad('Mã chưa đúng. Kiểm tra lại mã 6 số trên ứng dụng xác thực.')
 })
 
+/** How long a new authenticator setup stays open between enrol and confirm. */
+const pendingLifetime = 10 * 60_000
+type PendingSecond = { secret: string; session: string; at: number }
+/** The pending setup, or null when it is missing, unreadable or from before setups were tied to a session. */
+async function pendingSecond(c: Ctx, sealed: string | null | undefined): Promise<PendingSecond | null> {
+  if (!sealed) return null
+  try {
+    const value = JSON.parse(await unseal(sealed, c.env.ACCOUNTS_ENCRYPTION_KEY)) as Partial<PendingSecond>
+    return typeof value?.secret === 'string' && typeof value.session === 'string' && typeof value.at === 'number' ? value as PendingSecond : null
+  } catch {
+    return null
+  }
+}
+
 app.post('/api/mfa/enroll', async c => {
   const auth = c.get('auth')
-  // First enrolment happens right after the password step; replacing a device needs a full session.
+  // The 'enroll' state comes straight from the password step. A full session is a device that may be borrowed or
+  // stolen: turning on or replacing the second factor (which signs out every other device) needs the password again.
   if (!auth || (auth.state !== 'enroll' && auth.state !== 'full')) throw new Failure(401, 'unauthenticated', 'Vui lòng đăng nhập lại.')
+  if (auth.state === 'full') {
+    await limit(c, 'mfa:' + auth.account.id)
+    const input = await body(c, z.object({ password: z.string().min(1).max(128) }))
+    if (!await verifyPassword(input.password, auth.account.password_hash)) {
+      await audit(c, 'mfa.enroll_denied', auth.account.id, {}, auth.account.id).run()
+      throw bad('Mật khẩu hiện tại chưa đúng.')
+    }
+  }
   const secret = newTotpSecret()
-  await query(c, 'UPDATE accounts SET totp_pending=?,updated_at=? WHERE id=?', await seal(secret, c.env.ACCOUNTS_ENCRYPTION_KEY), now(), auth.account.id).run()
+  // Sealed with this session and the time, so only this verified setup can be confirmed, and only for a short while.
+  const pending = JSON.stringify({ secret, session: auth.session.id, at: now() } satisfies PendingSecond)
+  await query(c, 'UPDATE accounts SET totp_pending=?,updated_at=? WHERE id=?', await seal(pending, c.env.ACCOUNTS_ENCRYPTION_KEY), now(), auth.account.id).run()
   return result(c, { secret, uri: otpauthUri(secret, auth.account.email) })
 })
 
@@ -131,14 +170,18 @@ app.post('/api/mfa/confirm', async c => {
   if (!auth || (auth.state !== 'enroll' && auth.state !== 'full')) throw new Failure(401, 'unauthenticated', 'Vui lòng đăng nhập lại.')
   await limit(c, 'mfa:' + auth.account.id)
   const { code } = await body(c, z.object({ code: z.string().trim().regex(/^\d{6}$/, 'Nhập đúng mã 6 số.') }))
-  const pending = (await one<{ totp_pending: string | null }>(c, 'SELECT totp_pending FROM accounts WHERE id=?', auth.account.id))?.totp_pending
-  if (!pending) throw bad('Hãy bắt đầu lại bước thiết lập.')
-  const step = await verifyTotp(await unseal(pending, c.env.ACCOUNTS_ENCRYPTION_KEY), code, 0)
+  const sealed = (await one<{ totp_pending: string | null }>(c, 'SELECT totp_pending FROM accounts WHERE id=?', auth.account.id))?.totp_pending
+  const pending = await pendingSecond(c, sealed)
+  if (!sealed || !pending || pending.session !== auth.session.id || now() - pending.at > pendingLifetime) throw bad('Hãy bắt đầu lại bước thiết lập.')
+  const step = await verifyTotp(pending.secret, code, 0)
   if (!step) throw bad('Mã chưa đúng. Kiểm tra giờ trên điện thoại và nhập mã mới nhất.')
   const codes = recoveryCodes()
   const timestamp = now()
+  // Only the setup that was just checked: a newer enrol in the meantime makes this one stale.
+  const enabled = await query(c, 'UPDATE accounts SET totp_secret=?,totp_pending=NULL,totp_last_step=?,updated_at=? WHERE id=? AND totp_pending=?',
+    await seal(pending.secret, c.env.ACCOUNTS_ENCRYPTION_KEY), step, timestamp, auth.account.id, sealed).run()
+  if (!enabled.meta.changes) throw bad('Hãy bắt đầu lại bước thiết lập.')
   await db(c).batch([
-    query(c, 'UPDATE accounts SET totp_secret=totp_pending,totp_pending=NULL,totp_last_step=?,updated_at=? WHERE id=?', step, timestamp, auth.account.id),
     query(c, 'DELETE FROM recovery_codes WHERE account_id=?', auth.account.id),
     ...await Promise.all(codes.map(async item => query(c, 'INSERT INTO recovery_codes(account_id,code_hash,created_at) VALUES (?,?,?)',
       auth.account.id, await sha256(item), timestamp))),

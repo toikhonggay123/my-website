@@ -15,6 +15,10 @@ export type Bindings = {
   MEALCHECK_DIRECTORY_ORG_ID?: string
   BETTER_AUTH_SECRET: string
   ACTIVATION_LIMIT: RateLimit
+  /** Per-client limit for every /api/* request (src/server/edge.ts). Cloud only; local runs and QA stay unlimited. */
+  API_LIMIT?: RateLimit
+  /** '1' on edu.afyllx.com only: public timetable answers are kept in the edge cache for 60 s (src/server/public.ts). */
+  PUBLIC_EDGE_CACHE?: string
   /** AFYLLX Account Worker (service binding). Present only on edu.afyllx.com. */
   ACCOUNTS?: Fetcher
 }

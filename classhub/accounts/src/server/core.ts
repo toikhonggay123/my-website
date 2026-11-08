@@ -14,6 +14,8 @@ export type Bindings = {
   COOKIE_DOMAIN?: string
   ACCOUNTS_ENCRYPTION_KEY: string
   LOGIN_LIMIT: RateLimit
+  /** Per-client limit for every /api/* request (../../../src/server/edge.ts). Cloud only; local runs and QA stay unlimited. */
+  API_LIMIT?: RateLimit
 }
 export type Account = {
   id: string; email: string; name: string; password_hash: string | null; status: 'active' | 'disabled'
@@ -129,7 +131,11 @@ export async function loadAuth(c: Ctx): Promise<Auth | undefined> {
   return { account, session, state }
 }
 
-/** The signed-in account after both steps. Platform roles never pass without a second factor. */
+/**
+ * The signed-in account once sign-in is complete: the password alone, or the password and the 6-digit code when the
+ * account holder turned the optional second factor on. Platform roles pass with the password alone as well
+ * (owner's choice, 07/11/2026); see needsSecondFactor.
+ */
 export function requireFull(c: Ctx) {
   const auth = c.get('auth')
   if (!auth) throw signedOut()

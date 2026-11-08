@@ -82,6 +82,13 @@ test('founder activates with a password, opts into a second factor and manages p
     await page.getByRole('link', { name: 'Bảo mật' }).click()
     await expect(page.getByText('Tùy chọn. Hiện chỉ cần mật khẩu để đăng nhập.')).toBeVisible()
     await page.getByRole('button', { name: 'Bật xác thực hai lớp' }).click()
+    // A signed-in session alone cannot set up a second factor: the password is asked again.
+    await call(phone.request, '/api/mfa/enroll', 'POST', {}, 400)
+    await page.getByLabel('Nhập lại mật khẩu để tiếp tục').fill('wrong-password-123')
+    await page.getByRole('button', { name: 'Hiện mã QR thiết lập' }).click()
+    await expect(page.getByText('Mật khẩu hiện tại chưa đúng.')).toBeVisible()
+    await page.getByLabel('Nhập lại mật khẩu để tiếp tục').fill(founderPassword)
+    await page.getByRole('button', { name: 'Hiện mã QR thiết lập' }).click()
     const { secret, codes } = await enroll(page)
     await expect(page.getByText('Đang bật')).toBeVisible()
 

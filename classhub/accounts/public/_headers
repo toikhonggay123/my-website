@@ -1,0 +1,8 @@
+# Workers Static Assets headers for the AFYLLX Account pages at https://account.afyllx.com/ (served without the Worker).
+# The API under /api/* runs in the Worker and gets the same protections from hono/secure-headers.
+/*
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
