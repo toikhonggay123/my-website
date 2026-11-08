@@ -138,9 +138,6 @@ export function createStageScene(canvas, { mode = 'journey', focus = 'edu' } = {
   passes.forEach(pass => composer.addPass(pass));
   let last = [0, 0, 0, 0, 0];
   let disposed = false;
-  // Render scale chosen by the page from measured frame times (1 = full). Bloom and SMAA cost
-  // grows with every pixel, so a slow GPU (integrated, on battery) renders fewer of them.
-  let quality = 1;
   // Free screen area for the object, in canvas pixels, measured by the page
   // around the copy panel and chapter rail. Null falls back to fixed framing.
   let free = null;
@@ -220,10 +217,7 @@ export function createStageScene(canvas, { mode = 'journey', focus = 'edu' } = {
   function resize() {
     if (disposed) return;
     const width = Math.max(1, canvas.clientWidth), height = Math.max(1, canvas.clientHeight);
-    // Native density up to 1.5 (no forced supersampling past the screen), capped near 4.2 MP,
-    // then scaled down by the measured quality.
-    const native = Math.min(Math.max(1, window.devicePixelRatio || 1), 1.5, Math.sqrt(4_200_000 / (width * height)));
-    const dpr = Math.max(.5, native * quality);
+    const dpr = Math.min(Math.max(1.5, window.devicePixelRatio || 1), 2, Math.sqrt(4_200_000 / (width * height)));
     renderer.setPixelRatio(dpr);
     renderer.setSize(width, height, false);
     composer.setPixelRatio(dpr);
@@ -248,13 +242,6 @@ export function createStageScene(canvas, { mode = 'journey', focus = 'edu' } = {
   function setFreeArea(area) {
     free = area && area.right - area.left > 40 && area.bottom - area.top > 40 ? area : null;
   }
-  /** @param {number} value render scale between .6 and 1 */
-  function setQuality(value) {
-    const next = Math.min(1, Math.max(.6, value));
-    if (Math.abs(next - quality) < .01) return;
-    quality = next;
-    resize();
-  }
   resize();
-  return { render, resize, dispose, setFreeArea, setQuality, get quality() { return quality; } };
+  return { render, resize, dispose, setFreeArea };
 }
