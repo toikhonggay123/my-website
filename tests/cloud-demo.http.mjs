@@ -18,7 +18,7 @@ await call('board?space=live',undefined,'',403);
 await call('students?space=live',undefined,'',403);
 await call('qa/browser-reset',undefined,'',404);
 await call('students?space=demo',{rows:[]},'',403);
-await call('device/start',{space:'live'},'',403);
+await call('device/start',{space:'live'},'',404);
 await call('seed?space=demo',{},'',403,'https://wrong.example.test');
 await call('seed?space=demo',{});
 const students=(await call('students?space=demo')).data;

@@ -1,3 +1,10 @@
+# Static files are served by the assets binding and skip worker/index.ts.
+# Keep these in step with lib/security-headers.mjs.
+/*
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
 /sw.js
   Cache-Control: no-cache
   Service-Worker-Allowed: /

@@ -1,4 +1,4 @@
-param([switch]$OpenBrowser)
+﻿param([switch]$OpenBrowser)
 $ErrorActionPreference = 'Stop'
 $projectDir = $PSScriptRoot
 $url = 'http://localhost:3000/quan-tri'

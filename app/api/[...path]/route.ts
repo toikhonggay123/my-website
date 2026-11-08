@@ -9,12 +9,15 @@ import { studentCards, issuedStudentCards, reissueStudentCard, scanStudentCard }
 import { discardRequestBody, readJsonBody } from '@/lib/http-body.mjs';
 import {directoryAccess,directorySnapshot,directoryMutation,directoryRoster} from '@/lib/shared-directory.mjs';
 export const dynamic='force-dynamic';
+// This Worker has exactly one DB binding; a fixed scope keeps the per-isolate
+// day-setup memo even if the binding object differs between requests.
+const INIT_SCOPE={};
 const json=(data:any,status=200,headers:any={})=>Response.json(data,{status,headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff',...headers}});
 function cookie(req:Request,name='mc_device'){return req.headers.get('cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(name+'='))?.slice(name.length+1);}
 async function handle(req:Request,{params}:any){
  try{
   if(!env.DB)throw new AppError('Cơ sở dữ liệu chưa sẵn sàng.',503);
-  const app=new MealCheck(env.DB),url=new URL(req.url),{path}=await params,route=path.join('/');
+  const app=new MealCheck(env.DB,undefined,{initScope:INIT_SCOPE}),url=new URL(req.url),{path}=await params,route=path.join('/');
   if(req.method==='POST'&&req.headers.get('origin')!==url.origin)throw new AppError('Nguồn yêu cầu không hợp lệ.',403);
   const contentLength=Number(req.headers.get('content-length')||0);if(contentLength>2_000_000)throw new AppError('Tệp quá lớn.',413);
   const policy=deploymentPolicy(url,env),space=deploymentSpace(url,policy);
@@ -59,6 +62,7 @@ async function handle(req:Request,{params}:any){
     return json({card:card||null,school:SCHOOL});
   }
   // Scanner start prepares today's sessions once; each scan only reads/records that session.
+  // init is memoized per isolate and local date, so polling routes do not write.
   if(route!=='qr/scan')await app.init(space);
   const admin=()=>{if(user.role!=='admin')throw new AppError('Chỉ quản trị viên được thực hiện.',403);};
   const date=url.searchParams.get('date')||localClock().date,from=url.searchParams.get('from')||date,to=url.searchParams.get('to')||date;
