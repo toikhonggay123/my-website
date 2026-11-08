@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $recordPath = Join-Path $PSScriptRoot '.local-server/process.json'
 if (-not (Test-Path -LiteralPath $recordPath)) { Write-Output 'MealCheck local chưa chạy.'; exit 0 }
 $record = Get-Content -LiteralPath $recordPath -Raw | ConvertFrom-Json

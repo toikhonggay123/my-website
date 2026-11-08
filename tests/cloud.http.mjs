@@ -12,6 +12,13 @@ async function call(path,body,cookie='',expected=200,extra={}){
 }
 for(const route of ['/','/diem-danh']){const r=await fetch(base+route,{redirect:'manual'});assert.equal(r.status,307);assert.equal(r.headers.get('location'),'/quan-tri');}
 for(const route of ['/mealcheck','/mealcheck/cai-dat']){const r=await fetch(base+route);assert.equal(r.status,200,route);assert.match(await r.text(),/AFYLLX Edu MealCheck/);}
+// Pages, redirects, API and static files cannot be framed by other sites; plain-HTTP loopback gets no HSTS.
+for(const [route,status] of [['/mealcheck',200],['/',307],['/api/identity',200],['/manifest.webmanifest',200]]){
+  const r=await fetch(base+route,{redirect:'manual'});await r.arrayBuffer();assert.equal(r.status,status,route);
+  assert.equal(r.headers.get('x-frame-options'),'SAMEORIGIN',route);assert.match(r.headers.get('content-security-policy')||'',/frame-ancestors 'self'/,route);
+  assert.equal(r.headers.get('x-content-type-options'),'nosniff',route);assert.equal(r.headers.get('referrer-policy'),'strict-origin-when-cross-origin',route);
+  assert.equal(r.headers.get('strict-transport-security'),null,route);
+}
 const manifest=await fetch(base+'/manifest.webmanifest').then(r=>r.json());assert.equal(manifest.id,'/quan-tri');assert.equal(manifest.start_url,'/mealcheck?source=pwa');
 const qaReset=await call('qa/browser-reset');assert.equal(qaReset.data.qaBrowserReset,true);assert.equal(qaReset.cookie,'mc_scanner=');
 const identity=(await call('identity',undefined,'',200,{'oai-authenticated-user-id':'forged','oai-authenticated-user-email':'attacker@example.test'})).data;

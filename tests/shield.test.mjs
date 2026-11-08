@@ -15,6 +15,19 @@ test('routes are classified so polling, scans, exports and enrollment get separa
  assert.equal(c('/api/qr/scan','POST'),'write');assert.equal(c('/api/decide','POST'),'write');
  for(const p of ['export','export/today','daily','audit','qr/cards','devices'])assert.equal(c('/api/'+p),'heavy');
  assert.equal(c('/api/device/start','POST'),'enroll');assert.equal(c('/api/qr/scanner/start/','POST'),'enroll');
+ for(const m of ['GET','POST'])assert.equal(c('/api/v1/shared-directory',m),'directory');
+ assert.equal(c('/api/v1/shared-directory/'),'directory');assert.equal(c('/api/v1/shared-directory-x'),'read');
+});
+
+test('ClassHub directory calls without CF-Connecting-IP use their own bucket, not the shared unknown read key',async()=>{
+ const env={RL_READ:limiter(1),RL_WRITE:limiter(1),RL_DIRECTORY:limiter(3)};
+ assert.equal(await shield(req('/api/board',{ip:''}),env),null);
+ assert.equal((await shield(req('/api/board',{ip:''}),env)).status,429);
+ for(const method of ['GET','POST','GET'])assert.equal(await shield(req('/api/v1/shared-directory?space=live',{method,ip:''}),env),null);
+ const res=await shield(req('/api/v1/shared-directory?space=live',{ip:''}),env);
+ assert.equal(res.status,429);assert.equal(res.headers.get('Retry-After'),String(SHIELD_BUCKETS.directory.period));
+ assert.deepEqual([...new Set(env.RL_DIRECTORY.keys)],['directory:unknown']);
+ assert.equal(env.RL_WRITE.keys.length,0);
 });
 
 test('client keys group IPv6 by /64 and keep IPv4 per address',()=>{
@@ -73,5 +86,8 @@ test('live cloud config declares every shield binding with a supported period',(
  }
  for(const b of Object.values(SHIELD_BUCKETS))assert.equal(names.get(b.binding).simple.period,b.period);
  assert.equal(new Set(config.ratelimits.map(r=>r.namespace_id)).size,config.ratelimits.length);
+ assert.equal(names.get('RL_DIRECTORY').namespace_id,'7107');assert.equal(names.get('RL_DIRECTORY').simple.limit,600);
+ const types=fs.readFileSync('cloudflare-env.d.ts','utf8');
+ for(const name of names.keys())assert.match(types,new RegExp('\\b'+name+'\\?:RateLimit'),name+' typed');
  const local=JSON.parse(fs.readFileSync('wrangler.jsonc','utf8'));assert.equal(local.ratelimits,undefined,'local loopback app stays unlimited');
 });

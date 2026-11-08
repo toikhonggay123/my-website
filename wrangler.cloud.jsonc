@@ -10,7 +10,7 @@
     {"pattern": "afyllx.com", "custom_domain": true}
   ],
   "preview_urls": false,
-  "observability": {"enabled": false},
+  "observability": {"enabled": true, "head_sampling_rate": 1},
   "services": [{"binding": "AFYLLX_WEB", "service": "afyllx-web"}],
   "ratelimits": [
     {"name": "RL_PAGE", "namespace_id": "7101", "simple": {"limit": 200, "period": 10}},
@@ -18,7 +18,8 @@
     {"name": "RL_WRITE", "namespace_id": "7103", "simple": {"limit": 100, "period": 10}},
     {"name": "RL_HEAVY", "namespace_id": "7104", "simple": {"limit": 60, "period": 60}},
     {"name": "RL_ENROLL", "namespace_id": "7105", "simple": {"limit": 20, "period": 60}},
-    {"name": "RL_ENROLL_GLOBAL", "namespace_id": "7106", "simple": {"limit": 300, "period": 60}}
+    {"name": "RL_ENROLL_GLOBAL", "namespace_id": "7106", "simple": {"limit": 300, "period": 60}},
+    {"name": "RL_DIRECTORY", "namespace_id": "7107", "simple": {"limit": 600, "period": 60}}
   ],
   "vars": {
     "MEALCHECK_DEPLOYMENT": "cloud-live",
