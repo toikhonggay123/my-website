@@ -91,6 +91,22 @@ function seeded(seed) {
 // =====================================================================
 const BOOK = { W: 1.5, H: 2.1, T: .055, B: .34 };
 
+function bookLogoTexture(k) {
+  const logo = new Image();
+  const texture = k.canvasTexture(640, 640, (context, width, height) => {
+    logo.addEventListener('load', () => {
+      context.drawImage(logo, 0, 0, width, height);
+      // Keep the official artwork's silhouette and replace its colors with white.
+      context.globalCompositeOperation = 'source-in';
+      context.fillStyle = '#fff';
+      context.fillRect(0, 0, width, height);
+      texture.needsUpdate = true;
+    }, { once: true });
+  });
+  logo.src = '/afyllx-brand/afyllx-logo.png';
+  return texture;
+}
+
 function printedPage(k, seed, side) {
   return k.canvasTexture(512, 720, (c, w, h) => {
     const random = seeded(seed);
@@ -170,6 +186,7 @@ function bookObject(resources) {
   const glow = glowMaterials(k);
   const { W, H, T, B } = BOOK;
   const zc = T + B / 2;
+  const coverBevel = .012;
   const group = new THREE.Group();
   const root = new THREE.Group();
   group.add(root);
@@ -186,7 +203,7 @@ function bookObject(resources) {
   const pageLeft = k.material(new THREE.MeshStandardMaterial({ map: printedPage(k, 29, 'left'), roughness: .62, emissive: 0x1a2a58, emissiveIntensity: .22 }));
 
   const board = () => {
-    const geometry = k.extrude(roundedRect(W + .07, H + .12, .07), T, .012, 2);
+    const geometry = k.extrude(roundedRect(W + .07, H + .12, .07), T, coverBevel, 2);
     geometry.translate((W + .07) / 2 - .01, 0, 0);
     return geometry;
   };
@@ -215,15 +232,10 @@ function bookObject(resources) {
   leftBlock.position.z = T + 3 * B / 4 - zc;
   front.add(leftBlock);
   k.mesh(front, board(), cover).position.z = T + B - zc;
-  const emblem = new THREE.Group();
-  emblem.position.set(W / 2, .18, T * 2 + B - zc + .004);
-  front.add(emblem);
-  const emblemShape = new THREE.Shape([[0, .42], [.1, .42], [.42, -.42], [.27, -.42], [.05, .1], [-.1, -.17], [-.25, -.2]].map(([x, y]) => new THREE.Vector2(x - .05, y)));
-  k.mesh(emblem, k.extrude(emblemShape, .02, .006, 1), glow.ice);
-  lineTube(k, Array.from({ length: 40 }, (_, i) => {
-    const a = Math.PI * .15 + i / 39 * Math.PI * 1.55;
-    return new THREE.Vector3(Math.cos(a) * .26 - .14, Math.sin(a) * .2 - .2, .012);
-  }), .016, glow.ice, emblem);
+  const emblem = k.mesh(front, k.geometry(new THREE.PlaneGeometry(1.02, 1.02)), k.material(new THREE.MeshBasicMaterial({
+    map: bookLogoTexture(k), transparent: true, depthWrite: false, toneMapped: false,
+  })));
+  emblem.position.set(W / 2, .18, T * 2 + B - zc + coverBevel + .002);
   const frame = roundedRect(W - .16, H - .2, .05).getPoints(12).map(p => new THREE.Vector3(p.x + W / 2, p.y, T * 2 + B - zc + .006));
   lineTube(k, frame, .006, glow.blue, front, true);
 
