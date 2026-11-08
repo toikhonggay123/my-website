@@ -43,7 +43,7 @@ export function AccountLink() {
       <CircleUserRound size={18} aria-hidden="true" />
       <span>
         <b>{me ? me.name : "Đăng nhập AFYLLX Account"}</b>
-        <small>{me ? (me.role ? roleName[me.role] ?? me.role : "AFYLLX Account") : "Không bắt buộc để dùng MealCheck"}</small>
+        <small>{me ? (me.role ? roleName[me.role] ?? me.role : "AFYLLX Account") : "Không bắt buộc để dùng CheckIn"}</small>
       </span>
       <ArrowUpRight size={15} aria-hidden="true" />
     </a>

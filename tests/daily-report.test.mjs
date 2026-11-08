@@ -8,17 +8,17 @@ test('XLS nhị phân có tổng hợp, từng bữa/lớp và thiếu bữa; gi
  const bytes=makeDailyXls({date:'2026-10-31',space:'demo',students,records});
  assert.equal(Buffer.from(bytes.slice(0,8)).toString('hex'),'d0cf11e0a1b11ae1');
  const wb=read(bytes,{type:'array'}),rows=name=>utils.sheet_to_json(wb.Sheets[name],{header:1,defval:''});
- assert.deepEqual(wb.SheetNames,['Tổng hợp','Bữa sáng','Bữa trưa','Bữa tối','Lớp 9B','Lớp 10A','Chưa đủ ba bữa']);
+ assert.deepEqual(wb.SheetNames,['Tổng hợp','Buổi sáng','Buổi trưa','Buổi tối','Lớp 9B','Lớp 10A','Chưa đủ ba buổi']);
  assert.deepEqual(rows('Tổng hợp')[7],['9','9B',1,1,0,0,1,0,1]);
  assert.deepEqual(rows('Tổng hợp')[9],['TỔNG CỘNG','',2,1,1,0,2,0,2]);
- assert.equal(rows('Bữa sáng')[7][1],'0001');assert.equal(rows('Bữa sáng')[7][2],'Nguyễn Thị Ánh');
- assert.equal(rows('Bữa sáng')[7][6],'07:15:00');assert.equal(rows('Bữa sáng')[8][5],'Chưa điểm danh');
- assert.equal(wb.Sheets['Bữa sáng'].B9.v,'=1+1');assert.equal(wb.Sheets['Bữa sáng'].B9.f,undefined);
- assert.equal(rows('Chưa đủ ba bữa').length,9);
+ assert.equal(rows('Buổi sáng')[7][1],'0001');assert.equal(rows('Buổi sáng')[7][2],'Nguyễn Thị Ánh');
+ assert.equal(rows('Buổi sáng')[7][6],'07:15:00');assert.equal(rows('Buổi sáng')[8][5],'Chưa điểm danh');
+ assert.equal(wb.Sheets['Buổi sáng'].B9.v,'=1+1');assert.equal(wb.Sheets['Buổi sáng'].B9.f,undefined);
+ assert.equal(rows('Chưa đủ ba buổi').length,9);
 });
 test('Ngày chưa có điểm danh vẫn xuất đủ danh sách và ba bữa, dữ liệu rỗng vẫn mở được',()=>{
  const wb=read(makeDailyXls({date:'2026-11-01',space:'live',students,records:[]}),{type:'array'});
- const rows=utils.sheet_to_json(wb.Sheets['Bữa tối'],{header:1});assert.equal(rows.length,9);assert.equal(rows[7][5],'Chưa điểm danh');
+ const rows=utils.sheet_to_json(wb.Sheets['Buổi tối'],{header:1});assert.equal(rows.length,9);assert.equal(rows[7][5],'Chưa điểm danh');
  const empty=read(makeDailyXls({date:'2026-11-01',space:'live',students:[],records:[]}),{type:'array'});assert.equal(empty.SheetNames.length,5);
 });
 
@@ -42,6 +42,6 @@ test('Tổng hợp giữ lượt đã ghi của học sinh ngừng theo dõi, kh
  const wb=read(makeDailyXls({date:'2026-10-31',space:'live',students,records:[...records,history]}),{type:'array'});
  const summary=utils.sheet_to_json(wb.Sheets['Tổng hợp'],{header:1});
  assert.deepEqual(summary[7],['9','9B',1,2,0,0,1,0,1]);
- assert.equal(utils.sheet_to_json(wb.Sheets['Bữa sáng'],{header:1}).length,10);
- assert.equal(utils.sheet_to_json(wb.Sheets['Chưa đủ ba bữa'],{header:1}).length,9);
+ assert.equal(utils.sheet_to_json(wb.Sheets['Buổi sáng'],{header:1}).length,10);
+ assert.equal(utils.sheet_to_json(wb.Sheets['Chưa đủ ba buổi'],{header:1}).length,9);
 });

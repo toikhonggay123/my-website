@@ -178,8 +178,8 @@ export function AppNavigation({
       </dialog>
       <dialog ref={homeDialog} className="reset-dialog edu-home-dialog" aria-labelledby="edu-home-title" aria-describedby="edu-home-description" onClose={()=>{setHomeOpen(false);}} onClick={event=>{if(event.target===event.currentTarget)homeDialog.current?.close();}}>
         <h2 id="edu-home-title">Trở lại trang chủ AFYLLX Edu?</h2>
-        <p id="edu-home-description">Bạn sẽ rời MealCheck và mở trang chủ tại edu.afyllx.com.</p>
-        <div className="reset-dialog-actions"><button ref={stayButton} className="secondary" onClick={()=>homeDialog.current?.close()}>Ở lại MealCheck</button><button className="primary" onClick={()=>window.location.assign('https://edu.afyllx.com/')}>Đồng ý</button></div>
+        <p id="edu-home-description">Bạn sẽ rời CheckIn và mở trang chủ tại edu.afyllx.com.</p>
+        <div className="reset-dialog-actions"><button ref={stayButton} className="secondary" onClick={()=>homeDialog.current?.close()}>Ở lại CheckIn</button><button className="primary" onClick={()=>window.location.assign('https://edu.afyllx.com/')}>Đồng ý</button></div>
       </dialog>
     </>
   );

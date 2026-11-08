@@ -45,14 +45,14 @@ async function handle(req:Request,{params}:any){
     if(policy.demoOnly&&body.space==='live')throw new AppError('Bản công khai chỉ sử dụng dữ liệu giả lập.',403);
     if(policy.liveOnly&&body.space==='demo')throw new AppError('Môi trường thử nghiệm đã được tắt.',403);
     const requestedSpace=policy.demoOnly||body.space==='demo'?'demo':'live';
-    const d=await app.enrollDevice(requestedSpace,'Nhà ăn · '+crypto.randomUUID().slice(0,6),'student-device');
+    const d=await app.enrollDevice(requestedSpace,'Điểm danh · '+crypto.randomUUID().slice(0,6),'student-device');
     return json({device:await app.device(d.token)},200,{'Set-Cookie':`${cookies.device}=${d.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${url.protocol==='https:'?'; Secure':''}`});
   }
   if(route.startsWith('kiosk/')){
     if(!device)throw new AppError('Thiết bị chưa được đăng ký hoặc đã bị thu hồi.',403);
     if(route==='kiosk/state'&&req.method==='GET')return json(await app.kiosk(device,url.searchParams.get('meal')||''));
     if(route==='kiosk/roster'&&req.method==='GET')return json(await app.roster(device.space));
-    if(route==='kiosk/request'&&req.method==='POST'){if(typeof body.sessionId!=='string')throw new AppError('Thiếu phiên ăn đang xác nhận.');const r=await app.checkIn(device,body.studentId,body.id,body.sessionId);return json(r);}
+    if(route==='kiosk/request'&&req.method==='POST'){if(typeof body.sessionId!=='string')throw new AppError('Thiếu buổi điểm danh đang xác nhận.');const r=await app.checkIn(device,body.studentId,body.id,body.sessionId);return json(r);}
     throw new AppError('Không tìm thấy chức năng.',404);
   }
   // Read one already-issued card for the Edu portal. Never initialize sessions,
@@ -92,14 +92,14 @@ async function handle(req:Request,{params}:any){
     const reportDate=route==='daily'?date:localClock().date;
     const data={date:reportDate,space,students:await app.roster(space,{includeInactive:true}),records:await app.records(space,reportDate,reportDate)};
     if(route!=='export/today')return json(data);
-    return new Response(makeDailyXls(data) as any,{headers:{'Content-Type':'application/vnd.ms-excel','Content-Disposition':`attachment; filename="MealCheck-${space}-${reportDate}.xls"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
+    return new Response(makeDailyXls(data) as any,{headers:{'Content-Type':'application/vnd.ms-excel','Content-Disposition':`attachment; filename="CheckIn-${space}-${reportDate}.xls"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
   }
   if(route==='export'&&req.method==='GET'){
     const query=normalize(url.searchParams.get('q')||'');
     const records=(await app.records(space,from,to,url.searchParams.get('meal')||'',url.searchParams.get('grade')||'',url.searchParams.get('class')||'')).filter((r:any)=>normalize(r.name+' '+r.code).includes(query));
-    const rows=[['Ngày','Bữa','Mã học sinh','Họ tên','Khối','Lớp','Giờ xác nhận','Giáo viên','Trạng thái'],...records.map((r:any)=>[r.date,r.meal,r.code,r.name,r.grade,r.class,new Date(r.confirmed_at).toISOString(),r.teacher,'Đã xác nhận'])];
-    if(url.searchParams.get('format')==='xlsx')return new Response(makeXlsx(rows,'DIEM_DANH') as any,{headers:{'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition':`attachment; filename="MealCheck-${from}.xlsx"`,'Cache-Control':'no-store'}});
-    const safe=(v:any)=>{let s=String(v);if(/^[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};return new Response('\uFEFF'+rows.map(row=>row.map(safe).join(',')).join('\r\n'),{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="MealCheck-${from}.csv"`,'Cache-Control':'no-store'}});
+    const rows=[['Ngày','Buổi','Mã học sinh','Họ tên','Khối','Lớp','Giờ xác nhận','Giáo viên','Trạng thái'],...records.map((r:any)=>[r.date,r.meal,r.code,r.name,r.grade,r.class,new Date(r.confirmed_at).toISOString(),r.teacher,'Đã xác nhận'])];
+    if(url.searchParams.get('format')==='xlsx')return new Response(makeXlsx(rows,'DIEM_DANH') as any,{headers:{'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition':`attachment; filename="CheckIn-${from}.xlsx"`,'Cache-Control':'no-store'}});
+    const safe=(v:any)=>{let s=String(v);if(/^[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};return new Response('\uFEFF'+rows.map(row=>row.map(safe).join(',')).join('\r\n'),{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="CheckIn-${from}.csv"`,'Cache-Control':'no-store'}});
   }
   admin();
   if(route==='attendance/reset-preview'&&req.method==='GET')return json(await resetPreview(app,space));

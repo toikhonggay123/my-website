@@ -27,7 +27,7 @@ export function HomeOverview({board,space,onScan,onMissing}:{board:HomeBoard;spa
   const chosen=board.meals[selected];
   const displayDate=new Date(board.date+"T12:00:00+07:00").toLocaleDateString("vi-VN",{weekday:"long",day:"2-digit",month:"2-digit",timeZone:"Asia/Ho_Chi_Minh"});
   return <div className="home-overview">
-    <div className="home-brand"><Brand/><p>Quản lý suất ăn học đường</p></div>
+    <div className="home-brand"><Brand/><p>Điểm danh học sinh bằng thẻ QR</p></div>
     <header className="home-heading">
       <div><p className="home-date">{displayDate}</p><h1>Hôm nay</h1><p className="home-roster"><Users size={15} aria-hidden="true"/>{nf.format(board.total)} học sinh<span aria-hidden="true">·</span>{board.byClass.length} lớp</p></div>
       <details className="home-actions"><summary aria-label="Xuất danh sách hôm nay"><Download size={18} aria-hidden="true"/><span>Xuất Excel</span></summary><div className="home-actions-menu"><TodayExport space={space}/></div></details>
@@ -35,7 +35,7 @@ export function HomeOverview({board,space,onScan,onMissing}:{board:HomeBoard;spa
     <InstallApp compact/>
     <button className="home-scan primary" onClick={onScan}><ScanLine size={25} aria-hidden="true"/><span>Quét QR điểm danh</span><ArrowRight size={20} aria-hidden="true"/></button>
     <section className="home-meals" aria-labelledby="home-meals-title">
-      <div className="home-section-heading"><h2 id="home-meals-title">Ba bữa hôm nay</h2><span>Đã điểm danh / tổng số</span></div>
+      <div className="home-section-heading"><h2 id="home-meals-title">Ba buổi hôm nay</h2><span>Đã điểm danh / tổng số</span></div>
       <div className="home-meal-grid">{MEALS.map(meal=>{
         const Icon=icons[meal],stats=board.meals[meal];
         return <button key={meal} className={"home-meal "+meal} aria-pressed={selected===meal} aria-controls="home-meal-detail" aria-label={`${LABELS[meal as keyof typeof LABELS]}: ${stats.count} trên ${board.total} học sinh đã điểm danh`} onClick={()=>choose(meal)}>
@@ -45,7 +45,7 @@ export function HomeOverview({board,space,onScan,onMissing}:{board:HomeBoard;spa
         </button>;
       })}</div>
       <div id="home-meal-detail" className={"home-meal-detail "+(chosen?"has-selection":"")}>
-        {chosen ? <><div><span>{LABELS[selected as keyof typeof LABELS]}</span><p><b>{nf.format(chosen.missing)}</b> chưa điểm danh</p></div><button onClick={()=>onMissing(selected,board.date)}>Xem danh sách<ArrowRight size={17} aria-hidden="true"/></button></> : <p>Chọn một bữa để xem học sinh chưa điểm danh.</p>}
+        {chosen ? <><div><span>{LABELS[selected as keyof typeof LABELS]}</span><p><b>{nf.format(chosen.missing)}</b> chưa điểm danh</p></div><button onClick={()=>onMissing(selected,board.date)}>Xem danh sách<ArrowRight size={17} aria-hidden="true"/></button></> : <p>Chọn một buổi để xem học sinh chưa điểm danh.</p>}
       </div>
     </section>
     <details className="home-classes"><summary><span>Theo lớp</span><small>{board.byClass.length} lớp</small><ChevronDown size={18} aria-hidden="true"/></summary>

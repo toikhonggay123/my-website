@@ -1,6 +1,8 @@
-# AFYLLX Edu MealCheck
+# AFYLLX Edu CheckIn (formerly MealCheck)
 
-Owner direction, 04/11/2026: the education brand is **AFYLLX Edu**. Every logo lockup uses the existing symbol on the left, **AFYLLX Edu** in bold on the first line and MealCheck in regular weight on the second line. Apply this name to menus, loading states, home, scanner, install pages, PWA metadata, Android source, reports and student cards.
+Owner direction, 08/11/2026: the app is presented as an attendance app. The display name is **CheckIn** (second lockup line, PWA name "AFYLLX Edu CheckIn") and the three daily sessions read "Buổi sáng/trưa/tối" instead of meals; "suất" reads "lượt điểm danh". This is wording only: session keys `sang/trua/toi`, the `/mealcheck` paths, manifest ID, cookies, code identifiers, the QR AAD and the `/api/health` app id stay unchanged. The Edu portal and AFYLLX Account product lists still say MealCheck until changed separately.
+
+Earlier owner direction, 04/11/2026: the education brand is **AFYLLX Edu**. Every logo lockup uses the existing symbol on the left, **AFYLLX Edu** in bold on the first line and MealCheck in regular weight on the second line. Apply this name to menus, loading states, home, scanner, install pages, PWA metadata, Android source, reports and student cards.
 
 - Use `Brand` from `app/brand.tsx` for HTML lockups. Size through its `className`; preserve the shared mark and two-line order.
 - Symbol: `public/brand/edtech-mark.png`, derived from the owner-supplied artwork without its printed words. The transparent extraction retains the book, orbit, three squares, geometry and blue gradients. The final web derivative is 512 × 341 px. This rename does not change the symbol.

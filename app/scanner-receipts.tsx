@@ -81,13 +81,13 @@ export function ScannerReceipts({space,meal,date='',target,onOpenChange}:{space:
   </button>
   {active&&target.current&&createPortal(<div ref={popup} className={'scan-receipt-flight '+(active.duplicate?'duplicate':'')} role="status" aria-live="polite" aria-atomic="true">
    <span className="receipt-confirm-icon"><Check size={24} strokeWidth={2.5} aria-hidden="true"/></span>
-   <div><span className="receipt-confirm-label">{active.duplicate?'Đã điểm danh bữa này':'Điểm danh thành công'}</span><strong>{active.student.name}</strong><span>Lớp {active.student.class} · {LABELS[active.meal as keyof typeof LABELS]}</span><small>{active.student.code}</small></div>
+   <div><span className="receipt-confirm-label">{active.duplicate?'Đã điểm danh buổi này':'Điểm danh thành công'}</span><strong>{active.student.name}</strong><span>Lớp {active.student.class} · {LABELS[active.meal as keyof typeof LABELS]}</span><small>{active.student.code}</small></div>
   </div>,target.current)}
   <dialog ref={dialog} id="scan-receipts-dialog" className="scan-receipts-dialog" aria-labelledby="scan-receipts-title" onCancel={event=>{event.preventDefault();close();}} onClick={event=>{if(event.target===event.currentTarget)close();}} onClose={()=>{setOpen(false);onOpenChange(false);}}>
    <header><div><span className="receipt-sheet-eyebrow">AFYLLX EDU MEALCHECK</span><h2 id="scan-receipts-title">Học sinh đã quét <span>{filtered.length}</span></h2></div><button className="receipt-sheet-close" aria-label="Đóng danh sách đã quét" onClick={close}><X size={21}/></button></header>
-   <p className="receipt-sheet-note">{meal?LABELS[meal as keyof typeof LABELS]:'Các bữa hôm nay'} · Trong lần mở máy quét này. Đóng danh sách để tiếp tục quét.</p>
+   <p className="receipt-sheet-note">{meal?LABELS[meal as keyof typeof LABELS]:'Các buổi hôm nay'} · Trong lần mở máy quét này. Đóng danh sách để tiếp tục quét.</p>
    <div className="receipt-sheet-list">{filtered.length?<><ul>{filtered.slice(0,limit).map(row=><li key={row.key}><span className={'receipt-row-check '+(row.duplicate?'duplicate':'')}><Check size={19} aria-hidden="true"/></span><div><strong>{row.student.name}</strong><span>Lớp {row.student.class} · {row.student.code}</span><small>{row.duplicate?'Đã có điểm danh':'Đã ghi nhận'} · {LABELS[row.meal as keyof typeof LABELS]}</small></div><time dateTime={new Date(row.observedAt).toISOString()}><Clock3 size={11} aria-hidden="true"/>{time.format(row.observedAt)}</time></li>)}</ul>{filtered.length>limit&&<button className="receipt-more" onClick={()=>setLimit(n=>n+50)}>Xem thêm {Math.min(50,filtered.length-limit)} học sinh</button>}</>:<div className="receipt-sheet-empty"><Users size={30} aria-hidden="true"/><strong>Chưa có học sinh được xác nhận</strong><p>Kết quả sẽ xuất hiện sau khi quét và được máy chủ ghi nhận.</p></div>}</div>
-   <footer>{rows.length>=RECEIPT_LIMIT?'Hiển thị '+RECEIPT_LIMIT+' kết quả gần nhất. ':'Mỗi học sinh hiển thị một lần cho mỗi bữa. '}Lượt chờ mạng chưa được tính vào danh sách.</footer>
+   <footer>{rows.length>=RECEIPT_LIMIT?'Hiển thị '+RECEIPT_LIMIT+' kết quả gần nhất. ':'Mỗi học sinh hiển thị một lần cho mỗi buổi. '}Lượt chờ mạng chưa được tính vào danh sách.</footer>
   </dialog>
  </div>;
 }

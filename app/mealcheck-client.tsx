@@ -368,7 +368,7 @@ export default function App() {
         ) : (
           <>
             <LoaderCircle className="spin" />
-            <p>Đang kết nối AFYLLX Edu MealCheck…</p>
+            <p>Đang kết nối AFYLLX Edu CheckIn…</p>
           </>
         )}
       </div>
@@ -460,7 +460,7 @@ export default function App() {
                       scanner: "Quét QR điểm danh",
                       attendance: "Lịch sử điểm danh",
                       students: "Học sinh",
-                      reports: "Báo cáo suất ăn",
+                      reports: "Báo cáo điểm danh",
                       settings: "Cài đặt nhà trường",
                       guide: "Hướng dẫn sử dụng",
                     } as R
@@ -606,11 +606,11 @@ export default function App() {
                       />
                     </label>
                     <select
-                      aria-label="Bữa ăn"
+                      aria-label="Buổi"
                       value={meal}
                       onChange={(e) => SM(e.target.value)}
                     >
-                      <option value="">Cả ba bữa</option>
+                      <option value="">Cả ba buổi</option>
                       {MEALS.map((m) => (
                         <option key={m} value={m}>
                           {LABELS[m]}
@@ -670,7 +670,7 @@ export default function App() {
                       </div>
                       <section className="panel">
                         <div className="panel-heading">
-                          <h2>So sánh ba bữa ăn</h2>
+                          <h2>So sánh ba buổi</h2>
                           <small>
                             {from} — {to}
                           </small>
@@ -722,7 +722,7 @@ export default function App() {
                         <table>
                           <thead>
                             <tr>
-                              <th>Ngày / Bữa</th>
+                              <th>Ngày / Buổi</th>
                               <th>Học sinh</th>
                               <th>Lớp</th>
                               <th>Thời gian</th>

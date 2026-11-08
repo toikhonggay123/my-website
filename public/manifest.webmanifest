@@ -1,8 +1,8 @@
 {
  "id":"/quan-tri",
- "name":"AFYLLX Edu MealCheck",
+ "name":"AFYLLX Edu CheckIn",
  "short_name":"AFYLLX Edu",
- "description":"AFYLLX Edu MealCheck — quét QR và quản lý suất ăn học đường.",
+ "description":"AFYLLX Edu CheckIn — điểm danh học sinh bằng thẻ QR.",
  "lang":"vi",
  "start_url":"/mealcheck?source=pwa",
  "scope":"/",

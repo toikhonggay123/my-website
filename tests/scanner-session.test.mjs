@@ -15,6 +15,6 @@ test('switching meals prepares the right day/session; missing selection cannot e
  const clock=scannerClock(Date.parse('2026-11-05T12:00:00+07:00'),0);
  assert.equal(sessionForScan('demo','trua','demo:2026-11-04:trua',clock,10).id,'demo:2026-11-05:trua');
  assert.equal(sessionForScan('demo','trua','demo:2026-11-05:trua',clock,10).needsPreparation,false);
- assert.throws(()=>sessionForScan('live','','',clock,10),/Chọn bữa/);
+ assert.throws(()=>sessionForScan('live','','',clock,10),/Chọn buổi/);
  assert.throws(()=>scannerClock(undefined),/thời gian/);
 });

@@ -41,6 +41,6 @@ const xls=await fetch(base+'/api/export/today?space=demo',{redirect:'manual'});a
 const daily=(await call('daily/today?space=demo&date=2000-01-01')).data;assert.equal(daily.date,board.date);
 // The browser uses this exact workbook generator; CPU-heavy BIFF8 work stays off the free Worker.
 const bytes=makeDailyXls(daily);assert.equal(Buffer.from(bytes.slice(0,8)).toString('hex'),'d0cf11e0a1b11ae1');
-const workbook=read(bytes,{type:'array'});assert.ok(workbook.SheetNames.includes('Lớp 6A1'));assert.equal(utils.sheet_to_json(workbook.Sheets['Bữa sáng'],{header:1}).length,1007);
+const workbook=read(bytes,{type:'array'});assert.ok(workbook.SheetNames.includes('Lớp 6A1'));assert.equal(utils.sheet_to_json(workbook.Sheets['Buổi sáng'],{header:1}).length,1007);
 for(const path of ['/','/diem-danh']){const response=await fetch(base+path,{redirect:'manual'});assert.equal(response.status,307);assert.equal(response.headers.get('location'),'/quan-tri');}
 console.log(JSON.stringify({cloudDemo:'passed',syntheticStudents:students.length,attendance:before,resetRestore:true,xls:true,liveBlocked:true,rosterUploadsBlocked:true}));
