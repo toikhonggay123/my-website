@@ -36,6 +36,10 @@ if (stage) {
   let lastTime;
   let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0;
   let current = -1;
+  // Frame-time governor: average frame length (s) and when the render scale last changed.
+  let frameAvg;
+  let lastAdjust = 0;
+  const SLOW_FRAME = 1 / 40;
 
   stage.classList.add('is-ready');
 
@@ -111,6 +115,16 @@ if (stage) {
     smoothY += (pointerY - smoothY) * follow;
     const { index, local } = paint(shown);
     frameObject(index);
+    // A GPU that cannot keep up (integrated graphics, battery saver) gets fewer pixels
+    // instead of a stuttering stage: step the render scale down while frames stay slow.
+    if (elapsed > 0) {
+      frameAvg = frameAvg === undefined ? elapsed : frameAvg * .9 + elapsed * .1;
+      if (frameAvg > SLOW_FRAME && time - lastAdjust > 1500 && scene.quality > .6) {
+        scene.setQuality(scene.quality * .8);
+        lastAdjust = time;
+        frameAvg = undefined;
+      }
+    }
     try {
       scene.render(index, local, time / 1000, smoothX, smoothY);
     } catch {
@@ -225,7 +239,7 @@ if (stage) {
   systemReduced.addEventListener('change', syncPreference);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { cancelAnimationFrame(frame); frame = 0; }
-    else { lastTime = undefined; schedule(); }
+    else { lastTime = undefined; frameAvg = undefined; schedule(); }
   });
   addEventListener('pagehide', event => { if (!event.persisted) teardown(); });
   paint(target());
