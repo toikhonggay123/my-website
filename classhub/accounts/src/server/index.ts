@@ -16,7 +16,7 @@ const day = 86_400_000
 const platformRole = z.enum(['founder', 'platform_admin', 'support'])
 const products = [
   { id: 'classhub', name: 'ClassHub', description: 'Lớp học, thời khóa biểu, điểm danh', path: 'https://edu.afyllx.com/classhub' },
-  { id: 'mealcheck', name: 'MealCheck', description: 'Suất ăn bán trú, quét thẻ QR', path: 'https://edu.afyllx.com/mealcheck' },
+  { id: 'mealcheck', name: 'CheckIn', description: 'Điểm danh học sinh bằng thẻ QR', path: 'https://edu.afyllx.com/mealcheck' },
   { id: 'edu', name: 'Cổng AFYLLX Edu', description: 'Trang chính của AFYLLX Edu', path: 'https://edu.afyllx.com/' },
 ]
 const publicAccount = (account: Account) => ({

@@ -123,7 +123,7 @@ function Organizations({ me, changed }: { me: Me; changed: () => void }) {
   })
   return <section className="ac-panel edu-card edu-rise" aria-labelledby="ac-orgs-admin">
     <h2 id="ac-orgs-admin"><Building2 size={18} aria-hidden="true" /> Đơn vị</h2>
-    <p className="edu-muted ac-small">Danh sách trường, trung tâm dùng sản phẩm AFYLLX. Việc nối với từng sản phẩm (ClassHub, MealCheck) làm ở bước tiếp theo.</p>
+    <p className="edu-muted ac-small">Danh sách trường, trung tâm dùng sản phẩm AFYLLX. Việc nối với từng sản phẩm (ClassHub, CheckIn) làm ở bước tiếp theo.</p>
     {me.account.platform_role !== 'support' && <form className="ac-form ac-grid" onSubmit={form.submit}>
       <label>Tên đơn vị<input name="name" required maxLength={120} /></label>
       <label>Loại<select name="kind" defaultValue="school"><option value="school">Trường học</option><option value="center">Trung tâm</option><option value="other">Khác</option></select></label>

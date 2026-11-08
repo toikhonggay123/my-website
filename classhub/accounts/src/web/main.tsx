@@ -62,7 +62,7 @@ function Login({ done }: { done: () => void }) {
     done()
   })
   return <Gate title="Đăng nhập" eyebrow="AFYLLX Account">
-    <p className="edu-muted">Một tài khoản để vào ClassHub, MealCheck và các sản phẩm AFYLLX.</p>
+    <p className="edu-muted">Một tài khoản để vào ClassHub, CheckIn và các sản phẩm AFYLLX.</p>
     <form className="ac-form" onSubmit={form.submit}>
       <label>Email<input type="email" name="email" autoComplete="username" required maxLength={254} autoFocus /></label>
       <label>Mật khẩu<input type="password" name="password" autoComplete="current-password" required maxLength={128} /></label>
