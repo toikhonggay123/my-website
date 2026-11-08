@@ -94,4 +94,16 @@ Nếu quay lui Account về bản cũ, phải quay lui gateway cùng lúc, vì b
 
 Quay lui gateway: `wrangler rollback 7ff0e6d4-c52c-4172-9d59-502ab6306740` trong bản checkout portal (phiên bản trước khi có `/tai-khoan`). Bản sao file cũ nằm ở `.local-server/checkpoints/before-accounts-gateway-20261107/` của checkout portal.
 
+### Bản vá sau rà soát bảo mật (08/11/2026)
+
+Khóa đăng nhập theo (email, mạng), nhập lại mật khẩu khi bật/đổi 2FA, `_headers` chặn nhúng trang và HSTS, giới hạn `/api/*` 300 request/10 giây mỗi IP, cache thời khóa biểu công khai 60 giây, link đặt lại mật khẩu ClassHub chỉ cho tài khoản thuộc một đơn vị. MealCheck: header bảo mật, `init()` mỗi ngày một lần, `device/start` 404 trên cloud, bucket `RL_DIRECTORY`, bật Workers Logs. Không đổi database.
+
+| Worker | Phiên bản mới | Quay lui về |
+| --- | --- | --- |
+| afyllx-accounts | `66053041-2da7-4ffc-8a6d-35eae78b98dd` | `87cb5167-770a-4a1e-b9d8-cdef9c5d153f` |
+| afyllx-classhub | `89e3070e-e7eb-4cd6-a5bb-ce7113f39a69` | `546b5148-f54f-4baa-bb4d-86bc434dc2b6` |
+| my-website (MealCheck) | `ec87e57e-8bdf-4800-b551-36b1c933681f` | `71379b73-2c8a-4526-8872-a43571ed1ad2` |
+
+Kiểm tra chỉ đọc sau triển khai: trang account.afyllx.com và /classhub có `X-Frame-Options: DENY`, CSP và HSTS; /mealcheck, afyllx.com, workers.dev có `SAMEORIGIN`, `frame-ancestors 'self'` và HSTS; `/classhub/api/v1/public/timetable` lần hai trả `X-Edge-Cache: hit`; `POST /api/device/start` trên edu.afyllx.com → 404; live 275 học sinh mẫu, local 34 học sinh. Cổng `afyllx-edu` (trang gốc edu.afyllx.com) chưa có header vì source chưa vào git.
+
 Nếu link Founder hết hạn trước khi dùng: lệnh `founder` từ chối chạy lại khi đã có Founder, nên cần tạo mã mới cho đúng tài khoản đó (chủ dự án yêu cầu thì làm).
