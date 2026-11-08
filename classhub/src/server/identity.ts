@@ -7,6 +7,7 @@ import {
 } from './core'
 import { sharedEnabled } from './shared-directory'
 import { type PlatformUser, platformUser } from './platform'
+import { resetRedeemSql } from './password-reset'
 
 const inviteCode = z.string().regex(/^[0-9a-f]{64}$/)
 export const organizationProfile = z.object({
@@ -115,9 +116,8 @@ export const identityRoutes = router()
     const allowed = await c.env.ACTIVATION_LIMIT.limit({ key: 'reset:' + (c.req.header('CF-Connecting-IP') ?? 'loopback') })
     if (!allowed.success) throw new Failure(429, 'rate_limited', 'Vui lòng thử lại sau ít phút.')
     const input = await body(c, z.object({ code: inviteCode, password: z.string().min(12).max(128) }))
-    const reset = await one<{ id: string; user_id: string; email: string }>(c, `SELECT r.id,r.user_id,u.email FROM password_resets r
-      JOIN "user" u ON u.id=r.user_id JOIN account a ON a.userId=r.user_id AND a.providerId='credential'
-      WHERE r.token_hash=? AND r.used_at IS NULL AND r.expires_at>?`, await tokenHash(input.code), now())
+    // Also refuses a link whose member has since joined another workspace (see password-reset.ts).
+    const reset = await one<{ id: string; user_id: string; email: string }>(c, resetRedeemSql, await tokenHash(input.code), now())
     if (!reset) throw new Failure(404, 'reset_invalid', 'Link đặt lại mật khẩu đã dùng hoặc hết hạn. Hãy nhờ quản trị tạo link mới.')
     const context = await auth(c).$context
     const hash = await context.password.hash(input.password)

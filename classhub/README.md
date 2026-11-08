@@ -58,7 +58,7 @@ Các trang công khai và trang giáo viên dùng tông gradient sáng, thẻ k�
 
 - Hôm nay: thẻ **Cần làm ngay** trên cùng chỉ việc gấp nhất (buổi đã bắt đầu chưa chốt, rồi buổi cũ chưa chốt), bên dưới là một dòng thời gian gộp tiết dạy và buổi điểm danh. Xong hết thì thẻ chuyển sang "Đã điểm danh xong hôm nay".
 - Chốt xong hiện màn "Đã chốt điểm danh" kèm nút **Về Hôm nay** và **Sửa lại** trong 30 phút. Lớp đông có nút lọc chỉ em vắng, muộn, có phép.
-- **Quên mật khẩu:** chủ đơn vị mở **Nhân sự**, chọn người đó và bấm **Tạo link đặt lại mật khẩu**. Link `/gv/dat-lai-mat-khau#…` dùng một lần trong 24 giờ; tạo link mới làm link cũ hết hiệu lực. Đặt mật khẩu mới sẽ đăng xuất mọi thiết bị cũ. Database chỉ lưu mã băm của link (migration `0007_password_resets.sql`).
+- **Quên mật khẩu:** chủ đơn vị mở **Nhân sự**, chọn người đó và bấm **Tạo link đặt lại mật khẩu**. Link `/gv/dat-lai-mat-khau#…` dùng một lần trong 24 giờ; tạo link mới làm link cũ hết hiệu lực. Đặt mật khẩu mới sẽ đăng xuất mọi thiết bị cũ. Database chỉ lưu mã băm của link (migration `0007_password_resets.sql`). Một tài khoản ClassHub dùng chung cho mọi đơn vị, nên chỉ tạo được link cho người chỉ thuộc đơn vị này; nếu người đó còn ở đơn vị khác (kể cả đã tạm ngừng), hệ thống từ chối và link đang mở cũng hết hiệu lực (`src/server/password-reset.ts`).
 
 ClassHub chạy trên máy không có tài khoản giáo viên nên trang này chỉ dùng trên bản web.
 

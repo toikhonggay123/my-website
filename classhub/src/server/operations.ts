@@ -8,6 +8,7 @@ import { organizationProfile } from './identity'
 import { directoryStudentInput, directoryWrite, guardSharedClass, sharedEnabled } from './shared-directory'
 import { dashboardAnalytics } from './dashboard'
 import { ensurePrepared } from './school'
+import { resetTargetSql, sharedAccountMessage } from './password-reset'
 
 const courseInput = z.object({ code: text(30), name: text(120), subject: text(80), description: optionalText(1000) })
 const classStatus = z.enum(['draft', 'scheduled', 'active', 'completed', 'archived', 'cancelled'])
@@ -115,9 +116,10 @@ export const operations = router()
     if (staffProfilesOnly(c)) throw missing()
     const { orgId, userId } = requireRole(c, 'owner')
     const memberId = validated(z.string().regex(/^[a-zA-Z0-9_-]{16,64}$/), c.req.param('userId'))
-    const member = await one(c, `SELECT m.user_id FROM memberships m JOIN account a ON a.userId=m.user_id AND a.providerId='credential'
-      WHERE m.org_id=? AND m.user_id=? AND m.role<>'owner'`, orgId, memberId)
+    const member = await one<{ user_id: string; shared: number }>(c, resetTargetSql, orgId, memberId)
     if (!member) throw missing()
+    // One sign-in serves every workspace: only reset accounts that belong to this workspace alone.
+    if (member.shared) throw conflict(sharedAccountMessage)
     const id = newId(), code = token(), timestamp = now(), expiresAt = timestamp + 86_400_000
     await db(c).batch([
       query(c, 'UPDATE password_resets SET used_at=? WHERE user_id=? AND used_at IS NULL', timestamp, memberId),
