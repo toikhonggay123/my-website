@@ -105,15 +105,14 @@ export function StudentFileImport({ space, disabled, onSave, onRefresh }: {
           <h2 id="student-import-title">Kiểm tra danh sách Excel</h2>
           <p><strong>{preview.rows.length} học sinh · Lớp {preview.className}</strong></p>
           <p>{space === "demo" ? "Môi trường thử nghiệm." : "Danh sách chính thức."} Chỉ thêm mã học sinh mới. Mã đã có sẽ được bỏ qua.</p>
-          <div className="student-import-preview">
+          <div className="student-import-preview" role="region" aria-label="Danh sách học sinh trong tệp" tabIndex={0}>
             <table aria-label="Xem trước học sinh">
               <thead><tr><th scope="col">Mã học sinh</th><th scope="col">Họ và tên</th></tr></thead>
-              <tbody>{preview.rows.slice(0, 10).map(row => (
+              <tbody>{preview.rows.map(row => (
                 <tr key={row.code}><td>{row.code}</td><td>{row.name}</td></tr>
               ))}</tbody>
             </table>
           </div>
-          {preview.rows.length > 10 && <p>Hiển thị 10 trên {preview.rows.length} học sinh.</p>}
           {error && <p className="alert" role="alert">{error}</p>}
           <div className="button-row">
             <button className="secondary" type="button" disabled={busy} onClick={() => dialog.current?.close()}>Hủy</button>
