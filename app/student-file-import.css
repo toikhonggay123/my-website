@@ -1,0 +1,21 @@
+.student-import-dialog {
+  width: min(500px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: clamp(16px, 5vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: white;
+  color: var(--ink, #26354d);
+  box-shadow: 0 24px 90px #12213b40;
+}
+
+.student-import-dialog::backdrop { background: #15233b80; }
+.student-import-dialog h2 { margin: 0 0 12px; font-size: 21px; font-weight: 700; }
+.student-import-dialog p { margin: 8px 0; }
+.student-import-dialog .button-row { justify-content: flex-end; margin-top: 18px; }
+.student-import-preview { max-height: 220px; overflow: auto; margin: 12px 0; }
+.student-import-preview table { width: 100%; text-align: left; overflow-wrap: anywhere; }
+.student-import-preview th, .student-import-preview td { padding: 8px; border-bottom: 1px solid var(--line); }
+.student-import-preview th { position: sticky; top: 0; background: white; }
+.student-import-notice { color: #167246; font-size: 13px; }

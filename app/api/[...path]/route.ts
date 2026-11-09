@@ -111,6 +111,7 @@ async function handle(req:Request,{params}:any){
   if(route==='qr/reissue'&&req.method==='POST')return json({card:await reissueStudentCard(app,env,space,body.studentId,actor)});
   if(route==='approval'&&req.method==='POST'){await app.setApproval(space,body.required,actor);return json({approvalRequired:body.required});}
   if(route==='seed'&&req.method==='POST')return json({count:await app.seed(actor)});
+  if(route==='students/import'&&req.method==='POST')return json(await app.addStudents(space,body.rows,actor));
   if(route==='students'&&req.method==='POST')return json({count:await app.saveStudents(space,body.rows,actor)});
   if(route==='schedule'&&req.method==='POST'){await app.setSchedule(space,body.rows,body.lockSeconds,actor);return json({ok:true});}
   if(route==='control'&&req.method==='POST'){await app.control(space,body.meal,body.open,actor);return json({ok:true});}

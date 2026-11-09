@@ -1,10 +1,12 @@
 # Cloudflare hiện hành
 
+Cập nhật 09/11/2026: chủ dự án xác nhận công khai danh sách chính thức và thay 275 học sinh thử nghiệm bằng 34 học sinh lớp 9B từ file Excel. Bản Cloudflare đã cấp đủ 34 QR mới bằng khóa runtime hiện tại. Dữ liệu thử nghiệm được sao lưu riêng trước khi thay tại `.migration-private/checkpoints/20261109-before-excel-roster/`. Giữ bản local và QR local gốc riêng.
+
 Cập nhật 03/11/2026: theo yêu cầu chủ dự án, danh sách Cloudflare đã được thay bằng **275 học sinh ngẫu nhiên**, 8 lớp 6A (35), 6B (37), 7A (36), 7B (35), 8A (32), 8B (33), 9A (33), 9B (34). Họ tên và mã không trùng trên toàn danh sách; đã cấp đủ QR. API identity đánh dấu `sampleRoster` từ setting `live:roster_kind=synthetic`; giao diện ghi Dữ liệu mẫu. Đây vẫn là deployment cloud-live, không bật lại endpoint seed công khai.
 
 **Checkpoint danh sách thật** được kiểm tra trước khi thay: 34 học sinh, 34 QR và toàn bộ database tại `.migration-private/checkpoints/20261103-real-before-eight-classes/`. SQL đã restore kiểm tra trong SQLite bộ nhớ, integrity và khóa ngoại đạt. Không xuất hoặc đổi runtime QR key; muốn khôi phục, review file README/checkpoint.json và nhập vào D1 mới rồi đối chiếu trước khi đổi binding. Không tự chạy restore, không chạy lại migration lịch sử. File checkpoint/roster/token không nằm trong Git. Bản local thật giữ nguyên.
 
-**Trạng thái hiện hành (từ 03/11/2026):** bản cloud-live công khai, không đăng nhập theo quyết định của chủ dự án, đang phục vụ danh sách giả lập 275 học sinh, không phải danh sách thật. Danh sách thật trên cloud chỉ còn trong checkpoint riêng ở trên; chỉ khôi phục khi chủ dự án yêu cầu rõ ràng. Bản local thật (34 học sinh, 34 QR gốc) giữ nguyên.
+Giai đoạn 03–09/11/2026: bản cloud-live công khai phục vụ danh sách giả lập 275 học sinh.
 
 Lịch sử triển khai dữ liệu thật trước lần thay: ngày 31/10/2026, chủ dự án xác nhận nhập danh sách thật lên Cloudflare và chấp nhận giao diện quản trị công khai không đăng nhập. Sau đó chủ dự án cho phép cấp QR mới để dùng ngay, giữ bản sao thẻ cũ, và yêu cầu bỏ bản sao khóa cũ. Khóa QR gốc cũ chưa từng xuất được về máy nên không có bản sao khóa gốc để xóa. Không sao chép khóa demo sang dữ liệu thật.
 

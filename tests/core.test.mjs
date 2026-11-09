@@ -10,7 +10,7 @@ import jsQR from 'jsqr';
 import {resetPreview,resetBackups,restoreReset} from '../lib/reset-backup.mjs';
 class Adapter {
  constructor(db){this.db=db;}
- prepare(sql){const raw=this.db.prepare(sql);const build=(args=[])=>({bind:(...a)=>build(a),execute:()=>{const r=raw.run(...args);return {meta:{changes:Number(r.changes),last_row_id:Number(r.lastInsertRowid)}};},async run(){return this.execute();},async first(){return raw.get(...args)||null;},async all(){return {results:raw.all(...args)};}});return build();}
+ prepare(sql){const raw=this.db.prepare(sql);const build=(args=[])=>({bind:(...a)=>build(a),execute:()=>{if(raw.columns().length)return {results:raw.all(...args)};const r=raw.run(...args);return {meta:{changes:Number(r.changes),last_row_id:Number(r.lastInsertRowid)}};},async run(){return this.execute();},async first(){return raw.get(...args)||null;},async all(){return {results:raw.all(...args)};}});return build();}
  async batch(statements){this.db.exec('BEGIN IMMEDIATE');try{const r=statements.map(s=>s.execute());this.db.exec('COMMIT');return r;}catch(e){this.db.exec('ROLLBACK');throw e;}}
 }
 async function fixture(requireApproval=true){const db=new DatabaseSync(':memory:');db.exec('PRAGMA foreign_keys=ON');for(const f of fs.readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort())db.exec(fs.readFileSync('drizzle/'+f,'utf8'));let now=Date.parse('2026-10-30T01:00:00Z');const app=new MealCheck(new Adapter(db),()=>now);await app.init('demo');if(requireApproval)await app.setApproval('demo',true,'admin');await app.saveStudents('demo',[{code:'001',name:'Nguyễn Văn Đạt',grade:'10',class:'10A1'},{code:'002',name:'Hoàng Thị Ánh',grade:'10',class:'10A1'}],'admin');const d=await app.enrollDevice('demo','Nhà ăn 01','admin'),d2=await app.enrollDevice('demo','Nhà ăn 02','admin');const a=await app.device(d.token),b=await app.device(d2.token);await app.control('demo','sang',true,'admin');return {app,db,a,b,setNow:t=>now=t,advance:t=>now+=t,getNow:()=>now};}
@@ -118,6 +118,29 @@ test('Dữ liệu demo tuyệt đối không có outbox Google Sheets',async()=>
 test('Ràng buộc cơ sở dữ liệu ngăn ghi trùng trực tiếp',async()=>{const f=await fixture(),r=await submit(f,f.a,'demo:001',crypto.randomUUID());await f.app.decide('demo',r.id,true,'teacher');assert.throws(()=>f.db.prepare('INSERT INTO attendance(request_id,space,student_id,session_id,code,name,grade,class,confirmed_at,teacher) SELECT request_id,space,student_id,session_id,code,name,grade,class,confirmed_at,teacher FROM attendance').run(),/UNIQUE/);});
 test('1000 học sinh, tìm kiếm và thống kê nhanh',async t=>{const f=await fixture(),start=performance.now();await f.app.seed('admin');const r=await f.app.roster('demo');assert.equal(r.length,1002);assert.equal(new Set(r.map(s=>s.code)).size,1002);assert.ok((await f.app.roster('demo',{q:'hoang thi anh'})).length>0);assert.equal((await f.app.dashboard('demo')).total,1002);t.diagnostic(`Nhập + đọc + tổng hợp 1.000 học sinh: ${Math.round(performance.now()-start)} ms`);});
 test('Danh sách mã trùng bị chặn trước khi nhập',async()=>{const f=await fixture();await assert.rejects(f.app.saveStudents('demo',[{code:'x',name:'A',grade:'7',class:'7A'},{code:'x',name:'B',grade:'7',class:'7A'}],'admin'),/Mã học sinh trùng/);assert.equal((await f.app.roster('demo')).length,2);});
+test('Nhập bổ sung bỏ qua mã đã có, giữ QR và có thể thử lại',async()=>{
+ const f=await fixture(false),cards=await studentCards(f.app,qrEnv,'demo');
+ const before=await f.app.roster('demo');
+ const rows=[{code:'001',name:'Tên khác',grade:'7',class:'7A'},{code:'0004',name:'Học sinh mẫu',grade:'9',class:'9B'}];
+ assert.deepEqual(await f.app.addStudents('demo',rows,'test'),{added:1,skipped:1});
+ assert.deepEqual(await f.app.addStudents('demo',rows,'test'),{added:0,skipped:2});
+ assert.deepEqual((await f.app.roster('demo')).filter(s=>s.code!=='0004'),before);
+ assert.deepEqual((await issuedStudentCards(f.app,'demo')).cards,cards);
+ await assert.rejects(f.app.addStudents('demo',[{...rows[1],code:'0005'},{...rows[1],code:null}],'test'),/mã học sinh/i);
+ assert.equal((await f.app.roster('demo')).length,3);
+});
+test('Nhập bổ sung vượt sức chứa danh sách chung không ghi một phần',async()=>{
+ const f=await fixture(false);
+ await f.app.run(`WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM numbers WHERE n<499)
+   INSERT INTO directory_classes(space,grade,name) SELECT 'demo','9','QA-'||n FROM numbers`);
+ const allowed={code:'ADD1',name:'Học sinh mẫu',grade:'9',class:'QA-1'};
+ await assert.rejects(f.app.addStudents('demo',[allowed,{...allowed,code:'ADD2',class:'9B'}],'test'),/500 lớp/);
+ assert.equal((await f.app.roster('demo')).length,2);
+ assert.deepEqual(await f.app.addStudents('demo',[allowed],'test'),{added:1,skipped:0});
+ const tooMany=Array.from({length:4998},(_,i)=>({...allowed,code:'LIMIT-'+i}));
+ await assert.rejects(f.app.addStudents('demo',tooMany,'test'),/5.000 học sinh/);
+ assert.equal((await f.app.roster('demo')).length,3);
+});
 test('CSV tiếng Việt, trường có dấu phẩy, xuất XLSX thật',()=>{assert.deepEqual(parseCsv('\uFEFFMã học sinh,Họ tên\r\n001,"Hoàng, Ánh"'),[['Mã học sinh','Họ tên'],['001','Hoàng, Ánh']]);const x=makeXlsx([['Họ tên'],['Nguyễn Văn Đạt']]);assert.equal(new DataView(x.buffer).getUint32(0,true),0x04034b50);});
 test('Không tự chọn bữa, không gửi bữa của ngày cũ',async()=>{const f=await fixture();await assert.rejects(f.app.submit(f.a,'demo:001',crypto.randomUUID()),/chọn đúng buổi/);await assert.rejects(f.app.submit(f.a,'demo:001',crypto.randomUUID(),'demo:2026-10-29:sang'),/chọn đúng buổi/);assert.equal(f.db.prepare('SELECT count(*) n FROM requests').get().n,0);});
 

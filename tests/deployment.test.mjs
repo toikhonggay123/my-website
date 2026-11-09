@@ -24,6 +24,7 @@ test('cloud demo requires an explicit HTTPS host and cannot select live',()=>{
 test('cloud demo rejects roster uploads while retaining synthetic seed and QR operations',()=>{
   const policy=deploymentPolicy(new URL('https://'+host),demo);
   assert.throws(()=>allowDemoOperation(policy,'students','POST'),/không nhận danh sách/);
+  assert.throws(()=>allowDemoOperation(policy,'students/import','POST'),/không nhận danh sách/);
   for(const [route,method] of [['students','GET'],['seed','POST'],['qr/scan','POST']])assert.doesNotThrow(()=>allowDemoOperation(policy,route,method));
   assert.doesNotThrow(()=>allowDemoOperation({demoOnly:false},'students','POST'));
 });

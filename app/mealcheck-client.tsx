@@ -14,7 +14,6 @@ import {
   Plus,
   Download,
   LoaderCircle,
-  FileSpreadsheet,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
@@ -24,9 +23,9 @@ import {
   normalize,
   localClock,
 } from "@/lib/mealcheck.mjs";
-import { parseCsv, readXlsx } from "@/lib/files.mjs";
 import { QRScanner, QRStudentCards } from "./qr-panel";
 import { StudentDirectory } from "./student-directory";
+import { StudentFileImport } from "./student-file-import";
 import { ResetAttendance } from "./reset-attendance";
 import { LocalSettings } from "./local-settings";
 import { TeacherGuide } from "./teacher-guide";
@@ -535,51 +534,13 @@ export default function App() {
                           <Plus size={17} />
                           Thêm học sinh
                         </button>
-                        <label className="secondary file-button">
-                          <FileSpreadsheet size={17} />
-                          Nhập Excel / CSV
-                          <input
-                            type="file"
-                            accept=".xlsx,.csv"
-                            disabled={busy}
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              e.target.value = "";
-                              if (!f) return;
-                              void act(async () => {
-                                if (f.size > 5_000_000)
-                                  throw Error("Tệp tối đa 5 MB.");
-                                const rows = f.name
-                                  .toLowerCase()
-                                  .endsWith(".xlsx")
-                                  ? await readXlsx(f)
-                                  : parseCsv(await f.text());
-                                if (
-                                  !["Mã học sinh", "code"].includes(
-                                    rows[0]?.[0],
-                                  )
-                                )
-                                  throw Error(
-                                    "Cột đầu phải là Mã học sinh. Tiếp theo: Họ tên, Khối, Lớp, Trạng thái.",
-                                  );
-                                await api("students" + suffix, {
-                                  rows: rows
-                                    .slice(1)
-                                    .filter((r: any[]) => r.some(Boolean))
-                                    .map((r: any[]) => ({
-                                      code: r[0],
-                                      name: r[1],
-                                      grade: r[2],
-                                      class: r[3],
-                                      active: r[4] === "Vô hiệu hóa" ? 0 : 1,
-                                    })),
-                                });
-                                await rosterLoad();
-                                await boardLoad();
-                              }, "Đã nhập danh sách.");
-                            }}
-                          />
-                        </label>
+                        <StudentFileImport
+                          key={space}
+                          space={space}
+                          disabled={busy}
+                          onSave={(rows, addOnly) => api((addOnly ? "students/import" : "students") + suffix, { rows })}
+                          onRefresh={() => Promise.all([rosterLoad(), boardLoad()])}
+                        />
                       </>
                     )}
                   </div>
