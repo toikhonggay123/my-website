@@ -538,7 +538,7 @@ export default function App() {
                           key={space}
                           space={space}
                           disabled={busy}
-                          onSave={(rows, addOnly) => api((addOnly ? "students/import" : "students") + suffix, { rows })}
+                          onSave={(rows, addOnly) => api("students/import/qr" + suffix, { rows, mode: addOnly ? "add" : "upsert" })}
                           onRefresh={() => Promise.all([rosterLoad(), boardLoad()])}
                         />
                       </>

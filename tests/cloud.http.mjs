@@ -119,9 +119,14 @@ await call('qr/scan?space=demo',{token:cards[2].token,id:crypto.randomUUID(),ses
 const audit=(await call('audit?space=demo')).data;assert.ok(audit.some(r=>r.action==='Đặt lại điểm danh hôm nay'));assert.ok(audit.some(r=>r.action==='Khôi phục sau đặt lại'));assert.ok(audit.some(r=>r.action==='Thu hồi thiết bị'));
 const importRows=[{code:'000-QA-XLS',name:'Học sinh XLS mẫu',grade:'9',class:'9QA'}, {...original,name:'Tên thay thế'}];
 assert.deepEqual((await call('students/import?space=demo',{rows:importRows})).data,{added:1,skipped:1});
-assert.deepEqual((await call('students/import?space=demo',{rows:importRows})).data,{added:0,skipped:2});
+assert.deepEqual((await call('students/import/qr?space=demo',{mode:'add',rows:importRows})).data,{added:0,skipped:2,qrIssued:0});
+const importCard=(await call('qr/cards/issued?space=demo',{class:'9QA'})).data;
+assert.equal(importCard.missing,0);
+assert.equal(importCard.cards.length,1);
+assert.deepEqual((await call('students/import/qr?space=demo',{mode:'upsert',rows:[{...importRows[0],name:'Tên CSV cập nhật'}]})).data,{count:1,qrIssued:0});
+assert.equal((await call('qr/cards/issued?space=demo',{class:'9QA'})).data.cards[0].token,importCard.cards[0].token);
 const importedRoster=(await call('students?space=demo&directory=1')).data.students;
 assert.equal(importedRoster.find(s=>s.code===original.code).name,original.name);
 assert.equal(importedRoster.find(s=>s.code==='000-QA-XLS').class,'9QA');
 await call('students/import?space=demo',{rows:[importRows[0],{...importRows[0],code:''}]},'',400);
-console.log(JSON.stringify({localHTTP:'PASS',routing:true,noTeacherLogin:true,identitySpoofingIgnored:true,csrf:true,qr:true,duplicates:true,reissue:true,issuedCards:true,exports:true,resetRestore:true,studentEditing:true,studentImport:true,sharedDirectory:true,deviceRevocation:true,audit:true,isolatedQA:true}));
+console.log(JSON.stringify({localHTTP:'PASS',routing:true,noTeacherLogin:true,identitySpoofingIgnored:true,csrf:true,qr:true,duplicates:true,reissue:true,issuedCards:true,exports:true,resetRestore:true,studentEditing:true,studentImport:true,importQr:true,sharedDirectory:true,deviceRevocation:true,audit:true,isolatedQA:true}));

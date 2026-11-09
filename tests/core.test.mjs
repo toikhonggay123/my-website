@@ -8,6 +8,7 @@ import {encryptStudentToken,decryptStudentToken,studentCards,issuedStudentCards,
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 import {resetPreview,resetBackups,restoreReset} from '../lib/reset-backup.mjs';
+import {importStudents} from '../lib/student-upload.mjs';
 class Adapter {
  constructor(db){this.db=db;}
  prepare(sql){const raw=this.db.prepare(sql);const build=(args=[])=>({bind:(...a)=>build(a),execute:()=>{if(raw.columns().length)return {results:raw.all(...args)};const r=raw.run(...args);return {meta:{changes:Number(r.changes),last_row_id:Number(r.lastInsertRowid)}};},async run(){return this.execute();},async first(){return raw.get(...args)||null;},async all(){return {results:raw.all(...args)};}});return build();}
@@ -122,11 +123,14 @@ test('Nhập bổ sung bỏ qua mã đã có, giữ QR và có thể thử lại
  const f=await fixture(false),cards=await studentCards(f.app,qrEnv,'demo');
  const before=await f.app.roster('demo');
  const rows=[{code:'001',name:'Tên khác',grade:'7',class:'7A'},{code:'0004',name:'Học sinh mẫu',grade:'9',class:'9B'}];
- assert.deepEqual(await f.app.addStudents('demo',rows,'test'),{added:1,skipped:1});
- assert.deepEqual(await f.app.addStudents('demo',rows,'test'),{added:0,skipped:2});
+ assert.deepEqual(await importStudents(f.app,qrEnv,'demo',rows,'test'),{added:1,skipped:1,qrIssued:1});
+ assert.deepEqual(await importStudents(f.app,qrEnv,'demo',rows,'test'),{added:0,skipped:2,qrIssued:0});
  assert.deepEqual((await f.app.roster('demo')).filter(s=>s.code!=='0004'),before);
- assert.deepEqual((await issuedStudentCards(f.app,'demo')).cards,cards);
- await assert.rejects(f.app.addStudents('demo',[{...rows[1],code:'0005'},{...rows[1],code:null}],'test'),/mã học sinh/i);
+ const after=await issuedStudentCards(f.app,'demo');
+ assert.equal(after.missing,0);
+ assert.deepEqual(after.cards.filter(card=>card.code!=='0004'),cards);
+ assert.deepEqual(await decryptStudentToken(qrEnv,after.cards.find(card=>card.code==='0004').token),{s:'demo',id:'demo:0004'});
+ await assert.rejects(importStudents(f.app,qrEnv,'demo',[{...rows[1],code:'0005'},{...rows[1],code:null}],'test'),/mã học sinh/i);
  assert.equal((await f.app.roster('demo')).length,3);
 });
 test('Nhập bổ sung vượt sức chứa danh sách chung không ghi một phần',async()=>{
@@ -134,12 +138,40 @@ test('Nhập bổ sung vượt sức chứa danh sách chung không ghi một ph
  await f.app.run(`WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM numbers WHERE n<499)
    INSERT INTO directory_classes(space,grade,name) SELECT 'demo','9','QA-'||n FROM numbers`);
  const allowed={code:'ADD1',name:'Học sinh mẫu',grade:'9',class:'QA-1'};
- await assert.rejects(f.app.addStudents('demo',[allowed,{...allowed,code:'ADD2',class:'9B'}],'test'),/500 lớp/);
+ await assert.rejects(importStudents(f.app,qrEnv,'demo',[allowed,{...allowed,code:'ADD2',class:'9B'}],'test'),/500 lớp/);
  assert.equal((await f.app.roster('demo')).length,2);
- assert.deepEqual(await f.app.addStudents('demo',[allowed],'test'),{added:1,skipped:0});
+ assert.deepEqual(await importStudents(f.app,qrEnv,'demo',[allowed],'test'),{added:1,skipped:0,qrIssued:1});
  const tooMany=Array.from({length:4998},(_,i)=>({...allowed,code:'LIMIT-'+i}));
- await assert.rejects(f.app.addStudents('demo',tooMany,'test'),/5.000 học sinh/);
+ await assert.rejects(importStudents(f.app,qrEnv,'demo',tooMany,'test'),/5.000 học sinh/);
  assert.equal((await f.app.roster('demo')).length,3);
+});
+test('Nhập tệp cấp QR cho mã đã có, kể cả ID cũ và hồ sơ tạm ngừng',async()=>{
+ const f=await fixture(false);
+ await f.app.run("INSERT INTO students(id,space,code,name,grade,class,active) VALUES('legacy-id','demo','OLD','Học sinh cũ','9','9B',0)");
+ const old={code:'OLD',name:'Tên từ Excel',grade:'9',class:'9A',active:0};
+ const fresh={...old,code:'NEW'};
+ assert.deepEqual(await importStudents(f.app,qrEnv,'demo',[old],'test'),{added:0,skipped:1,qrIssued:1});
+ const token=(await f.app.one("SELECT token FROM student_qr WHERE student_id='legacy-id'")).token;
+ assert.deepEqual(await decryptStudentToken(qrEnv,token),{s:'demo',id:'legacy-id'});
+ assert.equal((await f.app.one("SELECT name FROM students WHERE id='legacy-id'")).name,'Học sinh cũ');
+ assert.deepEqual(await importStudents(f.app,qrEnv,'demo',[old,fresh],'test',{updateExisting:true}),{count:2,qrIssued:1});
+ assert.deepEqual({...await f.app.one("SELECT name,active FROM students WHERE id='legacy-id'")},{name:'Tên từ Excel',active:0});
+ assert.equal((await f.app.one("SELECT token FROM student_qr WHERE student_id='legacy-id'")).token,token);
+ assert.equal((await f.app.one("SELECT count(*) n FROM student_qr WHERE student_id='demo:NEW'")).n,1);
+});
+test('Lỗi cấp QR hủy cả lần nhập và có thể thử lại',async()=>{
+ const f=await fixture(false),rows=[{code:'NEW',name:'Học sinh mẫu',grade:'9',class:'9B'}];
+ await assert.rejects(importStudents(f.app,{},'demo',rows,'test'),/Chưa cấu hình/);
+ await assert.rejects(importStudents(f.app,qrEnv,'demo',[...rows,{...rows[0],code:'界'.repeat(150)}],'test'),/quá dài để tạo QR/);
+ f.db.exec("CREATE TRIGGER qa_reject_card BEFORE INSERT ON student_qr BEGIN SELECT RAISE(ABORT,'qa_card'); END");
+ await assert.rejects(importStudents(f.app,qrEnv,'demo',rows,'test'),/qa_card/);
+ assert.equal(await f.app.one("SELECT id FROM students WHERE code='NEW'"),null);
+ assert.equal(await f.app.one("SELECT id FROM directory_classes WHERE name='9B'"),null);
+ f.db.exec('DROP TRIGGER qa_reject_card');
+ const results=await Promise.all([importStudents(f.app,qrEnv,'demo',rows,'test'),importStudents(f.app,qrEnv,'demo',rows,'test')]);
+ assert.equal(results.reduce((sum,result)=>sum+result.qrIssued,0),1);
+ assert.equal((await f.app.one("SELECT count(*) n FROM student_qr WHERE student_id='demo:NEW'")).n,1);
+ assert.deepEqual(await importStudents(f.app,{},'demo',rows,'test'),{added:0,skipped:1,qrIssued:0});
 });
 test('CSV tiếng Việt, trường có dấu phẩy, xuất XLSX thật',()=>{assert.deepEqual(parseCsv('\uFEFFMã học sinh,Họ tên\r\n001,"Hoàng, Ánh"'),[['Mã học sinh','Họ tên'],['001','Hoàng, Ánh']]);const x=makeXlsx([['Họ tên'],['Nguyễn Văn Đạt']]);assert.equal(new DataView(x.buffer).getUint32(0,true),0x04034b50);});
 test('Không tự chọn bữa, không gửi bữa của ngày cũ',async()=>{const f=await fixture();await assert.rejects(f.app.submit(f.a,'demo:001',crypto.randomUUID()),/chọn đúng buổi/);await assert.rejects(f.app.submit(f.a,'demo:001',crypto.randomUUID(),'demo:2026-10-29:sang'),/chọn đúng buổi/);assert.equal(f.db.prepare('SELECT count(*) n FROM requests').get().n,0);});

@@ -8,6 +8,7 @@ import {deploymentPolicy,deploymentSpace,allowDemoOperation,deploymentCookies} f
 import { studentCards, issuedStudentCards, reissueStudentCard, scanStudentCard } from '@/lib/qr.mjs';
 import { discardRequestBody, readJsonBody } from '@/lib/http-body.mjs';
 import {directoryAccess,directorySnapshot,directoryMutation,directoryRoster} from '@/lib/shared-directory.mjs';
+import {importStudents} from '@/lib/student-upload.mjs';
 export const dynamic='force-dynamic';
 // This Worker has exactly one DB binding; a fixed scope keeps the per-isolate
 // day-setup memo even if the binding object differs between requests.
@@ -111,7 +112,11 @@ async function handle(req:Request,{params}:any){
   if(route==='qr/reissue'&&req.method==='POST')return json({card:await reissueStudentCard(app,env,space,body.studentId,actor)});
   if(route==='approval'&&req.method==='POST'){await app.setApproval(space,body.required,actor);return json({approvalRequired:body.required});}
   if(route==='seed'&&req.method==='POST')return json({count:await app.seed(actor)});
-  if(route==='students/import'&&req.method==='POST')return json(await app.addStudents(space,body.rows,actor));
+  if(req.method==='POST'&&(route==='students/import'||route==='students/import/qr')){
+    if(route==='students/import/qr'&&!['add','upsert'].includes(body.mode))throw new AppError('Kiểu nhập học sinh không hợp lệ.');
+    const result=await importStudents(app,env,space,body.rows,actor,{updateExisting:route==='students/import/qr'&&body.mode==='upsert'});
+    return json(route==='students/import'?{added:result.added,skipped:result.skipped}:result);
+  }
   if(route==='students'&&req.method==='POST')return json({count:await app.saveStudents(space,body.rows,actor)});
   if(route==='schedule'&&req.method==='POST'){await app.setSchedule(space,body.rows,body.lockSeconds,actor);return json({ok:true});}
   if(route==='control'&&req.method==='POST'){await app.control(space,body.meal,body.open,actor);return json({ok:true});}

@@ -12,7 +12,7 @@ type StudentRow = Roster["rows"][number] & { active?: number };
 export function StudentFileImport({ space, disabled, onSave, onRefresh }: {
   space: string;
   disabled: boolean;
-  onSave: (rows: StudentRow[], addOnly: boolean) => Promise<{ added?: number; skipped?: number }>;
+  onSave: (rows: StudentRow[], addOnly: boolean) => Promise<{ added?: number; skipped?: number; qrIssued: number }>;
   onRefresh: () => Promise<unknown>;
 }) {
   const picker = useRef<HTMLInputElement>(null);
@@ -32,11 +32,12 @@ export function StudentFileImport({ space, disabled, onSave, onRefresh }: {
     const message = addOnly
       ? `Đã thêm ${result.added} học sinh. Bỏ qua ${result.skipped} mã đã có.`
       : "Đã nhập danh sách.";
-    setNotice(message);
+    const summary = message + (result.qrIssued ? ` Đã cấp ${result.qrIssued} QR mới.` : " Tất cả học sinh trong tệp đã có QR.");
+    setNotice(summary);
     try {
       await onRefresh();
     } catch {
-      setNotice(message + " Tải lại trang để cập nhật danh sách.");
+      setNotice(summary + " Tải lại trang để cập nhật danh sách.");
     }
   }
 
@@ -105,6 +106,7 @@ export function StudentFileImport({ space, disabled, onSave, onRefresh }: {
           <h2 id="student-import-title">Kiểm tra danh sách Excel</h2>
           <p><strong>{preview.rows.length} học sinh · Lớp {preview.className}</strong></p>
           <p>{space === "demo" ? "Môi trường thử nghiệm." : "Danh sách chính thức."} Chỉ thêm mã học sinh mới. Mã đã có sẽ được bỏ qua.</p>
+          <p>CheckIn tự động cấp QR cho học sinh trong tệp còn thiếu mã.</p>
           <div className="student-import-preview" role="region" aria-label="Danh sách học sinh trong tệp" tabIndex={0}>
             <table aria-label="Xem trước học sinh">
               <thead><tr><th scope="col">Mã học sinh</th><th scope="col">Họ và tên</th></tr></thead>
