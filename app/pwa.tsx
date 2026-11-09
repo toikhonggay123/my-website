@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import {Download,Smartphone,WifiOff,RefreshCw,Share2,ChevronDown} from 'lucide-react';
-import {flushScans,scanStore} from './offline-store';
+import {flushScans,queueChanged,scanStore,scheduleBackgroundScans} from './offline-store';
 const installUrl='https://edu.afyllx.com/mealcheck/cai-dat';
 
 export function InstallApp({expanded=false,compact=false}:{expanded?:boolean;compact?:boolean}){
@@ -26,14 +26,23 @@ export function PwaRuntime(){
  const [online,setOnline]=useState(true),[pending,setPending]=useState(0),[failed,setFailed]=useState<any[]>([]),[detail,setDetail]=useState(false),[note,setNote]=useState(''),[update,setUpdate]=useState<ServiceWorkerRegistration|null>(null);
  useEffect(()=>{
   let alive=true;let registration:ServiceWorkerRegistration|null=null;const workerCleanup:(()=>void)[]=[];
-  const refresh=async()=>{try{const rows=await scanStore.all();if(alive){setPending(rows.filter((r:any)=>r.state==='pending').length);setFailed(rows.filter((r:any)=>r.state==='failed'));}}catch{}};
+  let refreshTimer:ReturnType<typeof setTimeout>|undefined,noteTimer:ReturnType<typeof setTimeout>|undefined;
+  const refresh=()=>{if(refreshTimer)return;refreshTimer=setTimeout(async()=>{refreshTimer=undefined;try{const rows=await scanStore.all();if(alive){setPending(rows.filter(row=>row.state==='pending').length);setFailed(rows.filter(row=>row.state==='failed'));}}catch{}},80);};
   const connect=()=>{setOnline(navigator.onLine);if(navigator.onLine){void flushScans().catch(()=>{});void registration?.update().catch(()=>{});}void refresh();};
   const serverOffline=()=>setOnline(false),serverOnline=()=>setOnline(true);
-  const ack=()=>{setOnline(true);setNote('Đã đồng bộ lượt quét và ghi nhận trên máy chủ.');window.setTimeout(()=>{if(alive)setNote('');},4000);};
+  const ack=()=>{setOnline(true);setNote('Đã đồng bộ lượt quét và ghi nhận trên máy chủ.');clearTimeout(noteTimer);noteTimer=setTimeout(()=>{if(alive)setNote('');},4000);};
   connect();window.addEventListener('online',connect);window.addEventListener('offline',connect);window.addEventListener('mealcheck-server-offline',serverOffline);window.addEventListener('mealcheck-server-online',serverOnline);window.addEventListener('mealcheck-outbox-change',refresh);window.addEventListener('mealcheck-scan-ack',ack);
   const visible=()=>{if(!document.hidden)connect();};document.addEventListener('visibilitychange',visible);
   const interval=setInterval(()=>{if(!document.hidden&&navigator.onLine)void flushScans().catch(()=>{});},10000);
   if('serviceWorker'in navigator&&window.isSecureContext){
+   const message=(event:MessageEvent)=>{
+    if(event.source!==navigator.serviceWorker.controller||event.data?.type!=='mealcheck-scan-sync'||!Array.isArray(event.data.changes))return;
+    for(const {type,detail} of event.data.changes)if(type==='mealcheck-scan-ack'||type==='mealcheck-scan-failed')window.dispatchEvent(new CustomEvent(type,{detail}));
+    queueChanged();
+   };
+   navigator.serviceWorker.addEventListener('message',message);
+   workerCleanup.push(()=>navigator.serviceWorker.removeEventListener('message',message));
+   void navigator.serviceWorker.ready.then(async reg=>{if(alive&&(await scanStore.all()).some(row=>row.state==='pending'))scheduleBackgroundScans(reg);}).catch(()=>{});
    void navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).then(reg=>{
     if(!alive)return;registration=reg;if(reg.waiting)setUpdate(reg);
     const tracked=new Set<ServiceWorker>();
@@ -45,8 +54,8 @@ export function PwaRuntime(){
     reg.addEventListener('updatefound',track);workerCleanup.push(()=>reg.removeEventListener('updatefound',track));track();
    }).catch(()=>{});
   }
-  return()=>{alive=false;clearInterval(interval);window.removeEventListener('online',connect);window.removeEventListener('offline',connect);window.removeEventListener('mealcheck-server-offline',serverOffline);window.removeEventListener('mealcheck-server-online',serverOnline);window.removeEventListener('mealcheck-outbox-change',refresh);window.removeEventListener('mealcheck-scan-ack',ack);document.removeEventListener('visibilitychange',visible);workerCleanup.forEach(cleanup=>cleanup());};
+  return()=>{alive=false;clearInterval(interval);clearTimeout(refreshTimer);clearTimeout(noteTimer);window.removeEventListener('online',connect);window.removeEventListener('offline',connect);window.removeEventListener('mealcheck-server-offline',serverOffline);window.removeEventListener('mealcheck-server-online',serverOnline);window.removeEventListener('mealcheck-outbox-change',refresh);window.removeEventListener('mealcheck-scan-ack',ack);document.removeEventListener('visibilitychange',visible);workerCleanup.forEach(cleanup=>cleanup());};
  },[]);
  async function applyUpdate(){const waiting=update?.waiting;if(!waiting){setUpdate(null);return;}window.dispatchEvent(new Event('mealcheck-camera-pause'));navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload(),{once:true});waiting.postMessage('SKIP_WAITING');}
- return <>{(!online||pending>0||failed.length>0)&&<aside className="pwa-network" role="status">{online?<RefreshCw size={17}/>:<WifiOff size={17}/>}<span>{online?'Đã có mạng':'Mất mạng'}{pending>0?` · ${pending} lượt chờ đồng bộ`:!online?' · Lượt quét sẽ được lưu trên máy':''}{failed.length>0?` · ${failed.length} lượt cần kiểm tra`:''}</span><button onClick={()=>{setDetail(!detail);if(online)void flushScans().catch(()=>{});}}>Xem lượt chờ</button>{detail&&<div className="pwa-queue-detail"><p>Chỉ lượt được máy chủ xác nhận mới có trong lịch sử. Giữ app mở khi có mạng để đồng bộ. Không gỡ app hoặc xóa dữ liệu trình duyệt khi còn lượt chờ.</p>{failed.map(row=><div key={row.key}><b>{row.sessionId.split(':').slice(1).join(' · ')}</b><p>{row.error}</p><button onClick={()=>void scanStore.remove(row.key).then(()=>window.dispatchEvent(new Event('mealcheck-outbox-change')))}>Bỏ lượt lỗi khỏi máy</button></div>)}</div>}</aside>}{note&&<div className="pwa-sync-note" role="status">{note}</div>}{update&&<aside className="pwa-update">Có phiên bản AFYLLX Edu CheckIn mới.<button onClick={()=>void applyUpdate()}>Cập nhật ứng dụng</button></aside>}</>;
+ return <>{(!online||pending>0||failed.length>0)&&<aside className="pwa-network" role="status">{online?<RefreshCw size={17}/>:<WifiOff size={17}/>}<span>{online?'Đã có mạng':'Mất mạng'}{pending>0?` · ${pending} lượt chờ đồng bộ`:!online?' · Lượt quét sẽ được lưu trên máy':''}{failed.length>0?` · ${failed.length} lượt cần kiểm tra`:''}</span><button onClick={()=>{setDetail(!detail);if(online)void flushScans().catch(()=>{});}}>Xem lượt chờ</button>{detail&&<div className="pwa-queue-detail"><p>Chỉ lượt được máy chủ xác nhận mới có trong lịch sử. CheckIn tự đồng bộ khi có mạng. Nếu trình duyệt giới hạn đồng bộ nền, mở lại ứng dụng để gửi lượt chờ. Giữ dữ liệu trình duyệt cho đến khi đồng bộ xong.</p>{failed.map(row=><div key={row.key}><b>{row.sessionId.split(':').slice(1).join(' · ')}</b><p>{row.error}</p><button onClick={()=>void scanStore.discard(row).then(queueChanged).catch(()=>{})}>Bỏ lượt lỗi khỏi máy</button></div>)}</div>}</aside>}{note&&<div className="pwa-sync-note" role="status">{note}</div>}{update&&<aside className="pwa-update">Có phiên bản AFYLLX Edu CheckIn mới.<button onClick={()=>void applyUpdate()}>Cập nhật ứng dụng</button></aside>}</>;
 }

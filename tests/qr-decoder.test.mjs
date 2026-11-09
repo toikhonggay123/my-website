@@ -51,3 +51,14 @@ test('A hanging native decode switches to the worker and can still be closed',as
  globalThis.Worker=class{postMessage(){queueMicrotask(()=>this.onmessage({data:{token}}));}terminate(){}};
  const decoder=await createCameraDecoder(canvas());assert.equal(await decoder.decode(video),token);decoder.close();
 });
+
+test('Worker widens the field after repeated misses inside the guide',async()=>{
+ globalThis.window={};let reads=0;
+ globalThis.Worker=class{postMessage(){const tokenFound=++reads===4?token:'';queueMicrotask(()=>this.onmessage({data:{token:tokenFound}}));}terminate(){}};
+ const c=canvas(),decoder=await createCameraDecoder(c,()=>({x:440,y:200,width:300,height:300}));
+ for(let i=0;i<3;i++)assert.equal(await decoder.decode(video),'');
+ assert.equal(await decoder.decode(video),token);
+ assert.deepEqual(c.draws[0].slice(1,5),[440,200,300,300]);
+ assert.deepEqual(c.draws[3].slice(1,5),[0,0,1280,720]);
+ decoder.close();
+});

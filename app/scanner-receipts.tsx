@@ -8,56 +8,61 @@ import {LABELS,localClock} from '@/lib/mealcheck.mjs';
 import './scanner-receipts.css';
 
 type Receipt=NonNullable<ReturnType<typeof scanReceipt>>;
-type Flight={cancel:()=>void;finishSoon:()=>void};
+type Popup={requestId:string;meal:string;receipt:Receipt|null};
 const time=new Intl.DateTimeFormat('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Ho_Chi_Minh'});
 const reduce=()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function ScannerReceipts({space,meal,date='',target,onOpenChange}:{space:string;meal:string;date?:string;target:RefObject<HTMLDivElement|null>;onOpenChange:(open:boolean)=>void}){
- const [rows,setRows]=useState<Receipt[]>([]),[active,setActive]=useState<Receipt|null>(null),[landed,setLanded]=useState<Receipt|null>(null),[open,setOpen]=useState(false),[limit,setLimit]=useState(50);
+ const [rows,setRows]=useState<Receipt[]>([]),[active,setActive]=useState<Popup|null>(null),[open,setOpen]=useState(false),[limit,setLimit]=useState(50);
  const trigger=useRef<HTMLButtonElement>(null),popup=useRef<HTMLDivElement>(null),dialog=useRef<HTMLDialogElement>(null);
- const current=useRef<Receipt|null>(null),next=useRef<Receipt|null>(null),sequence=useRef(0),flight=useRef<Flight|null>(null),sheetAnimation=useRef<Animation|null>(null);
- const [confirmedDate,setConfirmedDate]=useState('');
+ const sequence=useRef(0),sheetAnimation=useRef<Animation|null>(null);
  const context=useRef({meal,open,onOpenChange});context.current={meal,open,onOpenChange};
- const today=confirmedDate||date||localClock().date,filtered=rows.filter(row=>row.date===today&&(!meal||row.meal===meal));
- const latest=landed?.date===today&&(!meal||landed.meal===meal)?landed:filtered[0];
+ const today=date||localClock().date,filtered=rows.filter(row=>row.date===today&&(!meal||row.meal===meal));
+ const latest=filtered[0],activeId=active?.requestId;
 
  useEffect(()=>{
+  const saved=(event:Event)=>{
+   const detail=(event as CustomEvent).detail;
+   if(detail?.space!==space||context.current.open||typeof detail.requestId!=='string')return;
+   const scanMeal=String(detail.sessionId).split(':')[2];
+   if(scanMeal===context.current.meal)setActive({requestId:detail.requestId,meal:scanMeal,receipt:null});
+  };
   const ack=(event:Event)=>{
    const detail=(event as CustomEvent).detail;
    if(detail?.space!==space)return;
    const receipt=scanReceipt(detail.result,++sequence.current,Number.isFinite(detail.capturedAt)?detail.capturedAt:Date.now());
    if(!receipt)return;
-   setConfirmedDate(receipt.date);
    setRows(old=>addReceipt(old,receipt));
-   if(context.current.open||receipt.meal!==context.current.meal){setLanded(receipt);return;}
-   if(current.current){next.current=receipt;flight.current?.finishSoon();}
-   else{current.current=receipt;setActive(receipt);}
+   setActive(current=>current&&current.requestId===detail.requestId?{...current,receipt}:current);
   };
+  const failed=(event:Event)=>{
+   const detail=(event as CustomEvent).detail;
+   if(detail?.space===space)setActive(current=>current?.requestId===detail.requestId?null:current);
+  };
+  window.addEventListener('mealcheck-scan-saved',saved);
   window.addEventListener('mealcheck-scan-ack',ack);
-  return()=>window.removeEventListener('mealcheck-scan-ack',ack);
+  window.addEventListener('mealcheck-scan-failed',failed);
+  return()=>{
+   window.removeEventListener('mealcheck-scan-saved',saved);
+   window.removeEventListener('mealcheck-scan-ack',ack);
+   window.removeEventListener('mealcheck-scan-failed',failed);
+  };
  },[space]);
- useEffect(()=>{if(date)setConfirmedDate(date);},[date]);
 
  useLayoutEffect(()=>{
-  if(!active||!popup.current||!trigger.current)return;
-  const land=()=>{
-   setLanded(active);
-   const pending=next.current;next.current=null;current.current=pending;setActive(pending);
-  };
-  const running=flyReceiptIntoTray(popup.current,trigger.current,land,reduce());flight.current=running;
-  if(next.current)running.finishSoon();
+  if(!activeId||!popup.current||!trigger.current)return;
+  const running=flyReceiptIntoTray(popup.current,trigger.current,()=>setActive(current=>current?.requestId===activeId?null:current),reduce());
   const resize=()=>running.finishSoon();
   window.addEventListener('resize',resize);document.addEventListener('fullscreenchange',resize);
-  return()=>{running.cancel();if(flight.current===running)flight.current=null;window.removeEventListener('resize',resize);document.removeEventListener('fullscreenchange',resize);};
- },[active]);
+  return()=>{running.cancel();window.removeEventListener('resize',resize);document.removeEventListener('fullscreenchange',resize);};
+ },[activeId]);
 
- useEffect(()=>{flight.current?.cancel();next.current=null;current.current=null;setActive(null);setLanded(null);},[meal]);
- useEffect(()=>()=>{flight.current?.cancel();sheetAnimation.current?.cancel();context.current.onOpenChange(false);},[]);
+ useEffect(()=>{setActive(null);},[meal]);
+ useEffect(()=>()=>{sheetAnimation.current?.cancel();context.current.onOpenChange(false);},[]);
 
  function show(){
   if(!dialog.current||dialog.current.open)return;
-  if(next.current||current.current)setLanded(next.current||current.current);
-  flight.current?.cancel();next.current=null;current.current=null;setActive(null);
+  setActive(null);
   setLimit(50);dialog.current.showModal();setOpen(true);onOpenChange(true);
   const panel=dialog.current;
   sheetAnimation.current?.cancel();
@@ -79,9 +84,10 @@ export function ScannerReceipts({space,meal,date='',target,onOpenChange}:{space:
    <span className="scan-receipt-summary"><span>Vừa quét <b>{filtered.length}</b></span><strong>{latest?latest.student.name:'Danh sách học sinh đã quét'}</strong><small>{latest?'Lớp '+latest.student.class+' · '+latest.student.code:'Kết quả đã được máy chủ xác nhận'}</small></span>
    <ChevronUp size={19} aria-hidden="true"/>
   </button>
-  {active&&target.current&&createPortal(<div ref={popup} className={'scan-receipt-flight '+(active.duplicate?'duplicate':'')} role="status" aria-live="polite" aria-atomic="true">
+  {active&&target.current&&createPortal(<div ref={popup} className={'scan-receipt-flight '+(active.receipt?.duplicate?'duplicate':'')} role="status" aria-live="polite" aria-atomic="true">
    <span className="receipt-confirm-icon"><Check size={24} strokeWidth={2.5} aria-hidden="true"/></span>
-   <div><span className="receipt-confirm-label">{active.duplicate?'Đã điểm danh buổi này':'Điểm danh thành công'}</span><strong>{active.student.name}</strong><span>Lớp {active.student.class} · {LABELS[active.meal as keyof typeof LABELS]}</span><small>{active.student.code}</small></div>
+   {active.receipt?<div><span className="receipt-confirm-label">{active.receipt.duplicate?'Đã điểm danh buổi này':'Điểm danh thành công'}</span><strong>{active.receipt.student.name}</strong><span>Lớp {active.receipt.student.class} · {LABELS[active.meal as keyof typeof LABELS]}</span><small>{active.receipt.student.code}</small></div>
+   :<div><strong>Đã quét thành công</strong><span>Đã lưu trên máy · Chờ đồng bộ</span><small>{LABELS[active.meal as keyof typeof LABELS]}</small></div>}
   </div>,target.current)}
   <dialog ref={dialog} id="scan-receipts-dialog" className="scan-receipts-dialog" aria-labelledby="scan-receipts-title" onCancel={event=>{event.preventDefault();close();}} onClick={event=>{if(event.target===event.currentTarget)close();}} onClose={()=>{setOpen(false);onOpenChange(false);}}>
    <header><div><span className="receipt-sheet-eyebrow">AFYLLX EDU MEALCHECK</span><h2 id="scan-receipts-title">Học sinh đã quét <span>{filtered.length}</span></h2></div><button className="receipt-sheet-close" aria-label="Đóng danh sách đã quét" onClick={close}><X size={21}/></button></header>

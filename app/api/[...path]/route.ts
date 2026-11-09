@@ -34,7 +34,9 @@ async function handle(req:Request,{params}:any){
   // This helper never exists on the real local application and does not bypass revocation there.
   if(route==='qa/browser-reset'&&req.method==='GET'){
     if(policy.publicCloud||env.MEALCHECK_QA_MODE!=='true')throw new AppError('Không tìm thấy chức năng.',404);
-    return json({qaBrowserReset:true},200,{'Set-Cookie':'mc_scanner=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0'});
+    const headers=new Headers({'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'});
+    for(const name of ['mc_scanner','mc_scanner_live','mc_scanner_demo'])headers.append('Set-Cookie',name+'=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0');
+    return Response.json({qaBrowserReset:true},{headers});
   }
   const cookies=deploymentCookies(policy),token=cookie(req,cookies.device),device=await app.device(token),user=policy.publicCloud?{...localAdminUser(),id:policy.demoOnly?'demo-admin':'cloud-admin',name:policy.demoOnly?'Quản trị bản demo':'Quản trị nhà trường',email:policy.demoOnly?'Quản trị bản demo':'Quản trị nhà trường'}:localAdminUser();
   if(route==='identity'&&req.method==='GET')return json({localAdmin:!policy.publicCloud,publicCloud:policy.publicCloud,publicDemo:policy.demoOnly,defaultSpace:policy.defaultSpace,deployment:policy.mode,sampleRoster:(await app.one('SELECT value FROM settings WHERE key=?',policy.defaultSpace+':roster_kind'))?.value==='synthetic',user});
@@ -62,23 +64,27 @@ async function handle(req:Request,{params}:any){
     const card=await app.one('SELECT s.id,s.code,s.name,s.grade,s.class,q.token FROM students s JOIN student_qr q ON q.student_id=s.id AND q.space=s.space WHERE s.space=? AND s.active=1 ORDER BY s.grade,s.class,s.code LIMIT 1',space);
     return json({card:card||null,school:SCHOOL});
   }
-  // Scanner start prepares today's sessions once; each scan only reads/records that session.
+  // Scans prepare the current day lazily if no scanner has opened since midnight.
   // init is memoized per isolate and local date, so polling routes do not write.
   if(route!=='qr/scan')await app.init(space);
   const admin=()=>{if(user.role!=='admin')throw new AppError('Chỉ quản trị viên được thực hiện.',403);};
   const date=url.searchParams.get('date')||localClock().date,from=url.searchParams.get('from')||date,to=url.searchParams.get('to')||date;
   const actor=user.email;
+  const scannerCookie=policy.mode==='local'?cookies.scanner+'_'+space:cookies.scanner;
+  const scannerToken=()=>cookie(req,scannerCookie)||(scannerCookie!==cookies.scanner?cookie(req,cookies.scanner):undefined);
+  const scannerHeader=(raw:string)=>({'Set-Cookie':`${scannerCookie}=${raw}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${url.protocol==='https:'?'; Secure':''}`});
   if(route==='qr/config'&&req.method==='GET')return json({configured:/^[A-Za-z0-9_-]{43}$/.test(env.MEALCHECK_QR_KEY||'')});
   if(route==='qr/scanner/start'&&req.method==='POST'){
-    const raw=cookie(req,cookies.scanner),scanner=await app.device(raw);
+    const raw=scannerToken(),scanner=await app.device(raw);
     if(raw&&!scanner)throw new AppError('Thiết bị quét đã bị thu hồi. Vui lòng liên hệ quản trị.',403);
-    if(scanner?.space===space)return json({scanner,date:localClock().date,serverNow:app.now()});
+    if(raw&&scanner?.space===space)return json({scanner,date:localClock().date,serverNow:app.now()},200,cookie(req,scannerCookie)?{}:scannerHeader(raw));
     const enrolled=await app.enrollDevice(space,'Máy quét QR · '+crypto.randomUUID().slice(0,6),actor);
-    return json({scanner:await app.device(enrolled.token),date:localClock().date,serverNow:app.now()},200,{'Set-Cookie':`${cookies.scanner}=${enrolled.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${url.protocol==='https:'?'; Secure':''}`});
+    return json({scanner:await app.device(enrolled.token),date:localClock().date,serverNow:app.now()},200,scannerHeader(enrolled.token));
   }
   if(route==='qr/scan'&&req.method==='POST'){
-    const scanner=await app.device(cookie(req,cookies.scanner));
-    if(!scanner||scanner.space!==space)throw new AppError('Mở máy quét của môi trường hiện tại trước khi quét.',403);
+    const raw=scannerToken(),scanner=await app.device(raw);
+    if(!raw||(scanner&&scanner.space!==space))return json({code:'scanner_not_ready',error:'Mở máy quét của môi trường hiện tại để đồng bộ.'},403);
+    if(!scanner)throw new AppError('Thiết bị quét đã bị thu hồi. Vui lòng liên hệ quản trị.',403);
     const result=await scanStudentCard(app,env,scanner,body.token,body.id,body.sessionId,actor);
     return json(result);
   }

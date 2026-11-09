@@ -2,7 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {enqueueScan,syncScans} from '../lib/offline-queue.mjs';
-const fixture=()=>{const rows=new Map();return {get:async k=>rows.get(k),all:async()=>[...rows.values()],put:async r=>rows.set(r.key,structuredClone(r)),remove:async k=>rows.delete(k)};};
+const fixture=()=>{const rows=new Map();return {
+ all:async()=>[...rows.values()],
+ enqueue:async row=>{if(!rows.has(row.key))rows.set(row.key,structuredClone(row));return rows.get(row.key);},
+ settle:async(row,error)=>{if(rows.get(row.key)?.id!==row.id||rows.get(row.key)?.state!=='pending')return false;if(error)rows.set(row.key,{...row,state:'failed',error});else rows.delete(row.key);return true;},
+};};
 const scan={space:'demo',token:'AFYLLX:1:opaque-test-ciphertext',sessionId:'demo:2026-10-31:sang'};
 test('offline QR remains pending without claiming success, deduplicates per meal and survives a lost server reply',async()=>{
  const store=fixture(),first=await enqueueScan(store,scan,1);assert.equal((await enqueueScan(store,scan,2)).id,first.id);assert.equal((await store.all()).length,1);
@@ -21,7 +25,7 @@ test('different spaces/meals stay separate; nothing sends while offline; failed 
  const store=fixture();await enqueueScan(store,scan);await enqueueScan(store,{...scan,sessionId:'demo:2026-10-31:trua'});assert.equal((await store.all()).length,2);
  let calls=0;await syncScans(store,async()=>{calls++;},()=>{},()=>false);assert.equal(calls,0);
  await assert.rejects(()=>enqueueScan(store,{...scan,sessionId:'live:2026-10-31:sang'}));
- await assert.rejects(()=>enqueueScan({...store,put:async()=>{throw Error('storage full');}},{...scan,sessionId:'demo:2026-10-31:toi'}),/storage full/);
+ await assert.rejects(()=>enqueueScan({...store,enqueue:async()=>{throw Error('storage full');}},{...scan,sessionId:'demo:2026-10-31:toi'}),/storage full/);
 });
 test('PWA cache explicitly excludes APIs and mutations, manifest has Android/iOS assets',()=>{
  const sw=fs.readFileSync('public/sw.js','utf8');assert.match(sw,/req.method!=='GET'/);assert.match(sw,/url.pathname.startsWith\('\/api\/'\)/);
@@ -50,4 +54,27 @@ test('a rejected QR reports its exact error and cannot masquerade as newly queue
  assert.equal(failures.length,1);assert.equal(failures[0].error,'Phiên đã sang ngày mới');
  await assert.rejects(enqueueScan(store,scan),/Phiên đã sang ngày mới/);
  assert.equal((await store.all()).length,1,'failed scan is retained for review');
+});
+
+test('a stale network response cannot acknowledge a capture already settled by another context',async()=>{
+ const store=fixture(),row=await enqueueScan(store,scan,1);
+ let release;
+ const old=syncScans(store,()=>new Promise(resolve=>{release=resolve;}),()=>assert.fail('stale receipt'));
+ while(!release)await Promise.resolve();
+ await syncScans(store,async()=>({ok:true,status:200,data:{status:'recorded'}}));
+ const again=await enqueueScan(store,scan,2);
+ assert.notEqual(again.id,row.id);
+ release({ok:true,status:200,data:{status:'already'}});
+ await old;
+ assert.equal((await store.all())[0].id,again.id);
+});
+
+test('a scanner awaiting enrollment retains its row without blocking a different space',async()=>{
+ const store=fixture(),row=await enqueueScan(store,scan,1);
+ await enqueueScan(store,{...scan,space:'live',sessionId:'live:2026-10-31:sang'},2);
+ const retry=await syncScans(store,async current=>current.space==='demo'
+  ?{ok:false,status:403,data:{code:'scanner_not_ready'}}
+  :{ok:true,status:200,data:{status:'recorded'}});
+ assert.equal(retry,true);
+ assert.deepEqual(await store.all(),[row]);
 });

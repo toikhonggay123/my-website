@@ -20,7 +20,7 @@ for(const [route,status] of [['/mealcheck',200],['/',307],['/api/identity',200],
   assert.equal(r.headers.get('strict-transport-security'),null,route);
 }
 const manifest=await fetch(base+'/manifest.webmanifest').then(r=>r.json());assert.equal(manifest.id,'/quan-tri');assert.equal(manifest.start_url,'/mealcheck?source=pwa');
-const qaReset=await call('qa/browser-reset');assert.equal(qaReset.data.qaBrowserReset,true);assert.equal(qaReset.cookie,'mc_scanner=');
+const qaReset=await call('qa/browser-reset');assert.equal(qaReset.data.qaBrowserReset,true);assert.equal(qaReset.cookie,'mc_scanner=; mc_scanner_live=; mc_scanner_demo=');
 const identity=(await call('identity',undefined,'',200,{'oai-authenticated-user-id':'forged','oai-authenticated-user-email':'attacker@example.test'})).data;
 assert.equal(identity.localAdmin,true);assert.equal(identity.user.role,'admin');assert.equal(identity.user.name,'Quản trị tại máy');
 assert.equal('sheet' in identity,false);await call('sheet/config',{},'',404);
@@ -53,7 +53,7 @@ assert.equal((await call('qr/scan?space=demo',{token:cards[1].token,id:crypto.ra
 assert.equal((await call('records?space=demo')).data.length,2);
 assert.equal((await call('qr/scan?space=demo',{token:card.token,id:crypto.randomUUID(),sessionId},scanner.cookie)).data.status,'already');
 await call('qr/scan?space=demo',{token:'tampered',id:crypto.randomUUID(),sessionId},scanner.cookie,400);
-await call('qr/scan?space=demo',{token:card.token,id:crypto.randomUUID(),sessionId},'',403);
+assert.equal((await call('qr/scan?space=demo',{token:card.token,id:crypto.randomUUID(),sessionId},'',403)).data.code,'scanner_not_ready');
 const pupil=await call('device/start',{});assert.equal((await call('identity',undefined,pupil.cookie)).data.user.id,'local-admin');
 await call('qr/reissue?space=demo',{studentId:card.id});await call('qr/scan?space=demo',{token:card.token,id:crypto.randomUUID(),sessionId},scanner.cookie,400);
 const records=(await call('records?space=demo')).data;assert.ok(records.length);

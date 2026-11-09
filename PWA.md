@@ -7,10 +7,10 @@ Android: mở bằng Chrome, bấm Cài ứng dụng; nếu trình duyệt chưa
 ## Lưu trên từng thiết bị
 
 - Âm báo, rung, nhớ bữa và giữ màn hình sáng tự bật, không có công tắc. Chỉ bữa đã chọn trong cùng ngày Việt Nam được lưu trên máy; các cờ tắt trước đây không còn được dùng. Rung và giữ sáng phụ thuộc hỗ trợ trình duyệt. Mở camera/chọn ảnh sẽ chuẩn bị âm thanh; iOS có thể không hỗ trợ rung web.
-- Camera/giải mã ảnh QR chạy trên thiết bị. Tab ẩn sẽ dừng camera. Wake lock được nhả khi dừng quét và thử xin lại khi quay về nếu camera còn chạy.
+- Camera và giải mã QR chạy trên thiết bị. Máy đã đăng ký mở camera từ trạng thái lưu cục bộ trong khi kiểm tra kết nối. Camera dừng khi app ẩn và tiếp tục khi quay lại màn hình quét.
 - Lượt quét chờ nằm trong IndexedDB, chỉ có ciphertext QR, mã yêu cầu, môi trường, phiên ăn, thời điểm và trạng thái. Không lưu họ tên, danh sách học sinh hoặc khóa giải mã trong hàng đợi.
 - Phải mở máy quét một lần khi có mạng trên chính app/thiết bị để đăng ký máy quét. iOS có thể tách dữ liệu Safari và app Màn hình chính; hãy mở app đã cài khi có mạng lần đầu.
-- Khi mất mạng, lưu lượt trước, hiển thị chờ đồng bộ; không có dấu tích thành công hoặc tăng số điểm danh. Mở/giữ app khi có mạng để đồng bộ, khi tab đang hiển thị tự thử mỗi 10 giây. Không phụ thuộc Background Sync vì mức hỗ trợ khác nhau giữa Android/iOS.
+- Sau khi lưu trên máy, camera hiện dấu tích **Đã quét thành công** và **Chờ đồng bộ**, kể cả khi mất mạng. Danh sách điểm danh cập nhật khi máy chủ xác nhận. Trình duyệt hỗ trợ Background Sync có thể gửi lượt chờ khi app đóng. Trình duyệt còn lại tự gửi khi có mạng hoặc khi mở lại app, và thử lại mỗi 10 giây khi app hiển thị.
 - Gửi lại giữ nguyên request ID; máy chủ tiếp tục kiểm tra mã hóa, thiết bị, phiên/ngày, trạng thái học sinh và chống trùng. HTTP 4xx được giữ riêng để người dùng kiểm tra, không tự đổi ngày/bữa hoặc bỏ qua thu hồi. HTTP 5xx và lỗi mạng giữ pending.
 - Không gỡ app, xóa dữ liệu trình duyệt hay chuyển sang app/browser khác khi còn lượt chờ; hàng đợi không tự chuyển giữa thiết bị. Có thể bỏ lượt bị từ chối sau khi kiểm tra; thao tác này không xóa bản ghi máy chủ.
 
@@ -20,7 +20,7 @@ Service worker chỉ cache shell HTML của dashboard/trang cài, tệp JS/CSS c
 
 Build tạo `dist/client/precache.json` từ các tệp JS/CSS có hash. Lần cài service worker đầu tiên lưu các module đó cùng shell để mở lại offline không phụ thuộc HTTP cache của trình duyệt. Chỉ chấp nhận đường dẫn asset nội bộ `/_next/static/`; không nhận URL API hay URL ngoài.
 
-Cập nhật mới hiển thị nút Cập nhật ứng dụng; dừng camera trước khi đổi service worker và tải lại trang. IndexedDB giữ hàng đợi qua cập nhật. Khi thay service worker/cache policy, tăng tên cache `mealcheck-pwa-v...`; chỉ dọn cache mang prefix của app. Không xóa toàn bộ cache/storage của origin.
+Bản hiện tại dùng cache v11 và hỗ trợ Background Sync. Cập nhật mới hiển thị nút Cập nhật ứng dụng; dừng camera trước khi đổi service worker và tải lại trang. IndexedDB giữ hàng đợi qua cập nhật. Khi thay service worker/cache policy, tăng tên cache `mealcheck-pwa-v...`; chỉ dọn cache mang prefix của app. Không xóa toàn bộ cache/storage của origin.
 
 ## Kiểm tra
 
@@ -32,7 +32,7 @@ Nguồn kỹ thuật: [MDN PWA installation](https://developer.mozilla.org/en-US
 
 ## Máy quét tự bật tiện ích
 
-Âm báo, rung khi xác nhận, nhớ bữa trong ngày trên thiết bị và giữ màn hình sáng lúc camera chạy luôn được bật; không còn nút/công tắc cho bốn mục này. Các thiết lập tắt cũ không được sử dụng. Âm báo cần thao tác mở camera/chọn ảnh; rung và giữ sáng phụ thuộc hỗ trợ của thiết bị. Popup xác nhận hiện trong khung ngắm rồi rơi xuống ô Vừa quét trên thanh chọn bữa; danh sách cập nhật ngay khi máy chủ xác nhận và không chờ animation. Quét trùng dùng thông báo màu vàng, không tính thêm suất; mất mạng chỉ báo chờ đồng bộ.
+Âm báo, rung khi xác nhận, nhớ bữa trong ngày trên thiết bị và giữ màn hình sáng lúc camera chạy luôn được bật; không còn nút/công tắc cho bốn mục này. Các thiết lập tắt cũ không được sử dụng. Âm báo cần thao tác mở camera/chọn ảnh; rung và giữ sáng phụ thuộc hỗ trợ của thiết bị. Popup xác nhận hiện trong khung ngắm rồi rơi xuống ô Vừa quét trên thanh chọn bữa; danh sách cập nhật ngay khi máy chủ xác nhận và không chờ animation. Quét trùng dùng thông báo màu vàng, không tính thêm suất; mất mạng hiển thị dấu tích lưu thành công kèm Chờ đồng bộ.
 
 ## Giao diện quét tập trung
 

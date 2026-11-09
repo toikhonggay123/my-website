@@ -55,12 +55,13 @@ const time = (t: number) =>
     minute: "2-digit",
     second: "2-digit",
   });
-async function api(p: string, b?: any): Promise<any> {
+async function api(p: string, b?: any, signal?: AbortSignal): Promise<any> {
   const r = await fetch("/api/" + p, {
       method: b === undefined ? "GET" : "POST",
       cache: "no-store",
       headers: b === undefined ? {} : { "Content-Type": "application/json" },
       body: b === undefined ? undefined : JSON.stringify(b),
+      signal,
     }),
     d: any = await r.json();
   if (!r.ok) throw Error(d.error || "Không kết nối được máy chủ.");
@@ -140,8 +141,19 @@ export default function App() {
     }
   }
   async function identity() {
+    const cached = readDevicePref("boot", null);
+    const requested = viewFromSearch(location.search);
+    const showCached = () => {
+      SP(cached.publicCloud ? cached.defaultSpace : readDevicePref("dataSpace", "live"));
+      SWho(cached);
+      ST(requested === "guide" ? "guide" : "scanner");
+    };
+    const openedCached = !!cached && (requested === "scanner" || !navigator.onLine);
+    if (openedCached) showCached();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
     try {
-      const d = await api("identity");
+      const d = await api("identity", undefined, controller.signal);
       if (d.publicCloud) SP(d.defaultSpace);
       saveDevicePref("boot", {
         publicCloud: d.publicCloud,
@@ -156,23 +168,14 @@ export default function App() {
         },
       });
       SWho(d);
-      ST(viewFromSearch(location.search));
+      if (!openedCached) ST(viewFromSearch(location.search));
     } catch (e) {
-      const cached = readDevicePref("boot", null);
-      if ((!navigator.onLine || e instanceof TypeError) && cached) {
-        SP(
-          cached.publicCloud
-            ? cached.defaultSpace
-            : readDevicePref("dataSpace", "live"),
-        );
-        SWho(cached);
-        ST(
-          new URLSearchParams(location.search).get("tab") === "guide"
-            ? "guide"
-            : "scanner",
-        );
+      if (cached && (!navigator.onLine || e instanceof TypeError || controller.signal.aborted)) {
+        if (!openedCached) showCached();
         window.dispatchEvent(new Event("mealcheck-server-offline"));
       } else throw e;
+    } finally {
+      clearTimeout(timeout);
     }
   }
   async function boardLoad() {

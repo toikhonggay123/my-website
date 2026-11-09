@@ -5,7 +5,7 @@ type Region={x:number;y:number;width:number;height:number};
 const isToken=(token:unknown):token is string=>typeof token==='string'&&token.startsWith('AFYLLX:1:')&&token.length<=600;
 
 export async function createCameraDecoder(canvas:HTMLCanvasElement,getRegion?:()=>Region|null){
- let detector:any=null,worker:Worker|null=null,closed=false,decoding=false,workerFailed=false,frame=0,misses=0;
+ let detector:any=null,worker:Worker|null=null,closed=false,decoding=false,workerFailed=false,frame=0,misses=0,workerMisses=0;
  let pending:((value:string|null)=>void)|null=null,timeout:ReturnType<typeof setTimeout>|null=null,cancelNative:(()=>void)|null=null;
  const Native=(window as any).BarcodeDetector;
  try{if(Native&&(await Native.getSupportedFormats()).includes('qr_code'))detector=new Native({formats:['qr_code']});}catch{}
@@ -23,10 +23,10 @@ export async function createCameraDecoder(canvas:HTMLCanvasElement,getRegion?:()
    if(closed||decoding||!video.videoWidth||!video.videoHeight)return '';
    decoding=true;
    try{
-    const region=getRegion?.();let drawn=false;
+    const guide=getRegion?.(),wide=!!guide&&workerMisses>=3,region=wide?null:guide;let drawn=false;
     const draw=()=>{
      if(drawn)return;
-     const crop=frame++%2===0,side=Math.min(video.videoWidth,video.videoHeight)*.8;
+     const crop=frame++%2===0&&!wide,side=Math.min(video.videoWidth,video.videoHeight)*.8;
      const sw=region?.width??(crop?side:video.videoWidth),sh=region?.height??(crop?side:video.videoHeight);
      const scale=Math.min(1,(region?768:crop?640:800)/Math.max(sw,sh));
      const width=Math.max(1,Math.round(sw*scale)),height=Math.max(1,Math.round(sh*scale));
@@ -40,7 +40,7 @@ export async function createCameraDecoder(canvas:HTMLCanvasElement,getRegion?:()
       const codes=await Promise.race([detector.detect(region?canvas:video),cancelled]);
       if(closed)return '';
       const candidates=codes.filter((code:any)=>isToken(code.rawValue));
-      if(candidates.length){misses=0;return candidates[0].rawValue;}
+      if(candidates.length){misses=0;workerMisses=0;return candidates[0].rawValue;}
       if(++misses<3)return '';
       misses=0;useWorker();
      }catch{detector=null;if(closed)return '';useWorker();}
@@ -54,11 +54,12 @@ export async function createCameraDecoder(canvas:HTMLCanvasElement,getRegion?:()
       try{worker!.postMessage({buffer:pixels.data.buffer,width:canvas.width,height:canvas.height,invert:frame%8===0},[pixels.data.buffer]);}catch{failWorker();}
      });
      if(closed)return '';
-     if(token!==null)return token;
+     if(token!==null){workerMisses=token||wide?0:workerMisses+1;return token;}
      pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
     }
     const {default:jsQR}=await import('jsqr');if(closed)return '';
     const token=jsQR(pixels.data,canvas.width,canvas.height,{inversionAttempts:'attemptBoth'})?.data;
+    workerMisses=isToken(token)||wide?0:workerMisses+1;
     return isToken(token)?token:'';
    }finally{decoding=false;}
   },

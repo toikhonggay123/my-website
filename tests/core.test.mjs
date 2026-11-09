@@ -71,6 +71,22 @@ test('Reset chỉ xóa hôm nay trong đúng môi trường; giữ hôm qua, QR 
  assert.ok(f.db.prepare("SELECT count(*) n FROM audit WHERE action='Đặt lại điểm danh hôm nay'").get().n===2);
 });
 const scan=(f,device,token,meal='sang',id=crypto.randomUUID())=>scanStudentCard(f.app,qrEnv,device,token,id,`${device.space}:${localClock(f.getNow()).date}:${meal}`,'teacher-qr');
+test('QR đồng bộ đầu ngày tự chuẩn bị phiên hôm nay cho máy quét đã đăng ký',async()=>{
+ const f=await fixture(false),[card]=await studentCards(f.app,qrEnv,'demo');
+ f.advance(86_400_000);
+ const date=localClock(f.getNow()).date;
+ assert.equal(await f.app.one('SELECT id FROM meal_sessions WHERE space=? AND date=?','demo',date),null);
+ assert.equal((await scan(f,f.a,card.token)).date,date);
+ assert.equal((await scan(f,f.a,card.token)).status,'already');
+});
+test('QR đã gửi trước khi đặt lại không giữ hàng đợi ở lỗi 500 khi gửi lại',async()=>{
+ const f=await fixture(false),[card]=await studentCards(f.app,qrEnv,'demo');
+ const id=crypto.randomUUID();
+ assert.equal((await scan(f,f.a,card.token,'sang',id)).status,'recorded');
+ await f.app.resetToday('demo',localClock(f.getNow()).date,'teacher');
+ await assert.rejects(scan(f,f.a,card.token,'sang',id),error=>error.status===409);
+ assert.equal((await scan(f,f.a,card.token)).status,'recorded');
+});
 
 test('QR mã hóa AES-GCM không chứa họ tên/mã, chống sửa và dùng sai khóa',async()=>{const s={id:'demo:001',space:'demo',code:'001',name:'Nguyễn Văn Đạt'},token=await encryptStudentToken(qrEnv,s);assert.ok(!token.includes(s.name)&&!token.includes(s.id));assert.deepEqual(await decryptStudentToken(qrEnv,token),{s:'demo',id:s.id});const bad=token.slice(0,20)+(token[20]==='A'?'B':'A')+token.slice(21);await assert.rejects(decryptStudentToken(qrEnv,bad),/không hợp lệ/);await assert.rejects(decryptStudentToken({MEALCHECK_QR_KEY:Buffer.alloc(32,8).toString('base64url')},token),/không hợp lệ/);await assert.rejects(encryptStudentToken({},s),/Chưa cấu hình/);});
 
