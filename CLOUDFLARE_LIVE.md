@@ -24,6 +24,16 @@ Cấu hình đang áp dụng:
 - Máy quét cloud-live dùng cookie riêng, không tái sử dụng phiên demo đã bị xóa. Thu hồi thiết bị vẫn được xác minh phía server.
 - Xuất `.xls` hôm nay tạo file trong trình duyệt, với ngày và dữ liệu từ server, giữ nguyên các trang tổng hợp/bữa/lớp/chưa điểm danh.
 
+## Chọn trường (giai đoạn 1, 12/11/2026)
+
+Theo quyết định của chủ dự án: trước khi vào CheckIn hoặc ClassHub trên web, người dùng chọn trường một lần. Không đăng nhập, không bảo mật: bấm là vào. Danh sách trường ở `lib/schools.mjs`, hiện chỉ có `na-ri` (Trường PTDTNT Na Rì). ClassHub giữ bản sao mã trường ở `classhub/src/web/school-choice.ts`; test `tests/schools.test.mjs` bắt hai nơi phải khớp.
+
+- Trang chọn trường: `/mealcheck/chon-truong?tiep=<đường dẫn>` (đi qua gateway Edu sẵn có, không cần sửa gateway). Chỉ quay về `/mealcheck`, `/quan-tri` hoặc `/classhub`; đích khác về `/mealcheck`.
+- Lựa chọn lưu trong cookie `afyllx_truong` (Path=/, 1 năm, SameSite=Lax) và localStorage `afyllx:truong`. Link `?truong=na-ri` vào thẳng. Menu CheckIn (thanh bên và menu điện thoại), thanh bên và cửa vào ClassHub có "Đổi trường".
+- Không bao giờ chặn máy quét: tab quét, app đã cài (standalone) và khi mất mạng tự nhận Na Rì. Quyết định chạy trong trình duyệt, không chuyển hướng từ máy chủ, nên trang quét offline vẫn mở được.
+- Bản localhost (một trường) không hiện bước chọn trường.
+- Giai đoạn 1 không tách dữ liệu: mọi trường dùng D1 và khóa QR hiện tại. Thêm trường thứ hai cần giai đoạn 2 (D1 và khóa QR riêng) trước khi đưa danh sách thật lên.
+
 ## Build và triển khai
 
 ```text

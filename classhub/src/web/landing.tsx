@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { Backpack, ChevronRight, GraduationCap, Lock, Sparkles, X } from 'lucide-react'
 import { basePath, errorText, request, send, signIn, studentTimetablePath, useLoad, value } from './ui'
+import { changeSchoolHref } from './school-choice'
 import './edu.css'
 import './landing.css'
 
@@ -107,6 +108,7 @@ export function Landing({ admin, openAdmin, closeAdmin, onLogin }: {
       </nav>
       <footer className="landing-foot edu-rise" style={{ '--i': 3 } as CSSProperties}>
         {basePath && <Link to="/thu">Xem bản dùng thử</Link>}
+        {basePath && <a href={changeSchoolHref(basePath)}>Đổi trường</a>}
         <span>AFYLLX Edu · ClassHub</span>
       </footer>
     </main>

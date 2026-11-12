@@ -23,6 +23,7 @@ import { ReportsPage } from './reports'
 import { Dashboard } from './dashboard'
 import { SchoolTimetable } from './school'
 import { Landing } from './landing'
+import { changeSchoolHref, ensureSchoolChosen } from './school-choice'
 
 type User = { name: string; email: string }
 type Identity = { user: User; workspaces: Workspace[]; local: boolean }
@@ -132,6 +133,7 @@ function Shell({ workspace, identity, logout, refresh, demo = false }: {
           <small className="nav-group">Quản trị</small>{links(menu.filter(item => ['/nhan-su', '/thiet-lap'].includes(item.path)))}</>}
       </nav>
       {workspaceLink && <Link className="switch" to={workspaceLink}>{workspaceLinkLabel} <ChevronRight size={16} aria-hidden="true" /></Link>}
+      {basePath && !demo && <a className="switch" href={changeSchoolHref(basePath)}>Đổi trường <ChevronRight size={16} aria-hidden="true" /></a>}
     </aside>
     <div className="shell-body">
       <div className="topbar"><Link className="crumb" to={base}>ClassHub</Link>
@@ -250,4 +252,5 @@ const router = createBrowserRouter([
   ...(basePath ? [{ path: '/thu/*', element: <DemoWorkspace /> }] : []),
   { path: '*', element: <App /> },
 ], { basename: basePath || '/' })
-createRoot(document.getElementById('root')!).render(<RouterProvider router={router} />)
+// Phase 1 school picker: on the web, ask once which school before ClassHub opens.
+if (ensureSchoolChosen(basePath)) createRoot(document.getElementById('root')!).render(<RouterProvider router={router} />)

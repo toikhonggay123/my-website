@@ -18,6 +18,7 @@ import { SCHOOL } from "@/lib/mealcheck.mjs";
 import { sectionForView } from "@/lib/navigation.mjs";
 import { useLiquidIndicator } from "./liquid-motion";
 import {Brand,BrandSupport} from './brand';
+import { ChangeSchoolLink } from "./school-gate";
 import { AccountLink } from "./account-link";
 export {Brand} from './brand';
 
@@ -109,7 +110,7 @@ export function AppNavigation({
         <button type="button" className="brand-home" aria-label="Trở lại trang chủ AFYLLX Edu" onClick={askHome}><Brand /></button>
         <div className="school-label">
           <GraduationCap size={19} aria-hidden="true" />
-          <span>{SCHOOL}</span>
+          <span>{SCHOOL}<ChangeSchoolLink className="school-change" /></span>
         </div>
         <nav ref={sidebarNav} className="liquid-navigation" aria-label="Điều hướng chính"><span className="liquid-indicator" aria-hidden="true"/>{links}</nav>
         <div className="sidebar-bottom">
@@ -172,6 +173,10 @@ export function AppNavigation({
             </button>
           </header>
           <nav ref={dialogNav} className="liquid-navigation" aria-label="Tất cả chức năng"><span className="liquid-indicator" aria-hidden="true"/>{links}</nav>
+          <div className="school-label school-label-menu">
+            <GraduationCap size={19} aria-hidden="true" />
+            <span>{SCHOOL}<ChangeSchoolLink className="school-change" /></span>
+          </div>
           <AccountLink />
           <BrandSupport onHomeClick={askHome}/>
         </div>

@@ -1,0 +1,21 @@
+.school-picker{min-height:100dvh;display:grid;place-items:center;padding:24px 16px;background:radial-gradient(120% 80% at 10% 0%,#e6eeff 0%,transparent 60%),radial-gradient(90% 70% at 100% 100%,#e3f6f1 0%,transparent 55%),var(--bg,#f6f8fc)}
+.school-picker-card{width:min(520px,100%);background:#fff;border:1px solid var(--line,#e8edf5);border-radius:24px;padding:28px;box-shadow:0 18px 50px rgba(30,52,98,.10);display:grid;gap:20px}
+.school-picker-card .brand{justify-self:start}
+.school-picker-head h1{margin:0 0 6px;font-size:26px;line-height:1.2;color:var(--ink,#19283f)}
+.school-picker-head p{margin:0;color:#52637b;font-size:15px}
+.school-picker-head b{color:var(--ink,#19283f)}
+.school-picker-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.school-option{width:100%;display:flex;align-items:center;gap:14px;text-align:left;padding:16px;border:1px solid var(--line,#e8edf5);border-radius:18px;background:#fff;color:var(--ink,#19283f);cursor:pointer;transition:border-color .18s,box-shadow .18s,transform .18s}
+.school-option:hover:not(:disabled),.school-option:focus-visible{border-color:var(--blue,#3264e6);box-shadow:0 8px 24px rgba(50,100,230,.14);transform:translateY(-1px)}
+.school-option:focus-visible{outline:3px solid rgba(50,100,230,.35);outline-offset:2px}
+.school-option:disabled{cursor:progress;opacity:.75}
+.school-option.is-current{border-color:#9db5f3;background:#f5f8ff}
+.school-option-icon{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#3264e6,#4f8af0);color:#fff}
+.school-option-text{flex:1;min-width:0;display:grid;gap:3px}
+.school-option-text strong{font-size:17px}
+.school-option-text small{color:#52637b;font-size:13px;line-height:1.35}
+.school-option-badge{flex:none;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:#e5f6ed;color:#167246;font-size:12px;font-weight:600}
+.school-option-arrow{flex:none;color:#7a8aa3}
+.school-picker-note{margin:0;color:#52637b;font-size:13px}
+@media (max-width:420px){.school-picker-card{padding:20px;border-radius:20px}.school-option{padding:14px;gap:12px}.school-option-badge{display:none}}
+@media (prefers-reduced-motion:reduce){.school-option{transition:none}.school-option:hover:not(:disabled){transform:none}}
