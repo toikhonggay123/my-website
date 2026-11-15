@@ -5,7 +5,7 @@
 .no-webgl.au { background: radial-gradient(120% 70% at 60% 30%, #17389c 0%, #071a52 34%, var(--black) 72%) fixed; }
 .au .kw { display: inline-block; white-space: nowrap; }
 .au .kc { display: inline-block; will-change: transform, opacity; }
-.au h1, .au h2 { font-weight: 300; letter-spacing: -.035em; text-wrap: balance; }
+.au h1, .au h2 { font-weight: 600; letter-spacing: -.035em; text-wrap: balance; }
 .au .ln { display: block; overflow: hidden; padding-block: .14em; margin-block: -.14em; }
 .au .ln > span { display: block; }
 .au-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
@@ -19,7 +19,7 @@
 .au-field-in { position: relative; }
 .au-field-copy { max-width: 620px; }
 .au-cat { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; color: #a9c2f2; font-size: 14px; }
-.au-field h2 { margin: 18px 0 22px; font-size: clamp(38px, 5.6vw, 88px); line-height: 1.02; text-shadow: 0 2px 40px #01030ab0; }
+.au-field h2 { margin: 18px 0 22px; font-size: clamp(38px, 5.6vw, 88px); line-height: 1.02; }
 .au-field .au-lead { margin-bottom: 26px; text-shadow: 0 1px 18px #01030a; }
 
 .au-tail { position: relative; padding-block: 16vh 20vh; background: linear-gradient(transparent, #01030ad9 22%, #01030af2); }

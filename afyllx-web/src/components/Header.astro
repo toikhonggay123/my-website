@@ -26,11 +26,13 @@ const { current } = Astro.props;
   </div>
 </header>
 <script>
-  const menu = document.querySelector<HTMLDetailsElement>('[data-popover]');
+  const current = () => document.querySelector<HTMLDetailsElement>('[data-popover]');
   document.addEventListener('pointerdown', (event) => {
+    const menu = current();
     if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) menu.open = false;
   });
   document.addEventListener('keydown', (event) => {
+    const menu = current();
     if (event.key !== 'Escape' || !menu?.open) return;
     menu.open = false;
     menu.querySelector('summary')?.focus();

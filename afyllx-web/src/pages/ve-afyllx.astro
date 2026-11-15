@@ -1,10 +1,44 @@
 ---
 import Site from '../layouts/Site.astro';
 import Icon from '../components/Icon.astro';
-import DepthVisual from '../components/DepthVisual.astro';
+import Status from '../components/Status.astro';
+import Glass from '../aurora/Glass.astro';
 import { divisions } from '../data.js';
 ---
 <Site title="Về AFYLLX" description="Tìm hiểu ba hướng phát triển của AFYLLX trong giáo dục, kinh doanh trực tuyến và khu vực công.">
-  <section class="simple-hero about-hero"><DepthVisual /><div class="wrap"><span class="kicker"><span></span> VỀ AFYLLX</span><h1>Phát triển công nghệ từ nhu cầu thực tế</h1><p>AFYLLX bắt đầu với vận hành nhà trường. Hai hướng phát triển tiếp theo là kinh doanh website trực tuyến và chuyển đổi số chính phủ.</p></div></section>
-  <section class="section-pad"><div class="wrap focus-grid"><div><span class="kicker"><span></span> CÁCH TIẾP CẬN</span><h2>Hiểu công việc trước khi chọn công nghệ</h2><p>AFYLLX xem xét ai thực hiện công việc, thông tin cần có ở mỗi bước và cách họ biết công việc đã hoàn thành. Những câu hỏi đó giúp xác định phần nào phù hợp để xây công cụ số trước.</p></div><div class="about-links">{divisions.map((division) => <a href={`/${division.id}`}><span class="mono">{division.number}</span><div><strong>{division.fullName}</strong><small>{division.status}</small></div><Icon name="external" size={20} /></a>)}</div></div></section>
+  <div class="au au-home" data-aurora-zone data-cycle>
+    <Glass />
+
+    <section class="c2-hero sub-hero" aria-labelledby="page-title">
+      <div class="wrap c2-copy">
+        <nav class="au-crumbs" aria-label="Đường dẫn"><a href="/">AFYLLX</a><span aria-hidden="true">/</span><span aria-current="page">Về AFYLLX</span></nav>
+        <h1 id="page-title"><span class="ln"><span>Phát triển công nghệ từ nhu cầu thực tế</span></span></h1>
+        <p class="au-lead" data-in>AFYLLX bắt đầu với vận hành nhà trường. Hai hướng phát triển tiếp theo là kinh doanh website trực tuyến và chuyển đổi số chính phủ.</p>
+      </div>
+    </section>
+
+    <section class="au-tail sub-tail" aria-labelledby="approach-title">
+      <div class="wrap">
+        <div class="sub-split">
+          <h2 id="approach-title" data-lines><span class="ln"><span>Hiểu công việc trước khi chọn công nghệ</span></span></h2>
+          <p class="au-lead">AFYLLX xem xét ai thực hiện công việc, thông tin cần có ở mỗi bước và cách họ biết công việc đã hoàn thành. Những câu hỏi đó giúp xác định phần nào phù hợp để xây công cụ số trước.</p>
+        </div>
+
+        <div class="sub-more">
+          <h2 data-lines><span class="ln"><span>Ba lĩnh vực</span></span></h2>
+          <ul class="au-index">
+            {divisions.map((division) => (
+              <li><a href={`/${division.id}`}>
+                <h3>{division.fullName}</h3>
+                <p>{division.description}</p>
+                <Status id={division.id} status={division.status} />
+                <span class="round-arrow"><Icon name="external" size={17} /></span>
+              </a></li>
+            ))}
+          </ul>
+          <a class="button button-primary" href="/lien-he">Trao đổi với AFYLLX <Icon name="external" size={18} /></a>
+        </div>
+      </div>
+    </section>
+  </div>
 </Site>

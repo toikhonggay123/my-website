@@ -1,0 +1,8 @@
+---
+// The shared aurora and glass scene. The canvas is kept across page changes, so the scene never restarts;
+// each page sets data-focus (hold one prism up) or data-cycle (raise the three in turn) on its [data-aurora-zone].
+import './aurora.css';
+import './prism.css';
+---
+<canvas class="au-canvas" data-stage aria-hidden="true" transition:persist="aurora-glass"></canvas>
+<script>import './prism.js';</script>

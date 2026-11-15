@@ -1,116 +1,124 @@
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 let savedReduced = false;
 try { savedReduced = localStorage.getItem('afyllx-reduce-motion') === '1'; } catch { /* Use device preference. */ }
-document.documentElement.dataset.motion = reduced.matches || savedReduced ? 'reduced' : 'full';
+const applyMotion = () => { document.documentElement.dataset.motion = reduced.matches || savedReduced ? 'reduced' : 'full'; };
+applyMotion();
 const motionReduced = () => reduced.matches || document.documentElement.dataset.motion === 'reduced';
-reduced.addEventListener('change', () => {
-  document.documentElement.dataset.motion = reduced.matches || savedReduced ? 'reduced' : 'full';
-});
-const header = document.querySelector('.site-header');
-function updateHeader() { header?.classList.toggle('is-scrolled', scrollY > 35); }
-document.addEventListener('scroll', updateHeader, { passive: true });
-updateHeader();
+reduced.addEventListener('change', applyMotion);
 
-if (!document.body.classList.contains('is-home') && !motionReduced()) {
-  document.querySelector('main')?.animate([
-    { opacity: .25, transform: 'translateY(15px)' }, { opacity: 1, transform: 'translateY(0)' },
-  ], { duration: 500, easing: 'cubic-bezier(.23, 1, .32, 1)' });
-}
+// Page markup is replaced on navigation, so everything bound to it is set up again after each swap.
+let pageAbort;
+function init() {
+  pageAbort?.abort(); pageAbort = new AbortController(); const { signal } = pageAbort;
+  applyMotion();
+  const header = document.querySelector('.site-header');
+  function updateHeader() { header?.classList.toggle('is-scrolled', scrollY > 35); }
+  document.addEventListener('scroll', updateHeader, { passive: true, signal });
+  updateHeader();
 
-if ('IntersectionObserver' in window) {
-  const reveal = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      reveal.unobserve(entry.target);
-      if (!motionReduced()) entry.target.animate([
-        { opacity: .1, transform: 'translateY(35px)' },
-        { opacity: 1, transform: 'translateY(0)' },
-      ], { duration: 900, easing: 'cubic-bezier(.23, 1, .32, 1)' });
-      const line = entry.target.querySelector('.step-light');
-      if (line && !motionReduced()) line.animate([
-        { transform: 'scaleX(0)', opacity: 0 }, { transform: 'scaleX(1)', opacity: 1 },
-      ], { duration: 1000, delay: 100, easing: 'cubic-bezier(.23, 1, .32, 1)' });
+  if (!document.body.classList.contains('is-home') && !document.querySelector('[data-aurora-zone]') && !motionReduced()) {
+    document.querySelector('main')?.animate([
+      { opacity: .25, transform: 'translateY(15px)' }, { opacity: 1, transform: 'translateY(0)' },
+    ], { duration: 500, easing: 'cubic-bezier(.23, 1, .32, 1)' });
+  }
+
+  if ('IntersectionObserver' in window) {
+    const reveal = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        reveal.unobserve(entry.target);
+        if (!motionReduced()) entry.target.animate([
+          { opacity: .1, transform: 'translateY(35px)' },
+          { opacity: 1, transform: 'translateY(0)' },
+        ], { duration: 900, easing: 'cubic-bezier(.23, 1, .32, 1)' });
+        const line = entry.target.querySelector('.step-light');
+        if (line && !motionReduced()) line.animate([
+          { transform: 'scaleX(0)', opacity: 0 }, { transform: 'scaleX(1)', opacity: 1 },
+        ], { duration: 1000, delay: 100, easing: 'cubic-bezier(.23, 1, .32, 1)' });
+      }
+    }, { threshold: .12 });
+    document.querySelectorAll('[data-reveal]').forEach((element) => reveal.observe(element));
+  }
+
+  if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    for (const card of document.querySelectorAll('[data-light-card]')) card.addEventListener('pointermove', (event) => {
+      const bounds = card.getBoundingClientRect();
+      card.style.setProperty('--light-x', `${event.clientX - bounds.left}px`);
+      card.style.setProperty('--light-y', `${event.clientY - bounds.top}px`);
+    });
+  }
+
+  for (const visual of document.querySelectorAll('[data-depth-visual]')) {
+    let scene;
+    let frame = 0;
+    let resize;
+    let pending = false;
+    let visible = false;
+    const canvas = visual.querySelector('canvas');
+    const focus = visual.dataset.depthVisual;
+    const lineup = !['edu', 'digital', 'gov'].includes(focus);
+    // Play the object's build sequence once when the page opens.
+    let playFrom;
+    let last;
+    let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0;
+    window.addEventListener('pointermove', (event) => {
+      if (event.pointerType !== 'mouse') return;
+      pointerX = (event.clientX / innerWidth - .5) * .7;
+      pointerY = (event.clientY / innerHeight - .5) * .5;
+    }, { passive: true });
+    document.addEventListener('pointerleave', () => { pointerX = pointerY = 0; });
+    function tick(time) {
+      frame = 0;
+      if (!scene || !visible || document.hidden || motionReduced()) return;
+      playFrom ??= time + 300;
+      const build = lineup ? 1 : Math.min(1, Math.max(0, (time - playFrom) / 4200));
+      const follow = 1 - Math.exp(-Math.min(1, (time - (last ?? time)) / 1000) / .2);
+      last = time;
+      smoothX += (pointerX - smoothX) * follow;
+      smoothY += (pointerY - smoothY) * follow;
+      scene.render(0, build, time / 1000, smoothX, smoothY);
+      frame = requestAnimationFrame(tick);
     }
-  }, { threshold: .12 });
-  document.querySelectorAll('[data-reveal]').forEach((element) => reveal.observe(element));
+    function schedule() {
+      if (!frame && scene && visible && !document.hidden && !motionReduced()) frame = requestAnimationFrame(tick);
+    }
+    function dispose() {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      resize?.disconnect();
+      scene?.dispose();
+      scene = undefined;
+      visual.classList.remove('is-rendered');
+    }
+    async function setup() {
+      if (pending || scene || motionReduced()) return;
+      pending = true;
+      try {
+        const { createStageScene } = await import('./stage-scene.js');
+        if (motionReduced()) return;
+        scene = createStageScene(canvas, lineup ? { mode: 'lineup' } : { mode: 'detail', focus });
+        scene.render(0, lineup ? 1 : 0, 0);
+        visual.classList.add('is-rendered');
+        resize = new ResizeObserver(() => scene?.resize());
+        resize.observe(canvas);
+        schedule();
+      } catch { dispose(); }
+      finally { pending = false; }
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) { void setup(); schedule(); }
+      else { cancelAnimationFrame(frame); frame = 0; }
+    });
+    observer.observe(visual);
+    reduced.addEventListener('change', () => { if (reduced.matches) dispose(); else void setup(); });
+    canvas?.addEventListener('webglcontextlost', dispose);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { cancelAnimationFrame(frame); frame = 0; }
+      else schedule();
+    });
+    window.addEventListener('pagehide', (event) => { if (!event.persisted) { observer.disconnect(); dispose(); } });
+  }
 }
-
-if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
-  for (const card of document.querySelectorAll('[data-light-card]')) card.addEventListener('pointermove', (event) => {
-    const bounds = card.getBoundingClientRect();
-    card.style.setProperty('--light-x', `${event.clientX - bounds.left}px`);
-    card.style.setProperty('--light-y', `${event.clientY - bounds.top}px`);
-  });
-}
-
-for (const visual of document.querySelectorAll('[data-depth-visual]')) {
-  let scene;
-  let frame = 0;
-  let resize;
-  let pending = false;
-  let visible = false;
-  const canvas = visual.querySelector('canvas');
-  const focus = visual.dataset.depthVisual;
-  const lineup = !['edu', 'digital', 'gov'].includes(focus);
-  // Play the object's build sequence once when the page opens.
-  let playFrom;
-  let last;
-  let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0;
-  window.addEventListener('pointermove', (event) => {
-    if (event.pointerType !== 'mouse') return;
-    pointerX = (event.clientX / innerWidth - .5) * .7;
-    pointerY = (event.clientY / innerHeight - .5) * .5;
-  }, { passive: true });
-  document.addEventListener('pointerleave', () => { pointerX = pointerY = 0; });
-  function tick(time) {
-    frame = 0;
-    if (!scene || !visible || document.hidden || motionReduced()) return;
-    playFrom ??= time + 300;
-    const build = lineup ? 1 : Math.min(1, Math.max(0, (time - playFrom) / 4200));
-    const follow = 1 - Math.exp(-Math.min(1, (time - (last ?? time)) / 1000) / .2);
-    last = time;
-    smoothX += (pointerX - smoothX) * follow;
-    smoothY += (pointerY - smoothY) * follow;
-    scene.render(0, build, time / 1000, smoothX, smoothY);
-    frame = requestAnimationFrame(tick);
-  }
-  function schedule() {
-    if (!frame && scene && visible && !document.hidden && !motionReduced()) frame = requestAnimationFrame(tick);
-  }
-  function dispose() {
-    cancelAnimationFrame(frame);
-    frame = 0;
-    resize?.disconnect();
-    scene?.dispose();
-    scene = undefined;
-    visual.classList.remove('is-rendered');
-  }
-  async function setup() {
-    if (pending || scene || motionReduced()) return;
-    pending = true;
-    try {
-      const { createStageScene } = await import('./stage-scene.js');
-      if (motionReduced()) return;
-      scene = createStageScene(canvas, lineup ? { mode: 'lineup' } : { mode: 'detail', focus });
-      scene.render(0, lineup ? 1 : 0, 0);
-      visual.classList.add('is-rendered');
-      resize = new ResizeObserver(() => scene?.resize());
-      resize.observe(canvas);
-      schedule();
-    } catch { dispose(); }
-    finally { pending = false; }
-  }
-  const observer = new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting;
-    if (visible) { void setup(); schedule(); }
-    else { cancelAnimationFrame(frame); frame = 0; }
-  });
-  observer.observe(visual);
-  reduced.addEventListener('change', () => { if (reduced.matches) dispose(); else void setup(); });
-  canvas?.addEventListener('webglcontextlost', dispose);
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { cancelAnimationFrame(frame); frame = 0; }
-    else schedule();
-  });
-  window.addEventListener('pagehide', (event) => { if (!event.persisted) { observer.disconnect(); dispose(); } });
-}
+init();
+document.addEventListener('astro:after-swap', init);

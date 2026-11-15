@@ -1,23 +1,42 @@
 ---
 import Site from '../layouts/Site.astro';
 import Icon from '../components/Icon.astro';
+import Glass from '../aurora/Glass.astro';
 import { contactEmail, topics } from '../data.js';
 ---
 <Site title="Liên hệ · AFYLLX" description="Trao đổi nhu cầu về giáo dục, kinh doanh website và chuyển đổi số với AFYLLX.">
-  <section class="simple-hero"><div class="wrap"><span class="kicker"><span></span> LIÊN HỆ</span><h1>Trao đổi cùng AFYLLX</h1><p>Chọn lĩnh vực bạn quan tâm và mô tả việc bạn muốn giải quyết.</p></div></section>
-  <section class="light-section section-pad"><div class="wrap contact-page">
-    <div><span class="kicker"><span></span> LIÊN HỆ QUA EMAIL</span><h2>Gửi nhu cầu của bạn</h2><p>Biểu mẫu soạn một email để bạn xem lại và gửi bằng ứng dụng email trên thiết bị.</p><a class="text-link" href={`mailto:${contactEmail}`}><Icon name="mail" size={20} /> {contactEmail}</a></div>
-    <form class="contact-form" data-contact data-recipient={contactEmail} hidden>
-      <div class="field-row"><label>Họ và tên<input name="name" autocomplete="name" required maxlength="100" /></label><label>Email<input name="email" type="email" autocomplete="email" required maxlength="150" /></label></div>
-      <label>Chủ đề<select name="topic" required><option value="" disabled selected>Chọn chủ đề</option>{topics.map((topic) => <option value={topic.id}>{topic.name}</option>)}</select></label>
-      <label>Nội dung trao đổi<textarea name="message" rows="5" required maxlength="1000" placeholder="Bạn đang muốn giải quyết việc gì?"></textarea></label>
-      <button class="button button-primary" type="submit">Mở email để gửi <Icon name="external" size={18} /></button>
-    </form>
-  </div></section>
+  <div class="au au-home" data-aurora-zone data-cycle>
+    <Glass />
+
+    <section class="c2-hero sub-hero sub-hero-short" aria-labelledby="page-title">
+      <div class="wrap c2-copy">
+        <nav class="au-crumbs" aria-label="Đường dẫn"><a href="/">AFYLLX</a><span aria-hidden="true">/</span><span aria-current="page">Liên hệ</span></nav>
+        <h1 id="page-title"><span class="ln"><span>Trao đổi cùng AFYLLX</span></span></h1>
+        <p class="au-lead" data-in>Chọn lĩnh vực bạn quan tâm và mô tả việc bạn muốn giải quyết.</p>
+      </div>
+    </section>
+
+    <section class="au-tail sub-tail" aria-labelledby="form-title">
+      <div class="wrap sub-split">
+        <div>
+          <h2 id="form-title" data-lines><span class="ln"><span>Gửi nhu cầu của bạn</span></span></h2>
+          <p class="au-lead">Biểu mẫu soạn một email để bạn xem lại và gửi bằng ứng dụng email trên thiết bị.</p>
+          <a class="text-link au-mail" href={`mailto:${contactEmail}`}><Icon name="mail" size={20} /> {contactEmail}</a>
+        </div>
+        <form class="au-form" data-contact data-recipient={contactEmail} hidden>
+          <div class="field-row"><label>Họ và tên<input name="name" autocomplete="name" required maxlength="100" /></label><label>Email<input name="email" type="email" autocomplete="email" required maxlength="150" /></label></div>
+          <label>Chủ đề<select name="topic" required><option value="" disabled selected>Chọn chủ đề</option>{topics.map((topic) => <option value={topic.id}>{topic.name}</option>)}</select></label>
+          <label>Nội dung trao đổi<textarea name="message" rows="5" required maxlength="1000" placeholder="Bạn đang muốn giải quyết việc gì?"></textarea></label>
+          <button class="button button-primary" type="submit">Mở email để gửi <Icon name="external" size={18} /></button>
+        </form>
+      </div>
+    </section>
+  </div>
 </Site>
 <script>
-  const form = document.querySelector<HTMLFormElement>('[data-contact]');
-  if (form) {
+  function setup() {
+    const form = document.querySelector<HTMLFormElement>('[data-contact]');
+    if (!form) return;
     form.hidden = false;
     const select = form.querySelector<HTMLSelectElement>('select[name="topic"]');
     const topic = new URLSearchParams(location.search).get('chu-de');
@@ -30,4 +49,6 @@ import { contactEmail, topics } from '../data.js';
       location.href = `mailto:${form.dataset.recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
   }
+  setup();
+  document.addEventListener('astro:after-swap', setup);
 </script>

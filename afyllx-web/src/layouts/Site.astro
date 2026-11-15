@@ -8,6 +8,7 @@ import '@fontsource/be-vietnam-pro/latin-500.css';
 import '@fontsource/be-vietnam-pro/latin-600.css';
 import '@fontsource/be-vietnam-pro/latin-700.css';
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 interface Props { title: string; description: string; image?: string; }
@@ -34,6 +35,7 @@ const canonical = new URL(current, Astro.site);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Lexend:wght@300;400;600;700&display=swap" />
     <title>{title}</title>
+    <ClientRouter />
   </head>
   <body class:list={{ 'is-home': current === '/' }}>
     <Header current={current} />

@@ -12,14 +12,14 @@ export const divisions = [
     action: 'Đến cổng AFYLLX Edu', destination: 'https://edu.afyllx.com/',
   },
   {
-    id: 'digital', number: '02', name: 'Digital', fullName: 'AFYLLX Digital', category: 'Kinh doanh trực tuyến', status: 'Chưa triển khai',
+    id: 'digital', number: '02', name: 'Digital', fullName: 'AFYLLX Digital', category: 'Kinh doanh trực tuyến', status: 'Đã triển khai',
     title: 'Nền tảng kinh doanh website trực tuyến',
     description: 'Định hướng một nơi để tìm giải pháp website, đặt làm và đưa website vào sử dụng.',
     focusTitle: 'Từ mục tiêu kinh doanh đến website',
     focus: 'AFYLLX Digital dự kiến bắt đầu từ mục tiêu của khách hàng, như bán hàng, giới thiệu dịch vụ hay nhận lịch hẹn. Từ đó xác định loại website, phạm vi công việc và cách vận hành sau khi bàn giao.',
     audience: 'Cá nhân và doanh nghiệp cần đưa hoạt động kinh doanh lên website.',
-    next: 'Chia sẻ mục tiêu và cách bạn đang bán hàng hoặc phục vụ khách. Thông tin này giúp AFYLLX xác định phạm vi cần phát triển trước.',
-    action: 'Trao đổi nhu cầu website', destination: '/lien-he?chu-de=digital',
+    next: 'Tìm hiểu các giải pháp website tại cổng AFYLLX Digital hoặc chia sẻ mục tiêu kinh doanh để AFYLLX xác định phạm vi phù hợp.',
+    action: 'Đến cổng AFYLLX Digital', destination: 'https://digital.afyllx.com/',
   },
   {
     id: 'gov', number: '03', name: 'Gov', fullName: 'AFYLLX Gov', category: 'Khu vực công', status: 'Chưa triển khai',

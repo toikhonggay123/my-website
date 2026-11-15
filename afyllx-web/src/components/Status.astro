@@ -2,4 +2,4 @@
 interface Props { id: string; status: string; }
 const { id, status } = Astro.props;
 ---
-<span class:list={['status', { live: id === 'edu' }]}><span aria-hidden="true"></span>{status}</span>
+<span class:list={['status', { live: status === 'Đã triển khai' }]}><span aria-hidden="true"></span>{status}</span>
