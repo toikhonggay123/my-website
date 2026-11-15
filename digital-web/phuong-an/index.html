@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Chọn mẫu trang chủ — AFYLLX Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{font:400 17px/1.55 'Be Vietnam Pro',system-ui,sans-serif;color:#10203f;background:#f3f5fa;padding:clamp(20px,4vw,56px)}
+h1{font-size:clamp(30px,4vw,52px);font-weight:800;letter-spacing:-.05em;line-height:1.05}
+p.s{color:#566789;margin:12px 0 32px;max-width:40em}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+a.c{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 0 0 1px #10203f1f;transition:transform .3s,box-shadow .3s}
+a.c:hover{transform:translateY(-4px);box-shadow:0 0 0 2px #2454c6,0 24px 40px -24px #2454c6}
+.f{height:230px;overflow:hidden;position:relative;background:#e7ebf3}
+.f iframe{width:1440px;height:920px;border:0;transform-origin:0 0;pointer-events:none;position:absolute;left:0;top:0}
+.t{padding:18px 20px 22px}
+.t b{font-size:21px;font-weight:800;letter-spacing:-.03em}
+.t span{display:block;color:#566789;font-size:15px;margin-top:4px}
+</style>
+</head>
+<body>
+<h1>Năm mẫu trang chủ AFYLLX Digital</h1>
+<p class="s">Bấm vào từng mẫu để mở toàn trang. Nội dung giống nhau, khác nhau ở cách mở đầu và phong cách.</p>
+<div class="g">
+ <a class="c" href="mau-1.html"><div class="f"><iframe src="mau-1.html" tabindex="-1" title=""></iframe></div><div class="t"><b>Mẫu 1 — 24 giờ</b><span>Trời chuyển ngày sang đêm, tiệm kéo cửa cuốn, website vẫn nhận đơn. Kéo được thanh thời gian.</span></div></a>
+ <a class="c" href="mau-2.html"><div class="f"><iframe src="mau-2.html" tabindex="-1" title=""></iframe></div><div class="t"><b>Mẫu 2 — Khổ chữ</b><span>Chữ khổng lồ, từ khóa cuộn đổi, mục lục "Tôi muốn" có khung xem trước.</span></div></a>
+ <a class="c" href="mau-3.html"><div class="f"><iframe src="mau-3.html" tabindex="-1" title=""></iframe></div><div class="t"><b>Mẫu 3 — Bản vẽ</b><span>Kéo thanh vàng để biến bản phác thảo thành website hoàn chỉnh.</span></div></a>
+ <a class="c" href="mau-4.html"><div class="f"><iframe src="mau-4.html" tabindex="-1" title=""></iframe></div><div class="t"><b>Mẫu 4 — Thử ngay</b><span>Khách gõ tên tiệm, chọn loại và màu; website mẫu và cả trang đổi theo.</span></div></a>
+ <a class="c" href="mau-5.html"><div class="f"><iframe src="mau-5.html" tabindex="-1" title=""></iframe></div><div class="t"><b>Mẫu 5 — Bốn lớp</b><span>Nền tối cùng họ afyllx.com, website tách thành bốn lớp 3D phát sáng.</span></div></a>
+ <a class="c" href="so-sanh-5.html"><div class="f"><iframe src="mau-5.html?tone=sang" tabindex="-1" title=""></iframe></div><div class="t"><b>Mẫu 5 — tông sáng</b><span>Cùng bố cục bốn lớp trên nền trắng xanh. Bấm để so sánh cạnh tông tối.</span></div></a>
+ <a class="c" href="d.html"><div class="f"><iframe src="d.html" tabindex="-1" title=""></iframe></div><div class="t"><b>Mẫu D (bản cũ)</b><span>Để so sánh: nền sáng, cửa sổ trình duyệt 3D.</span></div></a>
+</div>
+<script>
+const fit=()=>document.querySelectorAll('.f').forEach(f=>f.firstElementChild.style.transform=`scale(${f.clientWidth/1440})`);
+fit();addEventListener('resize',fit);
+</script>
+</body>
+</html>

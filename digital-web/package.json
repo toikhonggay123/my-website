@@ -1,0 +1,28 @@
+{
+  "name": "afyllx-digital",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AFYLLX Digital — portal digital.afyllx.com và các bản mẫu website.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 3300 --host 127.0.0.1 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4300 --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test worker/order.test.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/lora": "^5.3.0",
+    "@fontsource/be-vietnam-pro": "^5.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.8"
+  }
+}
