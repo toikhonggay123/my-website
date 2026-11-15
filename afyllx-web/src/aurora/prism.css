@@ -1,0 +1,21 @@
+.c2-hero { min-height: 100svh; display: grid; align-items: center; padding-block: 120px 90px; }
+.c2-copy h1 { font-size: clamp(42px, 6.6vw, 112px); line-height: 1.02; margin-bottom: 30px; }
+.c2-copy .au-lead { max-width: 26em; margin-bottom: 34px; }
+.au-field.c2 .au-field-copy, .au-manifest.c2 p { max-width: min(46vw, 620px); }
+.au-manifest.c2 p { margin-inline: 0; font-size: clamp(26px, 3.3vw, 52px); }
+.au-manifest.c2 .wrap { margin-inline: auto; }
+@media (max-width: 820px) {
+  .c2-hero { align-items: end; padding-bottom: 96px; }
+  .au-field.c2 { align-items: end; padding-bottom: 12vh; }
+  .au-field.c2 .au-field-copy, .au-manifest.c2 p { max-width: none; }
+}
+
+/* Home page only */
+.au-home { background: none; }
+.au-rail { position: fixed; z-index: 30; left: 0; right: 0; bottom: 18px; pointer-events: none; opacity: 0; translate: 0 14px; transition: opacity .4s, translate .5s var(--ease); }
+.au-rail.is-on { opacity: 1; translate: 0 0; }
+.au-rail .wrap { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.au-rail.is-on a, .au-rail.is-on button { pointer-events: auto; }
+.au-rail .stage-rail a { background: #050d24b8; }
+.au-home .au-field.c2 { padding-bottom: 96px; }
+@media (max-width: 820px) { .au-home .au-field.c2 { padding-bottom: 130px; } }
