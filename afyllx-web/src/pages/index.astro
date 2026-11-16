@@ -42,7 +42,7 @@ const approach = [
             <p class="au-cat" data-soft>{s.fullName}, {s.category.toLowerCase()} <Status id={s.id} status={s.status} /></p>
             <h2 id={`title-${s.id}`}>{s.headline.map((line) => <span class="ln"><span>{line}</span></span>)}</h2>
             <p class="au-lead" data-soft>{s.body}</p>
-            <a class="text-link" href={`/${s.id}`} data-soft>Khám phá {s.name} <span class="round-arrow"><Icon name="external" size={17} /></span></a>
+            <a class="text-link au-explore" href={`/${s.id}`} data-soft>Khám phá {s.name} <span class="round-arrow"><Icon name="external" size={17} /></span></a>
           </div>
         </div>
       </section>
