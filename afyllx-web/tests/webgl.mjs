@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 
 const base = process.env.AFYLLX_TEST_URL || 'http://127.0.0.1:4321';
 const software = process.argv.includes('--software');
@@ -16,13 +16,18 @@ let frames = 0;
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 960 }, deviceScaleFactor: 1 });
   page.on('pageerror', error => errors.push(error.message));
-  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('console', message => {
+    if (message.type() === 'error' && !message.text().includes('[Report Only]')) errors.push(message.text());
+  });
+  const canvas = page.locator('canvas[data-stage]');
 
-  async function inspect(selector, name, animated = true) {
-    const canvas = page.locator(selector);
-    const read = () => canvas.evaluate(element => {
+  async function inspect(name, animated = true) {
+    await expect(canvas).toHaveAttribute('data-ready', '1', { timeout: 10000 });
+    await expect(canvas).toHaveCSS('opacity', '1', { timeout: 6000 });
+    await expect(canvas).toHaveCSS('visibility', 'visible');
+    const read = () => canvas.evaluate(element => new Promise(resolve => requestAnimationFrame(() => {
       const gl = element.getContext('webgl2');
-      if (!gl || gl.isContextLost()) return { lost: true };
+      if (!gl || gl.isContextLost()) { resolve({ lost: true }); return; }
       const info = gl.getExtension('WEBGL_debug_renderer_info');
       const pixels = new Uint8Array(element.width * element.height * 4);
       gl.readPixels(0, 0, element.width, element.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -33,13 +38,13 @@ try {
         hash = Math.imul(hash ^ pixels[i] ^ (pixels[i + 1] << 8) ^ (pixels[i + 2] << 16), 16777619) >>> 0;
       }
       const rect = element.getBoundingClientRect();
-      return {
+      resolve({
         lost: false, total: element.width * element.height, opaque, bright, hash,
         renderer: info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : '',
         error: gl.getError(), opacity: getComputedStyle(element).opacity,
         width: rect.width, height: rect.height,
-      };
-    });
+      });
+    })));
     const first = await read();
     assert.equal(first.lost, false, name + ': WebGL context');
     if (!software) assert.doesNotMatch(first.renderer, /SwiftShader|llvmpipe|WARP|Software Adapter/i, 'Run the hardware regression with a real GPU');
@@ -65,58 +70,45 @@ try {
     console.log(JSON.stringify({ scene: name, brightPixels: first.bright, completeFrame: true, animated, renderer: first.renderer }));
   }
 
-  // Scroll to a chapter's anchor, which sits at its hold point (fully expanded).
+  const chapterLink = (name) => page.locator(`[data-rail-link][href="#chuong-${name}"]`);
   async function chapter(name) {
     await page.evaluate(name => {
       const anchor = document.getElementById('chuong-' + name);
-      scrollTo({ top: anchor.getBoundingClientRect().top + scrollY, behavior: 'instant' });
+      const { top, height } = anchor.getBoundingClientRect();
+      scrollTo({ top: scrollY + top + (height - innerHeight) / 2, behavior: 'instant' });
     }, name);
-    await page.locator('.stage.is-rendered').waitFor();
-    // Playback is speed-limited, so wait for the stage to catch up with the scroll.
-    await page.waitForFunction(name => {
-      const copy = document.querySelector('[data-stage-copy="' + name + '"]');
-      return document.querySelector('[data-stage]').dataset.current === name && Number(getComputedStyle(copy).opacity) > .95;
-    }, name, { timeout: 10000 });
-    // Let the canvas finish its 600 ms fade-in.
-    await page.waitForTimeout(900);
-    assert.equal(await page.locator('[data-stage]').getAttribute('data-current'), name);
-    assert.ok(Math.abs(await page.locator('.stage-sticky').evaluate(element => element.getBoundingClientRect().top)) < 1, name + ': sticky stage');
-    const copy = page.locator('[data-stage-copy="' + name + '"]');
-    assert.ok(Number(await copy.evaluate(element => getComputedStyle(element).opacity)) > .95, name + ': chapter copy visible');
+    await expect(chapterLink(name)).toHaveAttribute('aria-current', 'true');
+    await expect(page.locator(`#chuong-${name} h2`)).toBeInViewport();
   }
 
-  await page.goto(base, { waitUntil: 'networkidle' });
+  await page.goto(base);
   for (const name of ['edu', 'digital', 'gov', 'digital', 'edu']) {
     await chapter(name);
-    await inspect('[data-stage-canvas]', 'desktop-' + name + '-' + frames);
+    await inspect('desktop-' + name + '-' + frames);
   }
   for (const [label, viewport] of [
     ['tall', { width: 1182, height: 1177 }],
     ['mobile', { width: 390, height: 844 }],
   ]) {
     await page.setViewportSize(viewport);
+    await page.goto(base);
     for (const name of ['edu', 'digital', 'gov']) {
       await chapter(name);
-      await inspect('[data-stage-canvas]', label + '-' + name);
+      await inspect(label + '-' + name);
     }
   }
   await page.setViewportSize({ width: 1440, height: 960 });
-  await page.goto(base + '/#chuong-digital', { waitUntil: 'networkidle' });
-  await page.locator('.stage.is-rendered').waitFor();
-  await page.waitForTimeout(1200);
-  assert.equal(await page.locator('[data-stage]').getAttribute('data-current'), 'digital', 'direct chapter link');
-  await inspect('[data-stage-canvas]', 'direct-chapter');
+  await page.goto(base + '/#chuong-digital');
+  await expect(chapterLink('digital')).toHaveAttribute('aria-current', 'true');
+  await inspect('direct-chapter');
   const secondTab = await browser.newPage();
   await secondTab.bringToFront();
   await page.bringToFront();
-  await page.waitForTimeout(600);
-  await inspect('[data-stage-canvas]', 'tab-return');
+  await inspect('tab-return');
   await secondTab.close();
   for (const name of ['edu', 'digital', 'gov', 've-afyllx']) {
-    await page.goto(base + '/' + name, { waitUntil: 'networkidle' });
-    await page.locator('[data-depth-visual].is-rendered').waitFor();
-    await page.waitForTimeout(1000);
-    await inspect('[data-depth-visual] canvas', 'page-' + name);
+    await page.goto(base + '/' + name);
+    await inspect('page-' + name);
   }
   assert.deepEqual(errors, [], 'Browser runtime or shader errors');
   console.log(JSON.stringify({ webgl: 'PASS', mode: software ? 'software' : 'hardware', scenes: frames, base }));

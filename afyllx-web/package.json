@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "astro dev --host 127.0.0.1 --port 4321",
     "check": "astro check",
+    "test:homepage": "node --test tests/homepage.test.mjs",
     "test:webgl": "node tests/webgl.mjs",
     "render:posters": "node scripts/render-posters.mjs",
     "build": "astro build",

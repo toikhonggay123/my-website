@@ -26,13 +26,12 @@ const approach = [
         <p class="au-lead" data-in>{hero.body}</p>
         <div class="au-actions" data-in>
           <a class="button button-primary" href="#kham-pha">Khám phá các lĩnh vực</a>
-          <a class="text-link" href="/ve-afyllx">Về AFYLLX</a>
         </div>
       </div>
     </section>
 
     <section class="au-manifest c2" id="kham-pha" aria-label="AFYLLX làm gì">
-      <div class="wrap"><p data-scrub>{manifest}</p></div>
+      <div class="wrap"><p>{manifest}</p></div>
     </section>
 
     {stories.map((s) => (
@@ -63,12 +62,11 @@ const approach = [
         <p class="au-lead">Mỗi lĩnh vực có trọng tâm riêng, cùng hướng đến những giải pháp số có thể sử dụng trong thực tế.</p>
         <ul class="au-index">
           {divisions.map((division) => (
-            <li><a href={`/${division.id}`}>
+            <li class="au-index-summary">
               <h3>{division.fullName}</h3>
               <p>{division.description}</p>
               <Status id={division.id} status={division.status} />
-              <span class="round-arrow"><Icon name="external" size={17} /></span>
-            </a></li>
+            </li>
           ))}
         </ul>
 

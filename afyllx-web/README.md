@@ -19,11 +19,29 @@ Mở preview rồi chạy `pnpm test:webgl`. Có thể chọn URL bằng biến 
 
 Bài kiểm tra đọc framebuffer để phát hiện cảnh rỗng hoặc chỉ vẽ một phần, so sánh hai khung hình để phát hiện animation đứng, rồi kiểm tra mọi chương, cuộn ngược, viewport cao/mobile, mở thẳng chương, đổi tab và các trang riêng.
 
+Để kiểm tra trang chủ và header CSP, build rồi chạy Worker tài nguyên cục bộ từ thư mục này:
+
+```sh
+pnpm build
+node ../node_modules/wrangler/bin/wrangler.js dev --config wrangler.jsonc --local --ip 127.0.0.1 --port 4372
+pnpm test:homepage
+```
+
+Chạy lệnh kiểm thử ở terminal thứ hai. `AFYLLX_TEST_URL` cho phép trỏ tới cổng local khác.
+
 Không bật MSAA trên render target của EffectComposer: khi kết hợp UnrealBloomPass trên NVIDIA/ANGLE D3D11, bản cũ xuất khung hình rỗng hoặc chỉ còn một dải nhỏ dù không có lỗi WebGL. Đã tái hiện với GPU RTX 3080 Laptop; SwiftShader không tái hiện được nên kiểm tra giả lập riêng từng bỏ sót lỗi. Bộ dựng giữ HDR và bloom, dùng [SMAAPass trước OutputPass](https://threejs.org/docs/pages/SMAAPass.html) để làm mịn cạnh.
 
 ## Cloudflare
 
 Website được triển khai bằng cấu hình `wrangler.jsonc` vào Worker tĩnh `afyllx-web`, không gắn tên miền trực tiếp. Worker `my-website` đang sở hữu `afyllx.com` chuyển các trang thương hiệu và ba tiền tố tài nguyên `afyllx-assets`, `afyllx-brand`, `afyllx-media` sang service binding `AFYLLX_WEB`. Các đường dẫn ứng dụng, API và PWA tiếp tục qua handler hiện có. Cổng `edu.afyllx.com` dùng gateway riêng.
+
+Đề xuất cấu hình chuẩn hóa URL tại Cloudflare:
+
+1. Thêm bản ghi DNS được proxy cho `www.afyllx.com` và xác nhận chứng chỉ edge bao phủ hostname đó.
+2. Tạo Single Redirect với điều kiện `http.host eq "www.afyllx.com" or (http.host eq "afyllx.com" and not ssl)`. Đích là `concat("https://afyllx.com", http.request.uri.path)`. Chọn `308` để giữ phương thức HTTP và bật giữ chuỗi truy vấn.
+3. Xác nhận cả HTTP và HTTPS trên `www`, cùng HTTP trên tên miền chính, về đúng URL HTTPS. Dùng thêm `/lien-he?chu-de=edu` để kiểm tra việc giữ đường dẫn và tham số.
+
+`public/_headers` cung cấp chính sách CSP thử nghiệm ở chế độ Report-Only. Kiểm tra cảnh báo trình duyệt, nhất là JavaScript nội tuyến của biểu mẫu Liên hệ, trước khi cân nhắc thực thi chính sách.
 
 Sau khi chạy `pnpm check` và `pnpm build` tại đây, từ thư mục cha chạy:
 
