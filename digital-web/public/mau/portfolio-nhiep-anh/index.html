@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <meta name="description" content="Mẫu portfolio nhiếp ảnh Trần Minh Quân của AFYLLX Digital, với thư viện ảnh và biểu mẫu liên hệ tương tác.">
+  <title>Trần Minh Quân — Hồ sơ nhiếp ảnh</title>
+  <link rel="preload" href="assets/cormorant-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/cormorant-regular-vi.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Đến nội dung chính</a>
+  <header class="header">
+    <div class="shell header-inner">
+      <a class="brand" href="#home" data-route aria-label="Trần Minh Quân, trang chủ">
+        <span class="monogram" aria-hidden="true">MQ<span>.</span></span>
+        <span class="brand-name">Trần Minh Quân<small>Nhiếp ảnh</small></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="navigation">Danh mục <span aria-hidden="true">+</span></button>
+      <nav class="navigation" id="navigation" aria-label="Điều hướng chính">
+        <a href="#home" data-route>Trang chủ</a>
+        <a href="#about" data-route>Giới thiệu</a>
+        <a href="#work" data-route>Tác phẩm</a>
+        <a href="#portraits" data-route>Chân dung</a>
+        <a href="#services" data-route>Dịch vụ</a>
+        <a class="nav-contact" href="#contact" data-route>Liên hệ <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <a class="brand" href="#home" data-route aria-label="Trần Minh Quân, trang chủ">
+        <span class="monogram" aria-hidden="true">MQ<span>.</span></span>
+        <span class="brand-name">Trần Minh Quân<small>Hà Nội, Việt Nam</small></span>
+      </a>
+      <span class="micro copyright">Bản mẫu của AFYLLX Digital</span>
+      <a class="text-link" href="/dat-lam" target="_top">Đặt làm website <span aria-hidden="true">↗</span></a>
+    </div>
+  </footer>
+  <dialog class="lightbox" aria-label="Trình xem ảnh">
+    <div class="lightbox-layout">
+      <div class="lightbox-top">
+        <span class="micro" id="photo-count"></span>
+        <button class="icon-button lightbox-close" type="button" aria-label="Đóng trình xem ảnh" autofocus>×</button>
+      </div>
+      <div class="lightbox-stage">
+        <button class="icon-button previous-photo" type="button" aria-label="Ảnh trước">←</button>
+        <div class="lightbox-frame"></div>
+        <button class="icon-button next-photo" type="button" aria-label="Ảnh tiếp theo">→</button>
+      </div>
+      <div class="lightbox-caption" aria-live="polite">
+        <p id="lightbox-title"></p>
+        <span class="micro" id="lightbox-category"></span>
+        <a class="photo-credit" id="lightbox-credit" target="_blank" rel="noopener noreferrer" hidden></a>
+      </div>
+    </div>
+  </dialog>
+  <div class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

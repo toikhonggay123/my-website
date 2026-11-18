@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>So sánh mẫu 5 tối và sáng — AFYLLX Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{font:400 16px/1.5 'Be Vietnam Pro',system-ui,sans-serif;color:#10203f;background:#e9edf5;padding:16px}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 20px;margin-bottom:14px}
+h1{font-size:22px;font-weight:800;letter-spacing:-.03em}
+.top a{color:#2454c6;font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.col h2{font-size:16px;font-weight:800;margin-bottom:8px;display:flex;justify-content:space-between;gap:12px}
+.col h2 a{font-weight:600;color:#2454c6}
+.f{position:relative;overflow:hidden;border-radius:14px;box-shadow:0 0 0 1px #10203f26;background:#fff}
+.f iframe{position:absolute;left:0;top:0;width:1280px;height:820px;border:0;transform-origin:0 0}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top"><h1>Mẫu 5 "Bốn lớp": tông tối và tông sáng</h1><span>Cuộn và rê chuột trong từng khung như trang thật.</span><a href="index.html">Về trang chọn mẫu</a></div>
+<div class="cols">
+ <div class="col"><h2>Tông tối <a href="mau-5.html?tone=toi">Mở toàn trang</a></h2><div class="f"><iframe src="mau-5.html?tone=toi" title="Mẫu 5 tông tối"></iframe></div></div>
+ <div class="col"><h2>Tông sáng <a href="mau-5.html?tone=sang">Mở toàn trang</a></h2><div class="f"><iframe src="mau-5.html?tone=sang" title="Mẫu 5 tông sáng"></iframe></div></div>
+</div>
+<script>
+const fit=()=>document.querySelectorAll('.f').forEach(f=>{const s=f.clientWidth/1280;f.firstElementChild.style.transform=`scale(${s})`;f.style.height=820*s+'px'});
+fit();addEventListener('resize',fit);
+</script>
+</body>
+</html>

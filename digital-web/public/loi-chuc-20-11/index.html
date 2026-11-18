@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="/loi-chuc-20-11/">
+  <title>Lời chúc tri ân 20/11</title>
+  <meta name="description" content="Tạo ảnh lời chúc tri ân thầy cô nhân ngày Nhà giáo Việt Nam 20/11">
+  <link rel="icon" href="assets/afyllx-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Dancing+Script:wght@600;700&family=Lora:ital,wght@1,500&family=Patrick+Hand&display=swap">
+  <link rel="stylesheet" href="styles.css?v=4">
+</head>
+<body>
+  <header class="top">
+    <h1>Lời chúc tri ân 20/11</h1>
+    <p>Gửi ảnh, họ tên, lớp và lời chúc của bạn vào khung của Khoa Hành chính học, rồi tải ảnh về</p>
+  </header>
+
+  <main class="studio">
+    <section class="stage" aria-label="Xem trước ảnh">
+      <div class="frame-wrap" id="frameWrap">
+        <canvas id="preview" width="1350" height="1350" aria-label="Ảnh xem trước"></canvas>
+        <div class="loading" id="loading">Đang tải khung…</div>
+        <a class="credit-link" id="creditLink" href="https://digital.afyllx.com/" target="_blank" rel="noopener" aria-label="Mở trang AFYLLX Digital" hidden></a>
+      </div>
+      <p class="stage-hint" id="stageHint" hidden>Kéo trên ảnh để căn chỉnh, dùng thanh trượt Phóng to để thu phóng</p>
+    </section>
+
+    <form class="desk" id="desk" autocomplete="off" novalidate>
+      <fieldset class="field">
+        <legend>Ảnh của bạn</legend>
+        <label class="drop" id="drop" for="photo">
+          <input type="file" id="photo" accept="image/*">
+          <span class="drop-main" id="dropMain">Chọn ảnh</span>
+          <span class="drop-sub" id="dropSub">hoặc kéo thả ảnh vào đây</span>
+        </label>
+        <div class="zoom" id="zoomRow" hidden>
+          <label for="zoom">Phóng to</label>
+          <input type="range" id="zoom" min="1" max="3" step="0.01" value="1">
+          <button type="button" class="link" id="resetPhoto">Căn lại</button>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="name">Họ và tên</label>
+        <input type="text" id="name" maxlength="40" placeholder="Nhập họ và tên">
+      </div>
+
+      <div class="field">
+        <label for="className">Lớp</label>
+        <input type="text" id="className" maxlength="30" placeholder="Nhập tên lớp">
+      </div>
+
+      <div class="field">
+        <div class="label-row">
+          <label for="wish">Lời chúc</label>
+          <span class="count" id="wishCount">0/600</span>
+        </div>
+        <textarea id="wish" rows="7" maxlength="600" placeholder="Viết lời chúc gửi thầy cô"></textarea>
+        <div class="fonts" role="radiogroup" aria-label="Kiểu chữ lời chúc">
+          <label><input type="radio" name="font" value="hand" checked><span class="f-hand">Viết tay</span></label>
+          <label><input type="radio" name="font" value="script"><span class="f-script">Bay bướm</span></label>
+          <label><input type="radio" name="font" value="serif"><span class="f-serif">Trang nhã</span></label>
+        </div>
+      </div>
+
+      <div class="action">
+        <button type="submit" class="download" id="download" disabled>Tải ảnh về</button>
+        <p class="missing" id="missing" aria-live="polite"></p>
+      </div>
+    </form>
+  </main>
+
+  <script src="app.js?v=5"></script>
+</body>
+</html>

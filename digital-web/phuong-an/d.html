@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AFYLLX Digital — Làm website bán hàng, đặt lịch và giới thiệu dịch vụ</title>
+<meta name="description" content="AFYLLX Digital làm website cho cửa hàng và dịch vụ: bán hàng online, nhận đặt lịch, giới thiệu dịch vụ. Xem bản mẫu chạy thử, đặt làm theo nhu cầu và có người lo vận hành sau bàn giao.">
+<link rel="canonical" href="https://digital.afyllx.com/">
+<meta name="theme-color" content="#2454c6">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="vi_VN">
+<meta property="og:site_name" content="AFYLLX Digital">
+<meta property="og:url" content="https://digital.afyllx.com/">
+<meta property="og:title" content="AFYLLX Digital — Website giúp bạn bán hàng và nhận khách">
+<meta property="og:description" content="Xem bản mẫu chạy thử, đặt làm website theo nhu cầu và có người lo vận hành sau bàn giao.">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"AFYLLX Digital","url":"https://digital.afyllx.com/","email":"contact.afyllx@gmail.com","parentOrganization":{"@type":"Organization","name":"AFYLLX","url":"https://afyllx.com/"}}</script>
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Lora:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--canvas:#f7f9fc;--surface:#fff;--ink:#101d34;--muted:#465e79;--brand:#2454c6;--brand-d:#1b3f99;--line:#dce4ef;
+ --night:#040814;--night-card:#0c1528;--electric:#4583ff;--ice:#8dc8ff;--ease:cubic-bezier(.16,1,.3,1)}
+*{box-sizing:border-box;margin:0}
+body{font:400 18px/1.6 'Be Vietnam Pro',system-ui,sans-serif;color:var(--ink);background:var(--canvas);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+:focus-visible{outline:3px solid var(--electric);outline-offset:3px;border-radius:8px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 clamp(18px,4vw,48px)}
+.skip{position:absolute;left:-999px}.skip:focus{left:16px;top:16px;background:#fff;padding:8px 12px;z-index:99}
+/* header */
+header{position:sticky;top:0;z-index:30;background:#ffffffe6;backdrop-filter:blur(16px) saturate(1.4);border-bottom:1px solid #dce4ef80}
+.bar{display:flex;align-items:center;gap:20px;min-height:72px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;font-size:21px;letter-spacing:-.03em;margin-right:auto}
+.brand span{color:var(--brand)}
+.pill{display:flex;gap:2px;padding:4px;border-radius:999px;background:#edf1f8}
+.pill a{text-decoration:none;font-size:15px;font-weight:600;padding:9px 16px;border-radius:999px;color:#31486a;transition:background .2s,color .2s}
+.pill a:hover{background:#fff;color:var(--ink);box-shadow:0 1px 3px #10275c1f}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:0 26px;border-radius:14px;font-weight:700;font-size:16px;text-decoration:none;color:#fff;
+ background:linear-gradient(180deg,#3468e6,#2454c6);box-shadow:inset 0 1px 0 #ffffff59,0 14px 28px -12px #2454c6b3;transition:transform .25s var(--ease),box-shadow .25s}
+.btn:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 #ffffff59,0 20px 34px -12px #2454c6d9}
+.btn:active{transform:scale(.98)}
+.btn.line{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line),0 8px 20px -14px #10275c66}
+.btn.line:hover{box-shadow:inset 0 0 0 1px #b9cdf5,0 14px 26px -14px #2454c680}
+.btn.sm{min-height:44px;padding:0 18px;font-size:15px;border-radius:11px;white-space:nowrap}
+.btn.white{background:#fff;color:#163660;box-shadow:0 18px 40px -16px #000a}
+/* hero */
+.hero{position:relative;background:#fbfcff;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;background:radial-gradient(60% 70% at 78% 30%,#d6e4ff,transparent 62%),radial-gradient(40% 50% at 8% 90%,#e6f1ff,transparent 70%)}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background-image:linear-gradient(#2454c61a 1px,transparent 1px),linear-gradient(90deg,#2454c61a 1px,transparent 1px);background-size:56px 56px;
+ mask-image:radial-gradient(52% 62% at 74% 46%,#000,transparent 78%);-webkit-mask-image:radial-gradient(52% 62% at 74% 46%,#000,transparent 78%);animation:grid 1.6s var(--ease) both}
+@keyframes grid{from{opacity:0;transform:scale(1.08)}}
+.hero .wrap{display:grid;grid-template-columns:1.02fr 1fr;gap:32px;align-items:center;padding-top:64px;padding-bottom:84px;min-height:min(820px,calc(100vh - 72px))}
+.kicker{display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:600;color:var(--brand);margin-bottom:20px;padding:6px 14px 6px 10px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px #cddcfa}
+.kicker i{width:8px;height:8px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px #2454c626}
+h1{font-size:clamp(38px,5.2vw,74px);line-height:1.04;font-weight:800;letter-spacing:-.06em}
+h1 span{display:block;overflow:hidden;padding-bottom:.08em}
+h1 b{display:block;white-space:nowrap;font-weight:inherit;animation:up 1s var(--ease) both}
+h1 span:nth-child(2) b{animation-delay:.09s}h1 span:nth-child(3) b{animation-delay:.18s}
+h1 span:last-child b{background:linear-gradient(95deg,#2454c6 10%,#4583ff 60%,#6fb4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes up{from{transform:translateY(105%)}}
+.lead{font-size:clamp(17px,1.45vw,20px);line-height:1.7;color:var(--muted);margin:26px 0 34px;max-width:31em;animation:fade .9s .35s both}
+.cta{display:flex;gap:12px;flex-wrap:wrap;animation:fade .9s .45s both}
+.family{display:inline-flex;align-items:center;min-height:44px;margin-top:16px;font-size:14px;color:var(--muted);text-underline-offset:4px;animation:fade .9s .55s both}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}}
+/* 3D scene */
+.scene{position:relative;perspective:1400px;justify-self:end;width:100%;max-width:660px}
+.glow{position:absolute;inset:8% 4% 14% 10%;border-radius:50%;background:radial-gradient(closest-side,#4583ff8c,#8dc8ff40 55%,transparent);filter:blur(34px);animation:pulse 6s ease-in-out infinite alternate}
+@keyframes pulse{to{transform:scale(1.08);opacity:.75}}
+.stage{position:relative;aspect-ratio:1/.8;transform-style:preserve-3d;transform:rotateY(var(--ry,-16deg)) rotateX(var(--rx,7deg));transition:transform .5s var(--ease);animation:stage 1.3s var(--ease) both}
+@keyframes stage{from{opacity:0;transform:rotateY(-34deg) rotateX(16deg) translateY(40px) scale(.9)}}
+.plate{position:absolute;left:14%;top:0;width:78%;height:70%;border-radius:20px;border:1.5px dashed #2454c666;background:#ffffff40;transform:translateZ(-90px)}
+.plate::before,.plate::after{content:"";position:absolute;border:1.5px dashed #2454c64d;border-radius:10px}
+.plate::before{inset:12% 52% 46% 6%}.plate::after{inset:12% 6% 46% 54%}
+.win{position:absolute;left:0;top:10%;width:84%;border-radius:20px;padding:14px;color:#fff;background:radial-gradient(120% 120% at 100% 0,#2a5cbc,#0c1b3a 68%);border:1px solid #9dbcff73;
+ box-shadow:0 50px 90px -34px #0a1f5ccc,inset 0 1px 0 #ffffff40}
+.dots{display:flex;gap:6px;align-items:center;margin-bottom:12px}
+.dots i{width:9px;height:9px;border-radius:50%;background:#bcd4ff}
+.dots b{flex:1;margin-left:14px;border-radius:9px;background:#ffffff1f;max-width:52%;font-size:11px;font-weight:500;color:#c9dcfb;padding:3px 10px;white-space:nowrap;overflow:hidden}
+.view{transition:opacity .28s,transform .45s var(--ease)}
+.view.out{opacity:0;transform:translateY(10px) scale(.985)}
+.g{display:grid;grid-template-columns:1.3fr 1fr;gap:10px}
+.blk{border-radius:12px;background:#ffffff14;border:1px solid #bed6ff2e;padding:12px}
+.blk.main{background:linear-gradient(135deg,#4c80ff,#2454c6);border:0;min-height:132px;display:flex;flex-direction:column;justify-content:end;box-shadow:inset 0 1px 0 #ffffff4d}
+.blk.main strong{font-size:clamp(15px,1.55vw,21px);line-height:1.2;letter-spacing:-.03em}
+.blk.main em{align-self:start;margin-top:10px;font-style:normal;font-size:12px;font-weight:700;background:#fff;color:#163660;border-radius:8px;padding:6px 12px}
+.blk.pic{background:linear-gradient(160deg,#b7d3ff,#6f9dff);border:0;position:relative;overflow:hidden}
+.blk.pic::before{content:"";position:absolute;right:16%;top:18%;width:22px;height:22px;border-radius:50%;background:#eef4ff}
+.blk.pic::after{content:"";position:absolute;inset:auto -10% -42% -10%;height:90%;background:#2f62e6;clip-path:polygon(0 100%,30% 38%,48% 62%,68% 22%,100% 100%)}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.row3 .blk{padding:10px;font-size:12px;font-weight:500;color:#d3e4fa}
+.row3 .blk::before{content:"";display:block;height:36px;border-radius:8px;background:#ffffff26;margin-bottom:8px}
+.row3 .blk.on{background:#ffffff2b;border-color:#bed6ff8c;color:#fff}
+.row3.slots .blk{font-size:15px;font-weight:700;text-align:center;padding:14px 6px}.row3.slots .blk::before{display:none}
+.row3.slots .blk.on{background:#fff;color:#163660}
+.ph{position:absolute;right:1%;bottom:0;width:27%;border-radius:26px;background:#0b1326;border:1.5px solid #cfe0ff;padding:12px 9px;box-shadow:0 40px 60px -24px #0a1f5ce6;display:grid;gap:7px;transform:translateZ(80px)}
+.ph b{font-size:10.5px;color:#c9dcfb;font-weight:600;padding:0 2px}
+.ph i{display:block;border-radius:9px;height:26px;background:#ffffff1f}
+.ph i:nth-of-type(1){height:58px;background:linear-gradient(135deg,#4c80ff,#2454c6)}
+.ph i:nth-of-type(2){background:#8dc8ff}
+.chip{position:absolute;display:flex;align-items:center;gap:9px;background:#ffffffeb;backdrop-filter:blur(10px);color:var(--ink);border-radius:14px;padding:9px 14px 9px 9px;font-size:13px;font-weight:600;line-height:1.25;box-shadow:0 22px 40px -18px #10275c99,inset 0 0 0 1px #fff;white-space:nowrap}
+.chip svg{flex:none;width:30px;height:30px;padding:6px;border-radius:9px;background:#e9f0ff;color:var(--brand)}
+.chip small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.c1{left:-4%;top:0;transform:translateZ(120px);animation:float 5s ease-in-out infinite alternate}
+.c2{left:30%;bottom:-2%;transform:translateZ(140px);animation:float 6s -2s ease-in-out infinite alternate}
+@keyframes float{to{translate:0 -10px}}
+.cur{position:absolute;left:32%;top:55%;width:28px;transform:translateZ(60px);filter:drop-shadow(0 6px 8px #0006)}
+.pick{position:relative;z-index:2;display:flex;gap:6px;margin:26px auto 0;padding:5px;width:fit-content;border-radius:999px;background:#ffffffd9;box-shadow:inset 0 0 0 1px var(--line),0 14px 30px -18px #10275c80;backdrop-filter:blur(8px)}
+.pick button{position:relative;overflow:hidden;min-height:44px;padding:0 18px;border-radius:999px;font-size:14.5px;font-weight:600;color:#31486a}
+.pick button[aria-pressed=true]{background:var(--ink);color:#fff}
+.pick button[aria-pressed=true].auto::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--electric);transform-origin:left;animation:bar 4.2s linear both}
+@keyframes bar{from{transform:scaleX(0)}}
+.cap{position:relative;z-index:2;text-align:center;font-size:14px;color:var(--muted);margin-top:10px}
+/* sections */
+section{padding:clamp(64px,8.5vw,120px) 0}
+h2{font-size:clamp(30px,4.2vw,60px);line-height:1.06;font-weight:800;letter-spacing:-.055em;max-width:15em;text-wrap:balance}
+.sub{color:var(--muted);margin-top:16px;max-width:36em}
+.js .rv{opacity:0;transform:translateY(18px);transition:opacity .6s var(--ease),transform .6s var(--ease);transition-delay:var(--d,0s)}
+.js .rv.in{opacity:1;transform:none}
+section[id]{scroll-margin-top:100px}
+.goals{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:44px}
+.goal{position:relative;overflow:hidden;grid-column:span 2;display:flex;flex-direction:column;align-items:flex-start;padding:clamp(22px,2.4vw,32px);border-radius:24px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);text-decoration:none;min-height:260px;transition:transform .5s var(--ease),box-shadow .4s,opacity .8s var(--ease)}
+.goal::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%),#4583ff2e,transparent 65%)}
+.goal:hover::after{opacity:1}
+.goal:hover{transform:translateY(-6px);box-shadow:inset 0 0 0 1px #b9cdf5,0 34px 60px -34px #2454c6a6}
+.goal.big{grid-column:span 3;min-height:340px;color:#fff;box-shadow:none;background:radial-gradient(120% 120% at 100% 0,#2a5cbc,#102b54 62%)}
+.goal.big.alt{background:radial-gradient(120% 120% at 100% 0,#3d74f0,#182f80 64%)}
+.goal.big::after{background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),#8dc8ff40,transparent 65%)}
+.goal.big:hover{box-shadow:0 40px 70px -36px #10275ce6}
+.ico{display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:#e9f0ff;color:var(--brand)}
+.big .ico{background:#e0edff1f;box-shadow:inset 0 0 0 1px #bed6ff57;color:#fff}
+.goal:not(.big){background:linear-gradient(180deg,#f2f6ff,#fff 55%)}
+.goal small{margin-top:auto;padding-top:22px;font-size:14px;font-weight:600;color:var(--muted)}
+.big small{color:#c9dcfb}
+.goal h3{font-size:clamp(23px,2.5vw,34px);line-height:1.1;letter-spacing:-.05em;font-weight:800;margin:2px 0 8px}
+.big h3{font-size:clamp(28px,3.4vw,46px)}
+.goal p{font-size:15.5px;line-height:1.65;color:var(--muted);max-width:30em}
+.big p{color:#d8e6fa}
+.goal u{margin-top:14px;font-size:15px;font-weight:700;color:var(--brand);text-decoration:none;display:inline-flex;gap:8px;align-items:center}
+.goal u::after{content:"";width:18px;height:2px;background:currentColor;transition:width .35s var(--ease)}
+.goal:hover u::after{width:34px}.big u{color:#e1edff}
+.mini{position:absolute;right:-6%;top:-8%;width:48%;aspect-ratio:1.25;border-radius:16px;border:1px solid #bed6ff59;background:#ffffff12;transform:rotate(9deg);padding:12px;display:grid;gap:8px;grid-template-columns:1fr 1fr;transition:transform .7s var(--ease)}
+.goal:hover .mini{transform:rotate(4deg) translate(-8px,8px)}
+.mini i{border-radius:8px;background:#ffffff24}.mini i:first-child{grid-column:1/-1;background:linear-gradient(135deg,#6f9dff,#3f73ff)}
+/* night */
+.night{position:relative;background:var(--night);color:#f1f5ff;overflow:hidden;isolation:isolate}
+.night::before{content:"";position:absolute;z-index:-1;left:50%;top:-30%;width:120%;aspect-ratio:2;transform:translateX(-50%);background:radial-gradient(closest-side,#2454c699,#16308a40 55%,transparent)}
+.night::after{content:"";position:absolute;inset:0;z-index:-1;background-image:linear-gradient(#8eacff14 1px,transparent 1px),linear-gradient(90deg,#8eacff14 1px,transparent 1px);background-size:56px 56px;mask-image:linear-gradient(#000,transparent 70%);-webkit-mask-image:linear-gradient(#000,transparent 70%)}
+.night h2{background:linear-gradient(180deg,#fff 30%,#a9c8ff);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.1em}
+.night .sub{color:#a2aecb}
+.demos{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:52px;perspective:1600px}
+.demo{text-align:left;border-radius:24px;background:linear-gradient(180deg,#101c36,#0a1224);box-shadow:inset 0 0 0 1px #8eacff2e;padding:12px 12px 22px;transition:transform .6s var(--ease),box-shadow .4s,opacity .8s var(--ease)}
+.demo:hover{transform:translateY(-10px) rotateX(4deg);box-shadow:inset 0 0 0 1px #8eacffa6,0 50px 80px -40px #4583ffa6}
+.demo{display:flex;flex-direction:column}
+.demo-open{display:inline-flex;align-items:center;gap:8px;margin:16px 8px 0;font-size:15px;font-weight:700;color:var(--ice)}
+.demo-open::after{content:"";width:18px;height:2px;background:currentColor;transition:width .35s var(--ease)}
+.demo:hover .demo-open::after{width:34px}
+.shot{position:relative;aspect-ratio:16/12;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.shot-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;font-size:13px;font-weight:700}
+.shot-bar span{font-weight:500;opacity:.7}
+.shot .body{flex:1;padding:4px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.shot b{font-size:clamp(18px,1.8vw,24px);line-height:1.12;letter-spacing:-.04em;max-width:9em}
+.shot .tiles{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.shot .tiles i{height:44px;border-radius:8px}
+.s1{background:#f3e9de;color:#3a2a1d;font-family:Lora,'Times New Roman','Noto Serif',serif}.s1 b{font-weight:500}.s1 .tiles i{background:#d9b99a}.s1 .tiles i+i{background:#b9cdb6}.s1 .tiles i+i+i{background:#e8d3a6}
+.s2{background:#f4f5f7;color:#16181d}.s2 b{font-weight:500;letter-spacing:-.05em}.s2 .tiles i{background:#16181d;border-radius:0}.s2 .tiles i+i{background:#c9ccd3}
+.s3{background:linear-gradient(140deg,#3b2bd9,#8a3cf0);color:#fff}.s3 .tiles i{background:#ffffff38;border-radius:999px;height:34px}.s3 .tiles i:first-child{background:#fff}
+.tag{position:absolute;right:10px;bottom:10px;font:700 13px 'Be Vietnam Pro',sans-serif;background:#040814;color:#fff;border-radius:999px;padding:5px 11px}
+.demo-title{display:block;font-size:21px;font-weight:700;letter-spacing:-.04em;margin:18px 8px 2px}
+.demo-description{display:block;font-size:15px;color:#a2aecb;margin:0 8px}
+.demo-preview{inset:0;margin:auto;padding:0;width:min(1440px,calc(100% - 32px));height:calc(100dvh - 32px);max-width:none;max-height:none;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);overflow:hidden}
+.demo-preview[open]{display:grid;grid-template-rows:auto minmax(0,1fr)}
+.demo-preview::backdrop{background:#040814c9}
+body:has(.demo-preview[open]){overflow:hidden}
+.demo-preview-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 16px;border-bottom:1px solid var(--line)}
+.demo-preview-bar h2{font-size:clamp(15px,2vw,20px);letter-spacing:-.025em;line-height:1.3}
+.demo-preview-close{min-height:44px;padding:0 12px;border-radius:8px;background:var(--canvas);font-size:14px;font-weight:700;white-space:nowrap}
+.demo-preview-close:hover{background:var(--line)}
+.demo-preview iframe{display:block;width:100%;height:100%;border:0}
+/* steps */
+.track{position:relative;margin-top:56px}
+.track::before,.track i{content:"";position:absolute;left:0;top:21px;height:2px;border-radius:2px}
+.track::before{right:0;background:var(--line)}
+.track i{width:100%;background:linear-gradient(90deg,var(--brand),var(--electric));transform:scaleX(0);transform-origin:left;transition:transform 2.2s .2s var(--ease)}
+.track.in i{transform:scaleX(1)}
+.steps{list-style:none;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:22px;counter-reset:s;position:relative}
+.steps li{counter-increment:s;opacity:.35;transition:opacity .6s var(--d)}
+.track.in .steps li{opacity:1}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px var(--line);color:var(--brand);font-weight:800;margin-bottom:20px;transition:background .5s var(--d),color .5s var(--d),box-shadow .5s var(--d)}
+.track.in .steps li::before{background:var(--brand);color:#fff;box-shadow:0 0 0 6px #2454c61f}
+.steps b{display:block;font-size:20px;letter-spacing:-.035em;line-height:1.25}
+.steps p{font-size:15.5px;color:var(--muted);margin-top:8px}
+.final{position:relative;overflow:hidden;isolation:isolate;border-radius:32px;padding:clamp(36px,7vw,96px);color:#fff;background:radial-gradient(120% 140% at 100% 0,#3d74f0,#0f2460 62%);display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap}
+.final::before{content:"";position:absolute;inset:0;z-index:-1;background-image:linear-gradient(#ffffff1a 1px,transparent 1px),linear-gradient(90deg,#ffffff1a 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(60% 90% at 90% 20%,#000,transparent 75%);-webkit-mask-image:radial-gradient(60% 90% at 90% 20%,#000,transparent 75%)}
+.final h2{max-width:11em}
+footer{padding:8px 0 40px;color:var(--muted);font-size:15px}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 24px;border-top:1px solid var(--line);padding-top:20px}
+.foot nav{display:flex;flex-wrap:wrap;gap:0 18px}
+footer a{display:inline-flex;align-items:center;min-height:44px;text-underline-offset:4px}
+footer nav a{text-decoration:none;font-weight:600;color:#31486a}footer nav a:hover{color:var(--brand)}
+/* menu */
+.menu-btn{display:none;place-items:center;width:44px;height:44px;border-radius:12px;background:#edf1f8;color:var(--ink)}
+.menu-btn svg{width:22px;height:22px}
+.menu-btn .x,header.open .menu-btn .m{display:none}header.open .menu-btn .x{display:block}
+.nav-cta{display:none!important}
+/* pricing */
+.price{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px;padding:0;list-style:none}
+.price li{padding:28px;border-radius:24px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.price b{display:block;font-size:21px;letter-spacing:-.035em;line-height:1.25;margin-bottom:8px}
+.price p{font-size:15.5px;color:var(--muted)}
+.price-note{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 32px;margin-top:16px;padding:22px 28px;border-radius:20px;background:#e9f0ff;color:#163660;font-weight:600}
+/* order form */
+.final{align-items:flex-start}
+.final-copy{flex:1 1 320px}
+.final-copy p{margin-top:18px;color:#d8e6fa;max-width:26em}
+.final-copy a{color:#fff;text-underline-offset:4px;font-weight:600}
+.order{flex:1 1 380px;max-width:520px;display:grid;gap:14px;padding:clamp(20px,3vw,32px);border-radius:24px;background:#fff;color:var(--ink);box-shadow:0 40px 70px -40px #000c}
+.order label{display:grid;gap:6px;font-size:15px;font-weight:600}
+.order input,.order select,.order textarea{font:inherit;font-size:16px;font-weight:400;color:var(--ink);background:var(--canvas);border:1px solid var(--line);border-radius:12px;padding:11px 14px;min-height:48px;width:100%}
+.order textarea{min-height:110px;resize:vertical}
+.order input:focus,.order select:focus,.order textarea:focus{outline:3px solid #4583ff66;border-color:var(--brand)}
+.order .hint{font-size:14px;font-weight:400;color:var(--muted)}
+.order .fields{display:grid;gap:14px}
+.order .fields[hidden],.order .done[hidden]{display:none}
+.order .trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.order [aria-invalid=true]{border-color:#c62f3a;outline:3px solid #c62f3a33}
+.order .btn[disabled]{opacity:.7;cursor:progress;transform:none}
+.order output{font-size:14px;color:var(--brand-d);min-height:1.4em}
+.order output.err{color:#b4232e}.order output a{color:inherit;font-weight:600}
+.order .done{display:grid;justify-items:start;gap:10px;padding:8px 0;outline:0}
+.order .done b{font-size:24px;letter-spacing:-.04em}
+.order .done p{color:var(--muted);font-size:16px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.js .rv,.steps li{opacity:1;transform:none}.track i{transform:none}}
+@media (max-width:1000px){
+ .menu-btn{display:grid}
+ .pill{display:none}
+ header.open .pill{display:flex;flex-direction:column;gap:2px;position:absolute;left:0;right:0;top:100%;border-radius:0;padding:10px clamp(18px,4vw,48px) 18px;background:#fff;box-shadow:0 24px 40px -24px #10275c66;border-bottom:1px solid var(--line)}
+ header.open .pill a{padding:13px 12px;font-size:17px;border-radius:10px}
+ header.open .pill .nav-cta{display:flex!important;margin-top:8px;color:#fff;font-size:16px}
+ .price{grid-template-columns:1fr}
+ .hero .wrap{grid-template-columns:1fr;padding-top:36px;padding-bottom:56px;gap:44px;min-height:0}
+ .scene{justify-self:center;max-width:520px}
+ .stage{--ry:-9deg;--rx:5deg}
+ .goal,.goal.big{grid-column:1/-1;min-height:0}.goal.big{min-height:280px}
+ .demos{grid-template-columns:1fr}
+ .track::before,.track i{left:21px;top:0;bottom:0;width:2px;height:auto;right:auto}
+ .track i{transform:scaleY(0);transform-origin:top}.track.in i{transform:scaleY(1)}
+ .steps{grid-template-columns:1fr;gap:26px}
+ .steps li{display:grid;grid-template-columns:44px 1fr;gap:0 16px}.steps li::before{grid-row:span 2;margin:0}
+}
+@media (max-width:560px){
+ .demo-preview{width:100%;height:100dvh;border:0;border-radius:0}
+ .bar{gap:10px;min-height:64px}.brand{font-size:18px;gap:8px}.brand img{width:30px;height:30px}
+ .bar>.btn.sm{display:none}
+ section[id]{scroll-margin-top:84px}
+ .final{border-radius:24px;padding:28px 16px 16px}.final-copy{padding:0 6px}.order{padding:18px}
+ .cta .btn,.final .btn{width:100%}
+ .chip{font-size:12px;padding:7px 10px 7px 7px}.chip small{font-size:11.5px}.chip svg{width:26px;height:26px}
+ .c1{left:0}.c2{bottom:-7%}.pick{margin-top:40px}.pick button{padding:0 13px;font-size:13.5px}
+ .stage{aspect-ratio:1/.94}
+ .row3 .blk{font-size:10.5px;padding:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row3 .blk::before{height:28px}
+ .row3.slots .blk{font-size:13px;padding:12px 4px}
+ .blk.main{min-height:112px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#noi-dung">Bỏ qua tới nội dung</a>
+<header><div class="wrap bar">
+ <a class="brand" href="/" aria-label="AFYLLX Digital, về trang chủ"><img src="data:image/webp;base64,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" width="36" height="36" alt="">AFYLLX&nbsp;<span>Digital</span></a>
+ <nav class="pill" id="menu" aria-label="Chính"><a href="#giai-phap">Giải pháp</a><a href="#ban-mau">Bản mẫu</a><a href="#quy-trinh">Quy trình</a><a href="#bang-gia">Bảng giá</a><a class="btn nav-cta" href="#dat-lam">Đặt làm website</a></nav>
+ <a class="btn sm" href="#dat-lam">Đặt làm website</a>
+ <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Mở menu"><svg class="m" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div></header>
+<main id="noi-dung">
+<div class="hero"><div class="wrap">
+ <div>
+  <p class="kicker"><i></i>Nhận làm website theo yêu cầu</p>
+  <h1><span><b>Website giúp</b></span><span><b>bạn bán hàng</b></span><span><b>và nhận khách</b></span></h1>
+  <p class="lead">AFYLLX Digital làm website cho cửa hàng và dịch vụ của bạn. Bạn xem trước bản mẫu, đặt làm theo nhu cầu, và có người lo vận hành sau khi bàn giao.</p>
+  <div class="cta"><a class="btn" href="#dat-lam">Đặt làm website</a><a class="btn line" href="#ban-mau">Xem bản mẫu</a></div>
+  <a class="family" href="https://afyllx.com/">Thuộc hệ sinh thái AFYLLX</a>
+ </div>
+ <div>
+  <div class="scene" id="scene" aria-hidden="true">
+   <div class="glow"></div>
+   <div class="stage" id="stage">
+    <div class="plate"></div>
+    <div class="win">
+     <div class="dots"><i></i><i></i><i></i><b id="url"></b></div>
+     <div class="view" id="view"></div>
+    </div>
+    <svg class="cur" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.6L9.6 19z" fill="#fff" stroke="#0c1528" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    <div class="ph"><b id="ph-t"></b><i></i><i></i><i></i><i></i></div>
+    <div class="chip c1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg><span id="chip1"></span></div>
+    <div class="chip c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0112 0c0 6 2 7 2 7H4s2-1 2-7M10 20h4"/></svg><span id="chip2"></span></div>
+   </div>
+  </div>
+  <div class="pick" role="group" aria-label="Đổi hình minh họa theo loại website">
+   <button type="button" aria-pressed="true" data-g="0">Bán hàng</button>
+   <button type="button" aria-pressed="false" data-g="1">Dịch vụ</button>
+   <button type="button" aria-pressed="false" data-g="2">Đặt lịch</button>
+  </div>
+  <p class="cap">Hình minh họa, không phải website của khách hàng</p>
+ </div>
+</div></div>
+
+<section id="giai-phap"><div class="wrap">
+ <h2 class="rv">Bạn cần website để làm việc gì?</h2>
+ <p class="sub rv" style="--d:.08s">Chọn việc gần với bạn nhất. Mỗi lựa chọn dẫn tới loại website phù hợp và bản mẫu để xem thử.</p>
+ <div class="goals">
+  <a class="goal big rv" href="/mau/cua-hang" data-demo-route="/mau/cua-hang" data-demo-title="Cửa hàng gốm"><span class="mini"><i></i><i></i><i></i></span><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h13l-1.5 9h-10zM6 7L5 3H2"/><circle cx="9" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><small>Tôi muốn</small><h3>bán hàng online</h3><p>Trưng bày sản phẩm, nhận đơn qua đặt hàng và liên hệ. Dành cho cửa hàng nhỏ.</p><u>Xem website bán hàng</u></a>
+  <a class="goal big alt rv" style="--d:.1s" href="/mau/dat-lich" data-demo-route="/mau/dat-lich" data-demo-title="Tiệm tóc"><span class="mini"><i></i><i></i><i></i></span><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><small>Tôi muốn</small><h3>nhận đặt lịch</h3><p>Khách chọn dịch vụ và khung giờ ngay trên website. Dành cho dịch vụ cần hẹn giờ.</p><u>Xem website đặt lịch</u></a>
+  <a class="goal rv" href="/mau/dich-vu" data-demo-route="/mau/dich-vu" data-demo-title="Xưởng nội thất"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9l8-5 8 5v11zM9 20v-6h6v6"/></svg></span><small>Tôi muốn</small><h3>giới thiệu dịch vụ</h3><p>Cho khách biết bạn làm gì, ở đâu và liên hệ thế nào.</p><u>Xem website dịch vụ</u></a>
+  <a class="goal rv" style="--d:.1s" href="#dat-lam" data-need="Ra mắt sản phẩm"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4 2 6 6 6 10l-3 3H9l-3-3c0-4 2-8 6-10zM9 16l-2 5 5-2 5 2-2-5"/><circle cx="12" cy="10" r="1.6"/></svg></span><small>Tôi muốn</small><h3>ra mắt sản phẩm</h3><p>Một trang gọn cho sản phẩm mới, sự kiện hoặc chiến dịch.</p><u>Trao đổi về trang ra mắt</u></a>
+  <a class="goal rv" style="--d:.2s" href="#dat-lam" data-need="Quản lý nội bộ"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/></svg></span><small>Tôi muốn</small><h3>quản lý nội bộ</h3><p>Công cụ riêng cho công việc hằng ngày của doanh nghiệp.</p><u>Trao đổi về hệ thống quản lý</u></a>
+ </div>
+</div></section>
+
+<section class="night" id="ban-mau"><div class="wrap">
+ <h2 class="rv">Xem thử trước khi đặt làm</h2>
+ <p class="sub rv" style="--d:.08s">Mỗi bản mẫu là một website chạy được với dữ liệu minh họa, cho một doanh nghiệp không có thật.</p>
+ <div class="demos">
+  <button class="demo rv" type="button" data-demo-route="/mau/cua-hang" aria-haspopup="dialog" aria-controls="demo-preview">
+   <span class="shot s1" aria-hidden="true"><span class="shot-bar">Gốm Mộc Lam<span>Cửa hàng&ensp;Giỏ</span></span><span class="body"><b>Gốm làm tay cho bàn ăn mỗi ngày</b><span class="tiles"><i></i><i></i><i></i></span></span><span class="tag">Bản mẫu</span></span>
+   <span class="demo-title">Cửa hàng gốm</span><span class="demo-description">Website bán hàng có giỏ hàng</span><span class="demo-open">Mở bản mẫu</span>
+  </button>
+  <button class="demo rv" type="button" style="--d:.12s" data-demo-route="/mau/dich-vu" aria-haspopup="dialog" aria-controls="demo-preview">
+   <span class="shot s2" aria-hidden="true"><span class="shot-bar">NHÀ ÉN<span>Hạng mục&ensp;Liên hệ</span></span><span class="body"><b>Nội thất đóng theo căn nhà của bạn</b><span class="tiles"><i></i><i></i><i></i></span></span><span class="tag">Bản mẫu</span></span>
+   <span class="demo-title">Xưởng nội thất</span><span class="demo-description">Website giới thiệu dịch vụ</span><span class="demo-open">Mở bản mẫu</span>
+  </button>
+  <button class="demo rv" type="button" style="--d:.24s" data-demo-route="/mau/dat-lich" aria-haspopup="dialog" aria-controls="demo-preview">
+   <span class="shot s3" aria-hidden="true"><span class="shot-bar">Chín Giờ<span>Đặt lịch</span></span><span class="body"><b>Chọn giờ, đến là cắt</b><span class="tiles"><i></i><i></i><i></i></span></span><span class="tag">Bản mẫu</span></span>
+   <span class="demo-title">Tiệm tóc</span><span class="demo-description">Website nhận đặt lịch</span><span class="demo-open">Mở bản mẫu</span>
+  </button>
+ </div>
+</div></section>
+
+<section id="quy-trinh"><div class="wrap">
+ <h2 class="rv">Từ lúc trao đổi đến khi website chạy</h2>
+ <div class="track rv" id="track"><i></i>
+  <ol class="steps">
+   <li style="--d:.2s"><b>Trao đổi</b><p>Bạn kể mục tiêu và cách đang bán hàng.</p></li>
+   <li style="--d:.6s"><b>Đề xuất và báo giá</b><p>Phạm vi công việc và chi phí, bằng văn bản.</p></li>
+   <li style="--d:1s"><b>Thiết kế, duyệt mẫu</b><p>Bạn xem và góp ý trước khi xây.</p></li>
+   <li style="--d:1.4s"><b>Xây dựng, kiểm thử</b><p>Chạy thử trên điện thoại và máy tính.</p></li>
+   <li style="--d:1.8s"><b>Bàn giao, vận hành</b><p>Kèm hướng dẫn sử dụng và hỗ trợ sau đó.</p></li>
+  </ol>
+ </div>
+</div></section>
+
+<section id="bang-gia" style="padding-top:0"><div class="wrap">
+ <h2 class="rv">Báo giá theo đúng việc bạn cần</h2>
+ <p class="sub rv" style="--d:.08s">Chưa có bảng giá cố định. Bạn nhận báo giá bằng văn bản sau khi trao đổi nhu cầu, trước khi bắt đầu làm.</p>
+ <ul class="price">
+  <li class="rv"><b>Loại website và số trang</b><p>Trang giới thiệu gọn, website bán hàng hay hệ thống quản lý có khối lượng khác nhau.</p></li>
+  <li class="rv" style="--d:.1s"><b>Tính năng cần có</b><p>Giỏ hàng, đặt lịch, biểu mẫu, trang quản trị nội dung. Chỉ làm những gì bạn dùng.</p></li>
+  <li class="rv" style="--d:.2s"><b>Vận hành sau bàn giao</b><p>Mức hỗ trợ và cập nhật nội dung bạn cần sau khi website chạy.</p></li>
+ </ul>
+ <div class="price-note rv"><span>Báo giá sau khi trao đổi nhu cầu.</span><a class="btn sm" href="#dat-lam">Nhận báo giá</a></div>
+</div></section>
+
+<section id="dat-lam" style="padding-top:0"><div class="wrap"><div class="final rv">
+ <div class="final-copy">
+  <h2>Kể cho chúng tôi về việc kinh doanh của bạn</h2>
+  <p>Điền vài dòng và bấm gửi, yêu cầu tới thẳng hộp thư AFYLLX Digital. Chúng tôi liên hệ lại qua email hoặc số điện thoại bạn để lại. Bạn cũng có thể viết tới <a href="mailto:contact.afyllx@gmail.com">contact.afyllx@gmail.com</a>.</p>
+ </div>
+ <form class="order" id="order" novalidate>
+  <div class="fields" id="order-fields">
+   <label>Họ tên<input name="name" autocomplete="name" maxlength="120" required></label>
+   <label>Email hoặc số điện thoại<input name="contact" autocomplete="email" maxlength="254" required><span class="hint">Để chúng tôi liên hệ lại với bạn.</span></label>
+   <label>Bạn cần website để
+    <select name="need"><option>Bán hàng online</option><option>Nhận đặt lịch</option><option>Giới thiệu dịch vụ</option><option>Ra mắt sản phẩm</option><option>Quản lý nội bộ</option><option>Chưa rõ, cần tư vấn</option></select>
+   </label>
+   <label>Mô tả ngắn (không bắt buộc)<textarea name="note" maxlength="3000" placeholder="Bạn bán gì hoặc làm dịch vụ gì, hiện đang nhận khách qua đâu…"></textarea></label>
+   <label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+   <button class="btn" type="submit" id="order-send">Gửi yêu cầu</button>
+   <p class="hint">Thông tin chỉ dùng để liên hệ lại về yêu cầu này.</p>
+  </div>
+  <div class="done" id="order-done" hidden tabindex="-1">
+   <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+   <b>Đã gửi yêu cầu</b>
+   <p>Cảm ơn bạn. Chúng tôi sẽ liên hệ lại sớm qua thông tin bạn để lại.</p>
+   <button class="btn line" type="button" id="order-again">Gửi yêu cầu khác</button>
+  </div>
+  <output id="order-msg" aria-live="polite"></output>
+ </form>
+</div></div></section>
+</main>
+<dialog class="demo-preview" id="demo-preview" aria-labelledby="demo-preview-title">
+ <div class="demo-preview-bar">
+  <h2 id="demo-preview-title">Bản mẫu website</h2>
+  <form method="dialog"><button class="demo-preview-close" type="submit" autofocus>Đóng bản mẫu</button></form>
+ </div>
+ <div id="demo-preview-content"></div>
+</dialog>
+<footer><div class="wrap foot">
+ <span>© 2026 AFYLLX Digital, <a href="https://afyllx.com/">thuộc hệ sinh thái AFYLLX</a></span>
+ <nav aria-label="Chân trang"><a href="#giai-phap">Giải pháp</a><a href="#ban-mau">Bản mẫu</a><a href="#bang-gia">Bảng giá</a><a href="#dat-lam">Đặt làm website</a><a href="mailto:contact.afyllx@gmail.com">contact.afyllx@gmail.com</a></nav>
+</div></footer>
+<script>
+const G=[
+ {url:'cuahangcuaban.vn',title:'Hàng mới về tuần này',btn:'Đặt hàng',pic:1,tiles:['Sản phẩm một','Sản phẩm hai','Sản phẩm ba'],on:1,ph:'Cửa hàng',c1:['Đã thêm vào giỏ','Sản phẩm hai'],c2:['Đơn hàng mới','Chờ bạn xác nhận']},
+ {url:'dichvucuaban.vn',title:'Chúng tôi làm gì cho bạn',btn:'Nhận tư vấn',pic:1,tiles:['Dịch vụ','Hình ảnh','Địa chỉ'],on:0,ph:'Dịch vụ',c1:['Đã gửi yêu cầu','Tư vấn dịch vụ'],c2:['Yêu cầu tư vấn mới','Chờ bạn liên hệ lại']},
+ {url:'lichhencuaban.vn',title:'Chọn giờ bạn muốn',btn:'Đặt lịch',pic:0,slots:1,tiles:['9:00','10:30','14:00'],on:1,ph:'Lịch hẹn',c1:['Đã chọn 10:30','Sáng thứ Bảy'],c2:['Lịch hẹn mới','10:30 sáng thứ Bảy']}
+];
+const $=id=>document.getElementById(id),view=$('view'),btns=[...document.querySelectorAll('.pick button')];
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function paint(g){
+ $('url').textContent=g.url;$('ph-t').textContent=g.ph;
+ $('chip1').innerHTML=g.c1[0]+'<small>'+g.c1[1]+'</small>';$('chip2').innerHTML=g.c2[0]+'<small>'+g.c2[1]+'</small>';
+ view.innerHTML='<div class="g"><div class="blk main"><strong>'+g.title+'</strong><em>'+g.btn+'</em></div><div class="blk'+(g.pic?' pic':'')+'">'+(g.pic?'':'<span style="font-size:12px;color:#d3e4fa">Thứ Bảy<br>tuần này</span>')+'</div></div><div class="row3'+(g.slots?' slots':'')+'">'+g.tiles.map((t,i)=>'<div class="blk'+(i===g.on?' on':'')+'">'+t+'</div>').join('')+'</div>';
+}
+let cur=0,timer;
+function show(i,auto){cur=i;btns.forEach((b,k)=>{b.setAttribute('aria-pressed',k===i);b.classList.toggle('auto',!!auto&&k===i)});
+ if(still){paint(G[i]);return}
+ view.classList.add('out');setTimeout(()=>{paint(G[i]);view.classList.remove('out')},260)}
+paint(G[0]);
+btns.forEach(b=>b.addEventListener('click',()=>{clearInterval(timer);show(+b.dataset.g,false)}));
+if(!still){btns[0].classList.add('auto');timer=setInterval(()=>show((cur+1)%G.length,true),4200);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)clearInterval(timer)});
+ if(matchMedia('(pointer:fine)').matches){const sc=$('scene'),st=$('stage');
+  sc.addEventListener('pointermove',e=>{const r=sc.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+   st.style.setProperty('--ry',(-16+x*18)+'deg');st.style.setProperty('--rx',(7-y*14)+'deg')});
+  sc.addEventListener('pointerleave',()=>{st.style.removeProperty('--ry');st.style.removeProperty('--rx')});
+  document.querySelectorAll('.goal').forEach(c=>c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();c.style.setProperty('--mx',e.clientX-r.left+'px');c.style.setProperty('--my',e.clientY-r.top+'px')}));}
+}
+/* hiện nội dung: mọi khối đã cuộn tới hoặc vượt qua đều hiện ngay, kể cả khi nhảy bằng menu */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:0,rootMargin:'0px 0px -8% 0px'});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+let rvTick=0;
+function revealPassed(){rvTick=0;document.querySelectorAll('.rv:not(.in)').forEach(el=>{if(el.getBoundingClientRect().top<innerHeight){el.classList.add('in');io.unobserve(el)}})}
+addEventListener('scroll',()=>{if(!rvTick)rvTick=requestAnimationFrame(revealPassed)},{passive:true});
+addEventListener('hashchange',revealPassed);revealPassed();
+
+/* menu điện thoại */
+const hdr=document.querySelector('header'),menuBtn=document.querySelector('.menu-btn');
+function setMenu(open){hdr.classList.toggle('open',open);menuBtn.setAttribute('aria-expanded',open);menuBtn.setAttribute('aria-label',open?'Đóng menu':'Mở menu')}
+menuBtn.addEventListener('click',()=>setMenu(!hdr.classList.contains('open')));
+$('menu').addEventListener('click',e=>{if(e.target.closest('a'))setMenu(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&hdr.classList.contains('open')){setMenu(false);menuBtn.focus()}});
+matchMedia('(min-width:1001px)').addEventListener('change',e=>{if(e.matches)setMenu(false)});
+
+/* biểu mẫu đặt làm: gửi tới /api/dat-lam, Worker chuyển thẳng vào hộp thư AFYLLX */
+const order=$('order'),msg=$('order-msg'),send=$('order-send'),fields=$('order-fields'),done=$('order-done'),TO='contact.afyllx@gmail.com';
+const EMAIL=/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+$/i,PHONE=/^[0-9+\-\s().]{8,20}$/;
+document.querySelectorAll('[data-need]').forEach(a=>a.addEventListener('click',()=>{order.need.value=a.dataset.need}));
+function fail(text,el){msg.className='err';msg.innerHTML=text;if(el){el.setAttribute('aria-invalid','true');el.focus()}}
+function valid(){order.querySelectorAll('[aria-invalid]').forEach(el=>el.removeAttribute('aria-invalid'));
+ const name=order.name.value.trim(),c=order.contact.value.trim();
+ if(!name){fail('Vui lòng điền họ tên.',order.name);return false}
+ if(!EMAIL.test(c)&&!(PHONE.test(c)&&c.replace(/\D/g,'').length>=8)){fail('Vui lòng điền email hoặc số điện thoại hợp lệ.',order.contact);return false}
+ msg.className='';msg.textContent='';return true}
+const fallback=' Bạn có thể gửi thẳng tới <a href="mailto:'+TO+'">'+TO+'</a>.';
+order.addEventListener('submit',async e=>{e.preventDefault();if(send.disabled||!valid())return;
+ send.disabled=true;send.textContent='Đang gửi…';msg.className='';msg.textContent='';
+ try{const r=await fetch('/api/dat-lam',{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({name:order.name.value,contact:order.contact.value,need:order.need.value,note:order.note.value,website:order.website.value})});
+  if(r.ok){order.reset();fields.hidden=true;done.hidden=false;done.focus();return}
+  fail(r.status===429?'Bạn vừa gửi nhiều lần, vui lòng thử lại sau 1 phút.':r.status===400?'Thông tin chưa hợp lệ, vui lòng kiểm tra lại.':'Chưa gửi được yêu cầu.'+fallback)}
+ catch{fail('Không kết nối được.'+fallback)}
+ finally{send.disabled=false;send.textContent='Gửi yêu cầu'}});
+$('order-again').addEventListener('click',()=>{done.hidden=true;fields.hidden=false;order.name.focus()});
+
+const demoPreview = $('demo-preview');
+const demoPreviewTitle = $('demo-preview-title');
+const demoPreviewContent = $('demo-preview-content');
+
+document.querySelectorAll('[data-demo-route]').forEach(card => {
+ card.addEventListener('click', e => {
+  if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+  e.preventDefault();
+  const title = card.dataset.demoTitle || card.querySelector('.demo-title').textContent;
+  const frame = document.createElement('iframe');
+  frame.title = `Bản mẫu: ${title}`;
+  frame.src = card.dataset.demoRoute;
+  demoPreviewTitle.textContent = title;
+  demoPreviewContent.replaceChildren(frame);
+  demoPreview.showModal();
+ });
+});
+
+demoPreview.addEventListener('close', () => {
+ if (!demoPreview.open) demoPreviewContent.replaceChildren();
+});
+</script>
+</body>
+</html>

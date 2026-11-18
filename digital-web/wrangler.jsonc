@@ -1,0 +1,19 @@
+{
+  "name": "afyllx-digital",
+  "account_id": "dbe7e43add9b24b62bed8c25d05b419e",
+  "main": "worker/index.mjs",
+  "compatibility_date": "2026-05-22",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "digital.afyllx.com", "custom_domain": true, "zone_id": "7f90bfb41da548c95053b38ceba75a8c" }],
+  // Biểu mẫu "Đặt làm website" gửi thẳng tới hộp thư đã xác minh trong Email Routing của afyllx.com.
+  "send_email": [{ "name": "ORDER_EMAIL", "destination_address": "contact.afyllx@gmail.com" }],
+  "ratelimits": [{ "name": "ORDER_RATE_LIMIT", "namespace_id": "4086931", "simple": { "limit": 3, "period": 60 } }],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "html_handling": "none",
+    "not_found_handling": "single-page-application"
+  }
+}

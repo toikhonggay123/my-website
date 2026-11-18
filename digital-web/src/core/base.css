@@ -1,0 +1,59 @@
+/* ===== Nền dùng chung — tối thiểu. Mọi thiết kế nằm trong CSS của từng concept, trong phạm vi [data-concept="<id>"]. ===== */
+:root {
+  --afx-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --afx-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --afx-dur-micro: 180ms;
+  --afx-dur-short: 450ms;
+  --afx-dur-base: 800ms;
+  --afx-scroll-offset: 0px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #0e0f11; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+img, svg, video { display: block; max-width: 100%; }
+button, input, textarea, select { font: inherit; color: inherit; }
+.afx-loading { min-height: 100vh; }
+
+/* Lenis */
+html.afx-lenis, html.afx-lenis body { height: auto; }
+.afx-lenis.lenis-smooth { scroll-behavior: auto !important; }
+.afx-lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.afx-lenis.lenis-stopped { overflow: clip; }
+html.afx-scroll-locked { overflow: hidden; }
+
+/* Kinetic text: SplitText bọc mỗi dòng trong một mặt nạ overflow:clip — nới vùng trên/dưới để không cắt dấu tiếng Việt (ẩ, ỗ, ự...). */
+[data-kinetic] > div:not(.kt-line) { padding-block: 0.16em; margin-block: -0.16em; }
+[data-kinetic] .kt-line { padding-block: 0; }
+
+.afx-concept { min-height: 100vh; }
+.afx-concept :focus-visible { outline-offset: 3px; }
+
+/* Bỏ qua tới nội dung */
+.afx-skip { position: fixed; left: 16px; top: 12px; z-index: 1000; padding: 10px 16px; border-radius: 8px; background: #111; color: #fff; font: 500 15px/1.2 system-ui, sans-serif; text-decoration: none; transform: translateY(-160%); transition: transform 0.2s var(--afx-ease-out); }
+.afx-skip:focus { transform: none; }
+
+/* Hộp xem bản mẫu — mặc định trung tính; concept ghi đè trong phạm vi của mình. */
+.afx-demo { width: min(1240px, 96vw); height: min(860px, 92vh); max-width: none; max-height: none; padding: 0; border: 0; border-radius: 14px; overflow: hidden; background: #fff; color: #111; display: none; flex-direction: column; box-shadow: 0 40px 80px -24px rgb(0 0 0 / 0.5); }
+.afx-demo[open] { display: flex; }
+.afx-demo::backdrop { background: rgb(10 12 16 / 0.62); backdrop-filter: blur(4px); }
+.afx-demo-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 12px 10px 20px; border-bottom: 1px solid rgb(0 0 0 / 0.08); }
+.afx-demo-bar h2 { margin: 0; font: 500 16px/1.3 system-ui, sans-serif; }
+.afx-demo-bar form { margin: 0; }
+.afx-demo-close { cursor: pointer; border: 1px solid rgb(0 0 0 / 0.14); background: transparent; border-radius: 8px; padding: 8px 14px; font: 500 14px/1 system-ui, sans-serif; }
+.afx-demo-frame { flex: 1; min-height: 0; }
+.afx-demo-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+@media (max-width: 699px) { .afx-demo { width: 100vw; height: 100dvh; border-radius: 0; } }
+
+/* Ô bẫy bot & legend ẩn của wizard — luôn ẩn, mọi concept */
+.ow-trap { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.ow-step[hidden] { display: none !important; }
+.afx-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.afx-404 { min-height: 100vh; display: grid; place-content: center; text-align: center; color: #eceef2; font: 400 16px/1.6 system-ui, sans-serif; }
+.afx-404 a { color: #8fb0ff; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}

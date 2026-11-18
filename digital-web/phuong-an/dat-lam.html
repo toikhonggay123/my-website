@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đặt làm website — AFYLLX Digital</title>
+<meta name="description" content="Mô tả website bạn cần qua 6 bước ngắn: mục tiêu, hiện trạng, chức năng, ngân sách và cách liên hệ. AFYLLX Digital liên hệ lại và gửi báo giá bằng văn bản.">
+<link rel="canonical" href="https://digital.afyllx.com/dat-lam">
+<meta name="theme-color" content="#2454c6">
+<script src="/digital-theme.js"></script>
+<link rel="stylesheet" href="theme.css">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="vi_VN">
+<meta property="og:site_name" content="AFYLLX Digital">
+<meta property="og:url" content="https://digital.afyllx.com/dat-lam">
+<meta property="og:title" content="Đặt làm website — AFYLLX Digital">
+<meta property="og:description" content="Mô tả website bạn cần qua 6 bước ngắn, nhận báo giá bằng văn bản sau khi trao đổi.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232454c6'/%3E%3Cpath d='M16 7l7 18h-3.6l-1.4-4h-4l-1.4 4H9L16 7zm0 5.5L14.5 18h3L16 12.5z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+.intro{padding-top:clamp(12px,2vw,28px);padding-bottom:clamp(24px,3vw,40px)}
+.flow{display:grid;grid-template-columns:minmax(0,15em) minmax(0,1fr);gap:clamp(20px,4vw,56px);align-items:start}
+/* tiến độ */
+.rail{position:sticky;top:20px;list-style:none;padding:0;counter-reset:s}
+.rail li{counter-increment:s}
+.rail button{width:100%;display:flex;align-items:center;gap:12px;padding:9px 0;text-align:left;font-size:15.5px;font-weight:600;color:var(--muted)}
+.rail button::before{content:counter(s);flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--field);font-size:14px;font-weight:700;transition:background .3s,color .3s,box-shadow .3s}
+.rail button[disabled]{cursor:default}
+.rail li.done button{color:var(--text)}
+.rail li.done button::before{content:"✓" / "";background:var(--tint);color:var(--accent);box-shadow:none}
+.rail li.now button{color:var(--text)}
+.rail li.now button::before{background:var(--accent-solid);color:#fff;box-shadow:0 0 0 5px var(--btn-ring)}
+.meter{display:none}
+/* thẻ bước */
+.card{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:clamp(20px,3.4vw,44px);box-shadow:0 40px 80px -60px #2454c6}
+.step[hidden]{display:none}
+.step h2{font-size:clamp(24px,2.6vw,36px);line-height:1.12;font-weight:800;letter-spacing:-.045em;outline:0}
+.step>p.hint{color:var(--muted);margin-top:8px;font-size:16px}
+fieldset{border:0;padding:0;margin:26px 0 0;min-width:0}
+legend{padding:0;font-size:16px;font-weight:700;margin-bottom:10px}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.opt{position:relative;display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:16px;border:1.5px solid var(--field);background:var(--card);cursor:pointer;font-size:16px;font-weight:600;line-height:1.35;transition:border-color .2s,background .2s}
+.opt:hover{border-color:var(--accent)}
+.opt input{flex:none;width:20px;height:20px;margin:1px 0 0;accent-color:var(--accent)}
+.opt small{display:block;font-size:14px;font-weight:400;color:var(--muted);margin-top:2px}
+.opt:has(input:checked){border-color:var(--accent);background:var(--selected);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt:has(input:focus-visible){outline:3px solid var(--accent);outline-offset:2px}
+.field{display:grid;gap:6px;margin-top:22px;font-size:16px;font-weight:700}
+.field input,.field textarea{font-weight:400;font-size:17px;background:var(--bg);border:1.5px solid var(--field);border-radius:14px;padding:12px 14px;min-height:52px;width:100%}
+.field textarea{min-height:150px;resize:vertical;line-height:1.55}
+.field input:focus,.field textarea:focus{outline:3px solid var(--btn-ring);border-color:var(--accent)}
+.field .tip{font-size:14px;font-weight:400;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.count{justify-self:end;font-size:13.5px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.err{display:none;font-size:14.5px;font-weight:600;color:var(--danger);margin-top:8px}
+.err.on{display:block}
+[aria-invalid=true]{border-color:var(--danger)!important}
+.consent{display:flex;gap:12px;align-items:flex-start;margin-top:26px;font-size:16px;line-height:1.5}
+.consent input{flex:none;width:22px;height:22px;margin-top:2px;accent-color:var(--accent)}
+.trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.acts{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:34px;padding-top:22px;border-top:1px solid var(--line)}
+.acts .btn{border-radius:16px}
+.status{font-size:15px;min-height:1.5em;margin-top:14px}
+.status.bad{color:var(--danger);font-weight:600}
+/* xem lại */
+.review{margin-top:22px;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.review>div{display:grid;grid-template-columns:9.5em minmax(0,1fr) auto;gap:6px 16px;align-items:start;padding:16px 18px;border-top:1px solid var(--line)}
+.review>div:first-child{border-top:0}
+.review dt{font-size:14.5px;font-weight:700;color:var(--muted)}
+.review dd{font-size:16px;line-height:1.5;white-space:pre-line;overflow-wrap:anywhere}
+.review button{font-size:14.5px;font-weight:700;color:var(--accent);text-decoration:underline;text-underline-offset:4px;min-height:32px}
+.sent{text-align:left}
+.sent .tick{display:grid;place-items:center;width:56px;height:56px;border-radius:18px;background:var(--tint);color:var(--accent);margin-bottom:18px}
+.sent ol{margin:18px 0 26px;padding-left:1.3em;color:var(--muted);display:grid;gap:6px}
+.sent .row{display:flex;gap:12px;flex-wrap:wrap}
+noscript p{background:var(--warning);border-radius:16px;padding:16px 18px;margin-bottom:20px}
+
+@media (max-width:860px){
+ .flow{grid-template-columns:1fr}
+ .rail{display:none}
+ .meter{display:block;margin-bottom:14px;font-size:15px;font-weight:700}
+ .meter i{display:block;height:6px;border-radius:3px;background:var(--field);margin-top:8px;overflow:hidden}
+ .meter i::after{content:"";display:block;height:100%;width:var(--p,16%);background:var(--accent);border-radius:3px;transition:width .4s var(--ease)}
+ .two{grid-template-columns:1fr}
+ .review>div{grid-template-columns:minmax(0,1fr) auto}.review dt{grid-column:1/-1}
+}
+@media (max-width:520px){.card{border-radius:20px}.acts .btn{flex:1 1 auto}.opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<a class="skip" href="#noi-dung">Bỏ qua tới nội dung</a>
+<header class="wrap top">
+ <a class="brand" href="/" aria-label="AFYLLX Digital, về trang chủ"><img src="logo.webp" width="36" height="36" alt="">AFYLLX Digital</a>
+ <nav aria-label="Chính"><a href="/#giai-phap">Giải pháp</a><a href="/#ban-mau">Bản mẫu</a><a href="/#quy-trinh">Quy trình</a><a href="/#bang-gia">Bảng giá</a></nav>
+ <button class="theme-toggle" type="button" aria-label="Chế độ tối" aria-pressed="false" hidden>
+   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path class="moon" d="M20.9 13.35A9 9 0 0 1 10.65 3.1 9 9 0 1 0 20.9 13.35Z"/>
+    <g class="sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42m0-14.14-1.42 1.42m-11.3 11.3-1.42 1.42"/></g>
+   </svg>
+  </button>
+</header>
+
+<main id="noi-dung" class="wrap">
+ <div class="intro">
+  <h1>Kể cho chúng tôi về website bạn cần</h1>
+  <p class="lead">Sáu bước ngắn, mất vài phút. Bạn chưa cần biết gì về kỹ thuật: cứ chọn điều gần đúng nhất, phần còn lại ta trao đổi sau. Báo giá gửi bằng văn bản sau khi trao đổi nhu cầu.</p>
+ </div>
+ <noscript><p>Trang này cần bật JavaScript để chạy. Bạn cũng có thể viết thẳng tới <a href="mailto:contact.afyllx@gmail.com">contact.afyllx@gmail.com</a>.</p></noscript>
+
+ <div class="flow">
+  <ol class="rail" id="rail" aria-label="Các bước">
+   <li><button type="button" data-go="0">Mục tiêu</button></li>
+   <li><button type="button" data-go="1">Hiện trạng</button></li>
+   <li><button type="button" data-go="2">Chức năng</button></li>
+   <li><button type="button" data-go="3">Ngân sách, thời điểm</button></li>
+   <li><button type="button" data-go="4">Liên hệ</button></li>
+   <li><button type="button" data-go="5">Xem lại và gửi</button></li>
+  </ol>
+
+  <form class="card" id="wizard" novalidate>
+   <p class="meter" id="meter" aria-hidden="true"><span id="meter-text"></span><i></i></p>
+
+   <section class="step" data-step="0">
+    <h2 tabindex="-1">Bạn muốn website làm việc gì?</h2>
+    <p class="hint">Chọn một việc chính. Nếu cần nhiều việc, chọn việc quan trọng nhất và ghi thêm ở bước 3.</p>
+    <fieldset aria-describedby="err-need"><legend class="trap">Mục tiêu</legend><div class="opts" id="opts-need"></div></fieldset>
+    <p class="err" id="err-need" role="alert"></p>
+   </section>
+
+   <section class="step" data-step="1" hidden>
+    <h2 tabindex="-1">Bạn đang có sẵn những gì?</h2>
+    <p class="hint">Chưa có gì cũng không sao, cứ để trống. Thông tin này giúp chúng tôi biết cần chuẩn bị thêm những gì.</p>
+    <fieldset><legend>Trên mạng, bạn đã có</legend><div class="opts" id="opts-online"></div></fieldset>
+    <fieldset><legend>Tư liệu bạn có sẵn</legend><div class="opts" id="opts-assets"></div></fieldset>
+   </section>
+
+   <section class="step" data-step="2" hidden>
+    <h2 tabindex="-1">Website cần có những gì?</h2>
+    <p class="hint">Tích những thứ bạn nghĩ mình sẽ dùng. Không chắc thì bỏ qua, mô tả bằng lời bên dưới là đủ.</p>
+    <fieldset><legend>Chức năng</legend><div class="opts" id="opts-features"></div></fieldset>
+    <label class="field" for="f-note">Mô tả việc kinh doanh và điều bạn mong muốn
+     <textarea id="f-note" name="note" maxlength="2000" aria-describedby="tip-note err-note" placeholder="Bạn bán gì hoặc làm dịch vụ gì, khách hiện tìm bạn qua đâu, bạn muốn website giúp được việc gì…"></textarea>
+     <span class="count" id="count-note" aria-hidden="true"></span>
+     <span class="tip" id="tip-note">Từ 20 đến 2000 ký tự.</span>
+    </label>
+    <p class="err" id="err-note" role="alert"></p>
+   </section>
+
+   <section class="step" data-step="3" hidden>
+    <h2 tabindex="-1">Ngân sách và thời điểm bạn dự tính</h2>
+    <p class="hint">Chỉ để chúng tôi đề xuất phạm vi phù hợp, không phải cam kết. Chưa nghĩ tới thì chọn "Chưa xác định".</p>
+    <fieldset aria-describedby="err-budget"><legend>Ngân sách dự kiến</legend><div class="opts" id="opts-budget"></div></fieldset>
+    <p class="err" id="err-budget" role="alert"></p>
+    <fieldset aria-describedby="err-timing"><legend>Bạn muốn website chạy khi nào</legend><div class="opts" id="opts-timing"></div></fieldset>
+    <p class="err" id="err-timing" role="alert"></p>
+   </section>
+
+   <section class="step" data-step="4" hidden>
+    <h2 tabindex="-1">Chúng tôi liên hệ lại với bạn bằng cách nào?</h2>
+    <p class="hint">Cần ít nhất email hoặc số điện thoại.</p>
+    <label class="field" for="f-name">Họ tên<input id="f-name" name="name" autocomplete="name" maxlength="120" aria-describedby="err-name" required></label>
+    <p class="err" id="err-name" role="alert"></p>
+    <div class="two">
+     <div><label class="field" for="f-email">Email<input id="f-email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" aria-describedby="err-email"></label><p class="err" id="err-email" role="alert"></p></div>
+     <div><label class="field" for="f-phone">Số điện thoại<input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" aria-describedby="err-phone"></label><p class="err" id="err-phone" role="alert"></p></div>
+    </div>
+    <label class="field" for="f-business">Tên cửa hàng hoặc doanh nghiệp (không bắt buộc)<input id="f-business" name="business" autocomplete="organization" maxlength="120" aria-describedby="err-business"></label>
+    <p class="err" id="err-business" role="alert"></p>
+    <fieldset aria-describedby="err-channel"><legend>Bạn muốn được liên hệ qua</legend><div class="opts" id="opts-channel"></div></fieldset>
+    <p class="err" id="err-channel" role="alert"></p>
+    <label class="consent"><input type="checkbox" id="f-consent" name="consent" aria-describedby="err-consent"><span>Tôi đồng ý để AFYLLX Digital dùng thông tin này để liên hệ lại về yêu cầu, theo <a href="/quyen-rieng-tu" target="_blank" rel="noopener">chính sách quyền riêng tư</a>.</span></label>
+    <p class="err" id="err-consent" role="alert"></p>
+    <label class="trap" aria-hidden="true">Website<input name="website" id="f-website" tabindex="-1" autocomplete="off"></label>
+   </section>
+
+   <section class="step" data-step="5" hidden>
+    <h2 tabindex="-1">Xem lại trước khi gửi</h2>
+    <p class="hint">Bấm "Sửa" ở mục nào cần đổi. Khi gửi, yêu cầu tới thẳng hộp thư AFYLLX Digital.</p>
+    <dl class="review" id="review"></dl>
+   </section>
+
+   <section class="step sent" data-step="6" hidden>
+    <span class="tick" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+    <h2 tabindex="-1">Đã gửi yêu cầu của bạn</h2>
+    <p class="hint">Cảm ơn bạn. Yêu cầu đã tới hộp thư AFYLLX Digital. Các bước tiếp theo:</p>
+    <ol>
+     <li>Chúng tôi đọc yêu cầu và liên hệ lại qua kênh bạn đã chọn.</li>
+     <li>Hai bên trao đổi để làm rõ phạm vi công việc.</li>
+     <li>Bạn nhận đề xuất và báo giá bằng văn bản trước khi bắt đầu làm.</li>
+    </ol>
+    <div class="row"><a class="btn" href="/">Về trang chủ</a><a class="btn line" href="/#ban-mau">Xem bản mẫu</a></div>
+   </section>
+
+   <div class="acts" id="acts">
+    <button class="btn line" type="button" id="back">Quay lại</button>
+    <button class="btn" type="submit" id="next">Tiếp tục</button>
+   </div>
+   <p class="status" id="status" role="status" aria-live="polite"></p>
+  </form>
+ </div>
+</main>
+
+<footer><div class="wrap foot">
+ <span>© 2026 AFYLLX Digital, <a href="https://afyllx.com/">thuộc hệ sinh thái AFYLLX</a></span>
+ <nav aria-label="Chân trang"><a href="/">Trang chủ</a><a href="/quyen-rieng-tu">Quyền riêng tư</a><a href="mailto:contact.afyllx@gmail.com">contact.afyllx@gmail.com</a></nav>
+</div></footer>
+<script type="module" src="dat-lam.js"></script>
+</body>
+</html>

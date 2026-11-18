@@ -1,0 +1,24 @@
+/* Bảng màu dùng chung cho cổng AFYLLX Digital. */
+:root{
+ color-scheme:light;
+ --bg:#f4f7fd;--card:#fff;--text:#0b1f4d;--muted:#51627f;--accent:#2454c6;
+ --tint:#e3ecff;--line:#2454c62b;--field:#cfd9ec;--danger:#b4232e;
+ --btn-bg:#0b1f4d;--btn-fg:#fff;--btn-ring:#2454c626;--btn-glow:#2454c680;
+ --control:#e6ecf8;--selected:#f0f5ff;--accent-solid:#2454c6;--warning:#fff4d6
+}
+:root[data-theme=dark]{
+ color-scheme:dark;
+ --bg:#0a1428;--card:#111f39;--text:#ecf3ff;--muted:#afc0dc;--accent:#8db7ff;
+ --tint:#1a3156;--line:#345078;--field:#5d749c;--danger:#ff9ba3;
+ --btn-bg:#9ac0ff;--btn-fg:#0a2045;--btn-ring:#8db7ff30;--btn-glow:#356bd078;
+ --control:#182b4c;--selected:#183256;--accent-solid:#315da7;--warning:#3b3019
+}
+.theme-toggle{
+ display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;
+ border:1px solid var(--line);border-radius:12px;background:var(--control);color:var(--text)
+}
+.theme-toggle[hidden]{display:none}
+.theme-toggle:hover{background:var(--tint);border-color:var(--accent)}
+.theme-toggle svg{width:20px;height:20px}
+.theme-toggle .sun,[data-theme=dark] .theme-toggle .moon{display:none}
+[data-theme=dark] .theme-toggle .sun{display:inline}
