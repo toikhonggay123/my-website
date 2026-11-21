@@ -682,7 +682,7 @@
 [data-concept="mot-nut"] .mn-card:hover .mn-card-shot img { transform: scale(1.03); }
 [data-concept="mot-nut"] .mn-card-meta { display: grid; gap: 4px; padding: 16px 12px 12px; }
 [data-concept="mot-nut"] .mn-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-[data-concept="mot-nut"] .mn-card h3 { font-size: 20px; line-height: 1.3; font-weight: 500; }
+[data-concept="mot-nut"] .mn-card :is(h3, h4) { font-size: 20px; line-height: 1.3; font-weight: 500; }
 [data-concept="mot-nut"] .mn-badge {
   flex: none;
   padding: 2px 8px;
@@ -695,6 +695,45 @@
 }
 [data-concept="mot-nut"] .mn-card-desc { font-size: 15px; color: var(--ink-2); }
 [data-concept="mot-nut"] .mn-card-open { margin-top: 12px; font-size: 15px; font-weight: 500; color: var(--accent-ink); }
+
+/* Hai gói bản mẫu. Lưới 6 cột: thẻ chiếm 2 cột (3 thẻ một hàng); gói có 5 thẻ cho hai thẻ cuối
+   chiếm 3 cột để hàng thứ hai không bị hụt. Gói Plus nằm trên một mảng tối riêng, hai thẻ to. */
+[data-concept="mot-nut"] .mn-tier + .mn-tier { margin-top: 72px; }
+[data-concept="mot-nut"] .mn-tier-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+  align-items: baseline;
+  gap: 8px 32px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line-2);
+}
+[data-concept="mot-nut"] .mn-tier-name { font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; }
+[data-concept="mot-nut"] .mn-tier-desc { font-size: 16px; line-height: 1.55; color: var(--ink-2); max-width: 56ch; }
+[data-concept="mot-nut"] .mn-tier-count { font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+[data-concept="mot-nut"] .mn-tier .mn-deck { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+[data-concept="mot-nut"] .mn-tier .mn-card-li { grid-column: span 2; }
+[data-concept="mot-nut"] .mn-tier .mn-deck[data-count="2"] .mn-card-li,
+[data-concept="mot-nut"] .mn-tier .mn-deck[data-count="5"] .mn-card-li:nth-child(n + 4) { grid-column: span 3; }
+
+[data-concept="mot-nut"] .mn-tier--plus {
+  --bg-2: #141a25;
+  --surface: #171d29;
+  --ink: #e8ecf4;
+  --ink-2: #a9b1c3;
+  --line: rgb(232 236 244 / 0.09);
+  --line-2: rgb(232 236 244 / 0.15);
+  --accent-ink: #94b0ff;
+  padding: 40px;
+  border-radius: 32px;
+  color: var(--ink);
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgb(52 97 212 / 0.28), transparent 60%),
+    #0d121c;
+  box-shadow: 0 30px 60px -36px rgb(13 18 28 / 0.7);
+}
+[data-concept="mot-nut"] .mn-tier--plus .mn-card-in { box-shadow: 0 0 0 1px var(--line), 0 2px 0 var(--line-2), 0 24px 44px -26px rgb(0 0 0 / 0.8); }
+[data-concept="mot-nut"] .mn-tier--plus .mn-card :is(h3, h4) { font-size: 22px; }
 
 /* ---------- Quy trình: một hàng năm phím ---------- */
 [data-concept="mot-nut"] .mn-plate-zoom { will-change: auto; }
@@ -1318,4 +1357,25 @@
   [data-concept="mot-nut"] *,
   [data-concept="mot-nut"] *::before,
   [data-concept="mot-nut"] *::after { transition-duration: 0.01ms !important; }
+}
+
+/* ---------- Hai gói bản mẫu: máy tính bảng và điện thoại ---------- */
+@media (max-width: 1023.98px) {
+  [data-concept="mot-nut"] .mn-tier-head { grid-template-columns: minmax(0, 1fr) auto; }
+  [data-concept="mot-nut"] .mn-tier-desc { grid-column: 1 / -1; grid-row: 2; }
+  [data-concept="mot-nut"] .mn-tier .mn-deck { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-concept="mot-nut"] .mn-tier .mn-card-li,
+  [data-concept="mot-nut"] .mn-tier .mn-deck[data-count="2"] .mn-card-li,
+  [data-concept="mot-nut"] .mn-tier .mn-deck[data-count="5"] .mn-card-li:nth-child(n + 4) { grid-column: span 1; }
+  /* số thẻ lẻ: thẻ cuối trải cả hàng */
+  [data-concept="mot-nut"] .mn-tier .mn-deck .mn-card-li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  [data-concept="mot-nut"] .mn-tier--plus { padding: 28px; border-radius: 28px; }
+}
+@media (max-width: 699.98px) {
+  [data-concept="mot-nut"] .mn-tier + .mn-tier { margin-top: 48px; }
+  [data-concept="mot-nut"] .mn-tier-head { margin-bottom: 16px; padding-bottom: 14px; }
+  [data-concept="mot-nut"] .mn-tier-name { font-size: 22px; }
+  [data-concept="mot-nut"] .mn-tier-desc { font-size: 15px; }
+  [data-concept="mot-nut"] .mn-tier--plus { padding: 24px 20px 4px; border-radius: 24px; }
+  [data-concept="mot-nut"] .mn-tier--plus .mn-card :is(h3, h4) { font-size: 20px; }
 }

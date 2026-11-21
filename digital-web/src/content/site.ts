@@ -116,6 +116,21 @@ export const samples = {
     { slug: 'portfolio-nhiep-anh', name: 'Portfolios', desc: 'Portfolio nhiếp ảnh có thư viện ảnh', route: '/mau/portfolio-nhiep-anh/', dialogTitle: 'Portfolio nhiếp ảnh Trần Minh Quân', image: 'portfolio-nhiep-anh' },
     { slug: 'hecate-g3m-pro', name: 'HECATE G3M PRO', desc: 'Trang sản phẩm tương tác 13 chương', route: '/mau/hecate-g3m-pro/', dialogTitle: 'Trang sản phẩm chuột HECATE G3M PRO', image: 'hecate-g3m-pro' },
   ],
+  /** Hai gói, mỗi gói liệt kê slug của bản mẫu thuộc gói đó (giữ thứ tự hiển thị). */
+  tiers: [
+    {
+      id: 'digital',
+      name: 'Gói Digital',
+      desc: 'Website bán hàng, nhận đặt lịch, giới thiệu dịch vụ, ra mắt sản phẩm hay hồ sơ cá nhân.',
+      slugs: ['cua-hang', 'dich-vu', 'dat-lich', 'ra-mat', 'portfolio-nhiep-anh'],
+    },
+    {
+      id: 'digital-plus',
+      name: 'Gói Digital Plus',
+      desc: 'Trang trải nghiệm cho sự kiện và sản phẩm cần gây ấn tượng, với chuyển động theo cuộn và tương tác dựng riêng.',
+      slugs: ['concert', 'hecate-g3m-pro'],
+    },
+  ],
   /** Ảnh chụp bản mẫu: 960x540, có bản 480w. */
   imageSrc: (image: string, w: 480 | 960 = 960) => `/demo-previews/${image}-${w}.webp`,
   imageSrcSet: (image: string) => `/demo-previews/${image}-480.webp 480w, /demo-previews/${image}-960.webp 960w`,

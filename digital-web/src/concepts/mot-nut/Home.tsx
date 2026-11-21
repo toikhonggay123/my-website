@@ -134,36 +134,51 @@ function Samples() {
           </h2>
           <p className="mn-sec-sub">{samples.sub}</p>
         </div>
-        <ul className="mn-deck">
-          {samples.items.map((s) => (
-            <li key={s.slug} className="mn-card-li">
-              <a className="mn-card" href={s.route} onClick={openDemo(s.route, s.dialogTitle)} aria-haspopup="dialog">
-                <div className="mn-card-in">
-                  <div className="mn-card-shot">
-                    <img
-                      src={samples.imageSrc(s.image)}
-                      srcSet={samples.imageSrcSet(s.image)}
-                      sizes="(max-width: 699px) 82vw, (max-width: 1023px) 46vw, 400px"
-                      width={960}
-                      height={540}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                  <div className="mn-card-meta">
-                    <div className="mn-card-top">
-                      <h3>{s.name}</h3>
-                      <span className="mn-badge">{samples.badge}</span>
-                    </div>
-                    <p className="mn-card-desc">{s.desc}</p>
-                    <span className="mn-card-open">{samples.open}</span>
-                  </div>
-                </div>
-              </a>
-            </li>
-          ))}
-        </ul>
+        {samples.tiers.map((tier) => {
+          const items = tier.slugs.map((slug) => samples.items.find((s) => s.slug === slug)).filter((s) => s !== undefined);
+          const plus = tier.id === 'digital-plus';
+          return (
+            <section key={tier.id} className={plus ? 'mn-tier mn-tier--plus' : 'mn-tier'} aria-labelledby={`mn-tier-${tier.id}`}>
+              <div className="mn-tier-head">
+                <h3 id={`mn-tier-${tier.id}`} className="mn-tier-name">
+                  {tier.name}
+                </h3>
+                <p className="mn-tier-desc">{tier.desc}</p>
+                <span className="mn-tier-count">{items.length} bản mẫu</span>
+              </div>
+              <ul className="mn-deck" data-count={items.length}>
+                {items.map((s) => (
+                  <li key={s.slug} className="mn-card-li">
+                    <a className="mn-card" href={s.route} onClick={openDemo(s.route, s.dialogTitle)} aria-haspopup="dialog">
+                      <div className="mn-card-in">
+                        <div className="mn-card-shot">
+                          <img
+                            src={samples.imageSrc(s.image)}
+                            srcSet={samples.imageSrcSet(s.image)}
+                            sizes={plus ? '(max-width: 699px) 82vw, 600px' : '(max-width: 699px) 82vw, (max-width: 1023px) 46vw, 400px'}
+                            width={960}
+                            height={540}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </div>
+                        <div className="mn-card-meta">
+                          <div className="mn-card-top">
+                            <h4>{s.name}</h4>
+                            <span className="mn-badge">{samples.badge}</span>
+                          </div>
+                          <p className="mn-card-desc">{s.desc}</p>
+                          <span className="mn-card-open">{samples.open}</span>
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
       </div>
     </section>
   );
