@@ -590,7 +590,8 @@
   gap: 24px 20px;
 }
 [data-concept="mot-nut"] .mn-kc-li { grid-column: span 2; display: flex; }
-[data-concept="mot-nut"] .mn-kc-li:nth-child(4) { grid-column: 2 / span 2; }
+/* hàng hai: hai thẻ chia đôi, thẳng mép trái/phải với hàng trên */
+[data-concept="mot-nut"] .mn-kc-li:nth-child(4) { grid-column: span 3; }
 [data-concept="mot-nut"] .mn-kc-li:nth-child(5) { grid-column: span 3; }
 [data-concept="mot-nut"] .mn-kc {
   --face: var(--blue-kc-face);
@@ -734,6 +735,56 @@
 }
 [data-concept="mot-nut"] .mn-tier--plus .mn-card-in { box-shadow: 0 0 0 1px var(--line), 0 2px 0 var(--line-2), 0 24px 44px -26px rgb(0 0 0 / 0.8); }
 [data-concept="mot-nut"] .mn-tier--plus .mn-card :is(h3, h4) { font-size: 22px; }
+
+/* Digital Plus — chuyển động. Tấm cắt theo clip-path khi mở (GSAP), nội dung nằm trên lớp ánh sáng. */
+[data-concept="mot-nut"] .mn-tier--plus { position: relative; overflow: hidden; isolation: isolate; }
+[data-concept="mot-nut"] .mn-tier--plus > :not(.mn-tier-aura) { position: relative; z-index: 1; }
+/* Hai đốm sáng trôi chậm (chỉ transform). Chạy khi tấm trong màn hình (.is-live do ScrollTrigger gắn). */
+[data-concept="mot-nut"] .mn-tier-aura {
+  position: absolute;
+  inset: -30% -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(32% 40% at 78% 22%, rgb(52 97 212 / 0.42), transparent 70%),
+    radial-gradient(28% 36% at 18% 86%, rgb(96 196 255 / 0.18), transparent 70%);
+  animation: mn-aura 18s ease-in-out infinite alternate;
+  animation-play-state: paused;
+  will-change: transform;
+}
+[data-concept="mot-nut"] .mn-tier--plus.is-live .mn-tier-aura { animation-play-state: running; }
+@keyframes mn-aura {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(-6%, 5%, 0) rotate(8deg) scale(1.08); }
+  100% { transform: translate3d(5%, -4%, 0) rotate(-6deg) scale(1.02); }
+}
+/* Thẻ Plus: GSAP điều khiển transform, nên bỏ transition/hover transform mặc định của thẻ thường. */
+[data-concept="mot-nut"] .mn-tier--plus .mn-card-in { position: relative; transition: box-shadow 0.3s var(--ease); transform-style: preserve-3d; }
+[data-concept="mot-nut"] .mn-tier--plus .mn-card:hover .mn-card-in,
+[data-concept="mot-nut"] .mn-tier--plus .mn-card:active .mn-card-in { transform: none; }
+[data-concept="mot-nut"] .mn-tier--plus .mn-card-shot img { transition: none; }
+[data-concept="mot-nut"] .mn-tier--plus .mn-card:hover .mn-card-shot img { transform: none; }
+/* Vệt sáng theo con trỏ và viền sáng xanh khi rê chuột */
+[data-concept="mot-nut"] .mn-tier--plus .mn-card-in::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgb(148 176 255 / 0.16), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease);
+}
+[data-concept="mot-nut"] .mn-tier--plus .mn-card:hover .mn-card-in::after,
+[data-concept="mot-nut"] .mn-tier--plus .mn-card:focus-visible .mn-card-in::after { opacity: 1; }
+[data-concept="mot-nut"] .mn-tier--plus .mn-card:hover .mn-card-in,
+[data-concept="mot-nut"] .mn-tier--plus .mn-card:focus-visible .mn-card-in {
+  box-shadow: 0 0 0 1px rgb(148 176 255 / 0.45), 0 2px 0 var(--line-2), 0 30px 60px -28px rgb(52 97 212 / 0.55);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-concept="mot-nut"] .mn-tier-aura { animation: none; }
+}
 
 /* ---------- Quy trình: một hàng năm phím ---------- */
 [data-concept="mot-nut"] .mn-plate-zoom { will-change: auto; }
@@ -973,7 +1024,7 @@
 [data-concept="mot-nut"] .ow-rail button:hover:not(:disabled) { transform: translateY(1px); }
 [data-concept="mot-nut"] .ow-rail .is-now button { transform: translateY(3px); background: var(--accent); color: #ffffff; box-shadow: 0 1px 0 var(--accent-skirt); }
 [data-concept="mot-nut"] .ow-rail .is-now button::before { background: rgb(255 255 255 / 0.18); color: #ffffff; }
-[data-concept="mot-nut"] .ow-rail .is-done button::before { content: '¹3'; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-ink); }
+[data-concept="mot-nut"] .ow-rail .is-done button::before { content: '\2713'; /* ✓, viết bằng mã thoát để không hỏng khi đổi bảng mã */ background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-ink); }
 [data-concept="mot-nut"] .ow-rail .is-done.is-now button::before { background: rgb(255 255 255 / 0.18); color: #ffffff; }
 [data-concept="mot-nut"] .ow-rail button:disabled { cursor: not-allowed; color: var(--ink-3); background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
 
@@ -1007,7 +1058,7 @@
 [data-concept="mot-nut"] .ow-fieldset { margin: 28px 0 0; padding: 0; border: 0; min-width: 0; }
 [data-concept="mot-nut"] .ow-legend { padding: 0; margin-bottom: 14px; font-size: 15px; font-weight: 500; color: var(--ink); }
 [data-concept="mot-nut"] .ow-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px 12px; }
-[data-concept="mot-nut"] .ow-opt { position: relative; display: block; padding-bottom: 4px; border-radius: 14px; isolation: isolate; cursor: pointer; }
+[data-concept="mot-nut"] .ow-opt { position: relative; display: flex; flex-direction: column; padding-bottom: 4px; border-radius: 14px; isolation: isolate; cursor: pointer; }
 [data-concept="mot-nut"] .ow-opt::before {
   content: '';
   position: absolute;
@@ -1028,10 +1079,11 @@
 }
 [data-concept="mot-nut"] .ow-opt > span {
   position: relative;
+  flex: 1 1 auto; /* mặt phím lấp đầy chiều cao hàng, chỉ chừa 4px thân phím ở đáy */
   display: grid;
   gap: 4px;
   min-height: 56px;
-  align-content: center;
+  align-content: start;
   padding: 14px 16px 14px 48px;
   border-radius: 14px;
   background: var(--kc-face);
@@ -1046,10 +1098,9 @@
   content: '';
   position: absolute;
   left: 16px;
-  top: 50%;
+  top: 15px; /* thẳng hàng với dòng tiêu đề */
   width: 18px;
   height: 18px;
-  margin-top: -9px;
   border-radius: 6px;
   box-shadow: inset 0 0 0 1.5px var(--line-2);
   background: var(--surface);

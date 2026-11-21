@@ -123,6 +123,56 @@ function Solutions({ links }: { links: PageProps['links'] }) {
   );
 }
 
+/**
+ * Thẻ Digital Plus nghiêng theo con trỏ (tối đa ~7°), ảnh bên trong trôi ngược chiều để có chiều sâu,
+ * và một vệt sáng đi theo vị trí chuột (--mx/--my). quickTo giữ một tween cho mỗi trục, không tạo tween mới mỗi lần di chuột.
+ */
+function tiltCards(scope: HTMLElement): () => void {
+  const offs: (() => void)[] = [];
+  scope.querySelectorAll<HTMLElement>('.mn-card').forEach((card) => {
+    const face = card.querySelector<HTMLElement>('.mn-card-in');
+    const img = card.querySelector<HTMLElement>('.mn-card-shot img');
+    if (!face) return;
+    gsap.set(face, { transformPerspective: 1000 });
+    if (img) gsap.set(img, { scale: 1.08 });
+    const q = (el: HTMLElement, prop: string) => gsap.quickTo(el, prop, { duration: 0.6, ease: 'power3' });
+    const rx = q(face, 'rotationX'); // quickTo cần đúng tên thuộc tính, không nhận bí danh rotateX
+    const ry = q(face, 'rotationY');
+    const lift = q(face, 'y');
+    const ix = img ? q(img, 'x') : null;
+    const iy = img ? q(img, 'y') : null;
+    const move = (e: PointerEvent) => {
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      rx(-py * 7);
+      ry(px * 9);
+      lift(-6);
+      ix?.(-px * 18);
+      iy?.(-py * 12);
+      card.style.setProperty('--mx', `${((px + 0.5) * 100).toFixed(1)}%`);
+      card.style.setProperty('--my', `${((py + 0.5) * 100).toFixed(1)}%`);
+    };
+    const leave = () => {
+      rx(0);
+      ry(0);
+      lift(0);
+      ix?.(0);
+      iy?.(0);
+    };
+    card.addEventListener('pointermove', move);
+    card.addEventListener('pointerleave', leave);
+    offs.push(() => {
+      card.removeEventListener('pointermove', move);
+      card.removeEventListener('pointerleave', leave);
+      gsap.set([face, img].filter(Boolean), { clearProps: 'transform' });
+      card.style.removeProperty('--mx');
+      card.style.removeProperty('--my');
+    });
+  });
+  return () => offs.forEach((off) => off());
+}
+
 function Samples() {
   const openDemo = useDemoPreview();
   return (
@@ -139,6 +189,7 @@ function Samples() {
           const plus = tier.id === 'digital-plus';
           return (
             <section key={tier.id} className={plus ? 'mn-tier mn-tier--plus' : 'mn-tier'} aria-labelledby={`mn-tier-${tier.id}`}>
+              {plus && <span className="mn-tier-aura" aria-hidden />}
               <div className="mn-tier-head">
                 <h3 id={`mn-tier-${tier.id}`} className="mn-tier-name">
                   {tier.name}
@@ -350,23 +401,40 @@ export function Home({ links, theme, toggleTheme }: PageProps) {
       });
     }
 
-    // Bản mẫu: một xấp thẻ chồng lên nhau ở giữa, cuộn tới đâu xòe ra tới đó.
-    if (!c.reduced && !c.mobile) {
-      const deck = root.querySelector<HTMLElement>('.mn-deck');
-      const cards = gsap.utils.toArray<HTMLElement>('.mn-card-li', root);
-      if (deck && cards.length) {
-        const centre = (el: HTMLElement) => ({ x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop + el.offsetHeight / 2 });
-        const mid = () => ({ x: deck.clientWidth / 2, y: deck.clientHeight / 2 });
-        gsap.from(cards, {
-          x: (i: number) => mid().x - centre(cards[i]).x + (i - 2.5) * 6,
-          y: (i: number) => mid().y - centre(cards[i]).y - i * 4,
-          rotate: (i: number) => (i - 2.5) * 3.5,
-          ease: 'none',
-          scrollTrigger: { trigger: deck, start: 'top 92%', end: 'top 40%', scrub: 0.8, invalidateOnRefresh: true },
-        });
+    // Bản mẫu, Gói Digital: một xấp thẻ chồng lên nhau ở giữa, cuộn tới đâu xòe ra tới đó.
+    const basicDeck = root.querySelector<HTMLElement>('.mn-tier:not(.mn-tier--plus) .mn-deck');
+    if (basicDeck && !c.reduced && !c.mobile) {
+      const deck = basicDeck;
+      const cards = gsap.utils.toArray<HTMLElement>('.mn-card-li', deck);
+      const mid = (cards.length - 1) / 2;
+      const centre = (el: HTMLElement) => ({ x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop + el.offsetHeight / 2 });
+      const middle = () => ({ x: deck.clientWidth / 2, y: deck.clientHeight / 2 });
+      gsap.from(cards, {
+        x: (i: number) => middle().x - centre(cards[i]).x + (i - mid) * 6,
+        y: (i: number) => middle().y - centre(cards[i]).y - i * 4,
+        rotate: (i: number) => (i - mid) * 3.5,
+        ease: 'none',
+        scrollTrigger: { trigger: deck, start: 'top 92%', end: 'top 40%', scrub: 0.8, invalidateOnRefresh: true },
+      });
+    } else if (basicDeck) {
+      cascade(gsap.utils.toArray<HTMLElement>('.mn-card-li', basicDeck), { trigger: basicDeck, x: 24, y: 0 });
+    }
+
+    // Gói Digital Plus: tấm tối mở ra từ một khung bo tròn nhỏ hơn, tiêu đề và hai thẻ nổi lên theo chiều sâu,
+    // ánh sáng nền trôi chậm (chỉ chạy khi tấm nằm trong màn hình), rê chuột thì thẻ nghiêng theo con trỏ.
+    const plus = root.querySelector<HTMLElement>('.mn-tier--plus');
+    if (plus) {
+      ScrollTrigger.create({ trigger: plus, start: 'top bottom', end: 'bottom top', toggleClass: 'is-live' });
+      if (!c.reduced) {
+        const head = plus.querySelectorAll('.mn-tier-head > *');
+        const plusCards = plus.querySelectorAll('.mn-card-li');
+        gsap
+          .timeline({ scrollTrigger: { trigger: plus, start: 'top 94%', end: 'top 36%', scrub: 0.9 } })
+          .fromTo(plus, { clipPath: 'inset(8% 3% 8% 3% round 64px)' }, { clipPath: 'inset(0% 0% 0% 0% round 0px)', ease: 'afx.inOut', duration: 1 } /* bo góc cuối do border-radius của tấm */, 0)
+          .from(head, { y: 32, opacity: 0, stagger: 0.08, ease: 'afx.out', duration: 0.6 }, 0.2)
+          .from(plusCards, { y: 140, rotateX: 18, opacity: 0, transformPerspective: 1200, transformOrigin: '50% 100%', stagger: 0.14, ease: 'afx.out', duration: 0.75 }, 0.25);
+        if (!c.mobile && matchMedia('(hover: hover) and (pointer: fine)').matches) cleanups.push(tiltCards(plus));
       }
-    } else {
-      cascade('.mn-card-li', { trigger: '.mn-deck', x: 24, y: 0 });
     }
 
     // Quy trình: tấm phím phóng ra, rồi từng phím được nhấn theo nhịp cuộn.
