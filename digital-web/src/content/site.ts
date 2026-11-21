@@ -104,7 +104,7 @@ export const solutions = {
 export const samples = {
   id: 'ban-mau',
   title: 'Bấm thử trước khi quyết định',
-  sub: 'Mỗi bản mẫu là một website chạy được với dữ liệu minh họa, cho một doanh nghiệp không có thật.',
+  sub: 'Mỗi bản mẫu là một website chạy được với dữ liệu minh họa. Bản mẫu mang tên sản phẩm có thật là nghiên cứu thiết kế, không phải trang chính thức của hãng.',
   badge: 'Bản mẫu',
   open: 'Mở bản mẫu',
   items: [
@@ -114,6 +114,7 @@ export const samples = {
     { slug: 'ra-mat', name: 'Vọng S1', desc: 'Trang ra mắt sản phẩm', route: '/mau/ra-mat', dialogTitle: 'Trang ra mắt loa không dây', image: 'ra-mat' },
     { slug: 'concert', name: 'Vô Cực', desc: 'Trang giới thiệu concert', route: '/mau/concert', dialogTitle: 'Trang giới thiệu concert', image: 'concert' },
     { slug: 'portfolio-nhiep-anh', name: 'Portfolios', desc: 'Portfolio nhiếp ảnh có thư viện ảnh', route: '/mau/portfolio-nhiep-anh/', dialogTitle: 'Portfolio nhiếp ảnh Trần Minh Quân', image: 'portfolio-nhiep-anh' },
+    { slug: 'hecate-g3m-pro', name: 'HECATE G3M PRO', desc: 'Trang sản phẩm tương tác 13 chương', route: '/mau/hecate-g3m-pro/', dialogTitle: 'Trang sản phẩm chuột HECATE G3M PRO', image: 'hecate-g3m-pro' },
   ],
   /** Ảnh chụp bản mẫu: 960x540, có bản 480w. */
   imageSrc: (image: string, w: 480 | 960 = 960) => `/demo-previews/${image}-${w}.webp`,

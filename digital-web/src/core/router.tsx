@@ -55,7 +55,7 @@ export async function navigate(to: string, opts: { replace?: boolean; skipLeave?
 }
 
 export function isStaticRoute(path: string) {
-  return path.startsWith('/mau/portfolio-nhiep-anh') || path.startsWith('/loi-chuc-20-11');
+  return path.startsWith('/mau/portfolio-nhiep-anh') || path.startsWith('/mau/hecate-g3m-pro') || path.startsWith('/loi-chuc-20-11');
 }
 
 export interface Location {
